@@ -1,0 +1,56 @@
+{
+  "project_info": {
+    "project_number": "865830756624",
+    "firebase_url": "https://podsquad-app.firebaseio.com",
+    "project_id": "podsquad-app",
+    "storage_bucket": "podsquad-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:865830756624:android:63eadcdc186db625248595",
+        "android_client_info": {
+          "package_name": "com.coldex.podsquad"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "865830756624-nm1g8e1f7lk8tu4ckf8vfrbs3lfkd8gk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.coldex.podsquad",
+            "certificate_hash": "6ce2a34c89986f5f300c82a5e35d5a7f7df35978"
+          }
+        },
+        {
+          "client_id": "865830756624-fahjc6aqgkbr6rsl2lrvfl76ke366rvq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5tq7IyA-tI5RXzw-h49tqDVAHK_dOywA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "865830756624-fahjc6aqgkbr6rsl2lrvfl76ke366rvq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "865830756624-eks09vcn94u9v8l8mqtg4sfbc4rlpv1t.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.coldex.podsquad",
+                "app_store_id": "123456789"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

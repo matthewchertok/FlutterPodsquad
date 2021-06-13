@@ -10,8 +10,15 @@ class StartingView extends StatefulWidget {
 class _StartingViewState extends State<StartingView> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Text("Login successful. This is the starting view!"),
-    );
+    return CupertinoPageScaffold(
+        child: Center(
+            child: Padding(
+      padding: EdgeInsets.all(20),
+      child: Text(
+        "Login successful. This is the starting "
+        "view!",
+        textAlign: TextAlign.center,
+      ),
+    )));
   }
 }

@@ -7,6 +7,6 @@ class LoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(child: CupertinoActivityIndicator(),);
+    return CupertinoPageScaffold(child: Center(child: CupertinoActivityIndicator()));
   }
 }

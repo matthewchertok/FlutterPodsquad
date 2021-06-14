@@ -49,4 +49,12 @@ class ProfileData {
       "userID": userID
     };
   }
+
+  // Declare that two ProfileData objects are the same if and only if they have the same ID.
+  @override
+  bool operator ==(Object otherInstance) =>
+      otherInstance is ProfileData && userID == otherInstance.userID;
+
+  @override
+  int get hashCode => userID.hashCode;
 }

@@ -1,5 +1,3 @@
-import 'package:flutter/cupertino.dart';
-
 class PodData {
   String name;
   double dateCreated;
@@ -9,7 +7,6 @@ class PodData {
   String podCreatorID;
   String thumbnailURL;
   String fullPhotoURL;
-  Image podThumbnail;
   int podScore;
 
   PodData(
@@ -21,7 +18,6 @@ class PodData {
       required this.podCreatorID,
       required this.thumbnailURL,
       required this.fullPhotoURL,
-      required this.podThumbnail,
       required this.podScore});
 
 

@@ -1,3 +1,5 @@
+import 'package:podsquad/BackendDataclasses/ProfileData.dart';
+
 extension Rounding on double {
   ///Round a double to a specified number of digits after the decimal point. Pass in 1 to round to the nearest tenth,
   /// 2 to round to the nearest hundredth, 3 to round to the nearest thousandth, etc.
@@ -16,4 +18,9 @@ extension StringComparison on String {
   bool operator <= (Object otherString) => otherString is String && this.compareTo(otherString) == 1 ? false : true;
   bool operator >= (Object otherString) => otherString is String && this.compareTo(otherString) == -1 ? false : true;
 
+}
+
+extension StringListExtensions on List<ProfileData> {
+  ///Extracts the user IDs from a list of ProfileData objects.
+  List<String> memberIDs() => this.map((element) => element.userID).toList();
 }

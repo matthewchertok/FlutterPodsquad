@@ -9,8 +9,9 @@ import 'package:podsquad/ContentViews/StartingView.dart';
 import 'package:podsquad/OtherSpecialViews/ErrorView.dart';
 import 'package:podsquad/OtherSpecialViews/LoadingView.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MyApp());
 }
 

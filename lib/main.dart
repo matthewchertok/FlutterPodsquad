@@ -27,7 +27,7 @@ class _AppState extends State<MyApp> {
   FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   ///This function can read push notification payload data and open a specified view.
-  Future<void> respondToPushNotification() async {
+  void respondToPushNotification() async {
     //Get any messages which caused the application to open from
     // a terminated state.
     RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
@@ -66,7 +66,7 @@ class _AppState extends State<MyApp> {
           print("FlutterFire initialized!");
           if (Platform.isIOS) _messaging.requestPermission();
           _messaging.subscribeToTopic("TEST_TOPIC");
-        //  respondToPushNotification();
+          respondToPushNotification();
           return CupertinoApp(home: StartingView());
         }
 

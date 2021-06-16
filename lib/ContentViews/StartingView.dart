@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 class StartingView extends StatefulWidget {
   const StartingView({Key? key}) : super(key: key);
@@ -10,7 +11,13 @@ class StartingView extends StatefulWidget {
 
 class _StartingViewState extends State<StartingView> {
   ThemeMode _themeMode = ThemeMode.system;
-  bool isDarkMode = Brightness == Brightness.dark;
+
+  @override
+  void initState() {
+    super.initState();
+    var brightness = SchedulerBinding.instance?.window.platformBrightness;
+    bool isDarkMode = brightness == Brightness.dark;
+  }
 
   @override
   Widget build(BuildContext context) {

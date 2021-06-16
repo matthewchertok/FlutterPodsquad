@@ -35,14 +35,16 @@ class _AppState extends State<MyApp> {
 
     // If the message also contains a data property with a "type" of "none",
     // navigate to the main screen
-    if (initialMessage?.data['notificationType'] == 'none') {
+    if (initialMessage?.data['notificationType'] == 'xxxx') {
       Navigator.pushNamed(context, '/StartingView');
     }
+    else if (initialMessage?.notification?.title == "Test Notification") Navigator.pushNamed(context, '/LoadingView');
+
 
     // Also handle any interaction when the app is in the background via a
     // Stream listener
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      if (message.data['notificationType'] == 'none') {
+      if (message.data['notificationType'] == 'xxx') {
         Navigator.pushNamed(context, '/StartingView');
       }
       else if (message.notification?.title == "Test Notification") Navigator.pushNamed(context, '/LoadingView');

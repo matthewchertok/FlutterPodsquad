@@ -26,14 +26,6 @@ class _AppState extends State<MyApp> {
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
   late FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
-  ///Initialize push notifications
-  @override
-  void initState() {
-    super.initState();
-    if (Platform.isIOS) _messaging.requestPermission();
-    _messaging.subscribeToTopic("TEST_TOPIC");
-  }
-
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(

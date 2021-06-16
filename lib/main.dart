@@ -24,7 +24,7 @@ class _AppState extends State<MyApp> {
   /// The future is part of the state of our widget. We should not call `initializeApp`
   /// directly inside [build].
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
-  late FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   ///This function can read push notification payload data and open a specified view.
   Future<void> respondToPushNotification() async {
@@ -75,7 +75,9 @@ class _AppState extends State<MyApp> {
           print("FlutterFire initialized!");
           if(Platform.isIOS) _messaging.requestPermission();
           _messaging.subscribeToTopic("TEST_TOPIC");
-          return CupertinoApp(home: StartingView());
+          return CupertinoApp(home: StartingView(), routes: { '/StartingView': (context) => StartingView(), '/Loading'
+              'View': (context) => LoadingView()
+              });
         }
 
         // Otherwise, show something whilst waiting for initialization to complete

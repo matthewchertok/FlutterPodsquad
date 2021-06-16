@@ -1,5 +1,7 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'dart:io';
 
 // Import the firebase_core plugin
 import 'package:firebase_core/firebase_core.dart';
@@ -22,6 +24,34 @@ class _AppState extends State<MyApp> {
   /// The future is part of the state of our widget. We should not call `initializeApp`
   /// directly inside [build].
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+  late FirebaseMessaging _messaging = FirebaseMessaging.instance;
+
+  ///Initialize push notifications
+  @override
+  void initState() {
+    super.initState();
+    if (Platform.isIOS) _messaging.requestPermission();
+    _messaging.subscribeToTopic("TEST_TOPIC");
+
+    //Get any messages which caused the application to open from
+    // a terminated state.
+    RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    _messaging = FirebaseMessaging.instance;
+
+    // If the message also contains a data property with a "type" of "none",
+    // navigate to the main screen
+    if (initialMessage?.data['notificationType'] == 'none') {
+      Navigator.pushNamed(context, '/StartingView');
+    }
+
+    // Also handle any interaction when the app is in the background via a
+    // Stream listener
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      if (message.data['notificationType'] == 'none') {
+        Navigator.pushNamed(context, '/StartingView');
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

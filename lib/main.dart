@@ -27,7 +27,7 @@ class _AppState extends State<MyApp> {
   late FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   ///This function can read push notification payload data and open a specified view.
-  void respondToPushNotification() async {
+  Future<void> respondToPushNotification() async {
     //Get any messages which caused the application to open from
     // a terminated state.
     RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();

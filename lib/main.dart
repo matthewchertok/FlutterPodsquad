@@ -35,73 +35,34 @@ class _AppState extends State<MyApp> {
     // If the message also contains a data property with a "type" of "none",
     // navigate to the main screen
     if (initialMessage?.data['notificationType'] == null) {
-      Navigator.pushNamed(context, '/LoadingView');
-    } else if (initialMessage?.notification?.title == "Test Notification") Navigator.pushNamed(context, '/LoadingView');
+      Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
+    } else if (initialMessage?.notification?.title == "Test Notification")
+      Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
 
     // Also handle any interaction when the app is in the background via a
     // Stream listener
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       if (message.data['notificationType'] == 'xxx') {
-        Navigator.pushNamed(context, '/StartingView');
+        Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
       } else
         Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
     });
   }
 
   @override
+  void initState() {
+    super.initState();
+    _messaging.subscribeToTopic("TEST_TOPIC");
+    respondToPushNotification();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      // Initialize FlutterFire:
-      future: Firebase.initializeApp(),
-      builder: (context, snapshot) {
-        // Check for errors
-        if (snapshot.hasError) {
-          print("Something went wrong when initializing FlutterFire.");
-          return CupertinoApp(home: ErrorView());
-        }
-
-        // Once complete, show your application
-        if (snapshot.connectionState == ConnectionState.done) {
-          // Once Firebase is initialized, show the view that I want to appear when the app opens
-          print("FlutterFire initialized!");
-          if (Platform.isIOS) _messaging.requestPermission();
-          _messaging.subscribeToTopic("TEST_TOPIC");
-          respondToPushNotification();
-          return CupertinoApp(home: StartingView());
-        }
-
-        // Otherwise, show something whilst waiting for initialization to complete
-        print("Waiting for app to load...");
-        return CupertinoApp(home: LoadingView());
-      },
-    );
+    return CupertinoApp(home: StartingView());
   }
 }
 
 /*
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key? key, required this.title}) : super(key: key);
 

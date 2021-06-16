@@ -52,7 +52,6 @@ class _AppState extends State<MyApp> {
   void initState() {
     // Inside here, asynchronously set up a function to handle it when a push notification is tapped.
     super.initState();
-    Firebase.initializeApp();
     respondToPushNotification();
   }
 
@@ -60,7 +59,7 @@ class _AppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return FutureBuilder(
       // Initialize FlutterFire:
-      future: _initialization,
+      future: Firebase.initializeApp(),
       builder: (context, snapshot) {
         // Check for errors
         if (snapshot.hasError) {

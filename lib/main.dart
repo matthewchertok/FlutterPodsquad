@@ -30,6 +30,7 @@ class _AppState extends State<MyApp> {
   void respondToPushNotification() async {
     //Get any messages which caused the application to open from
     // a terminated state.
+    /*
     RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
 
     // If the message also contains a data property with a "type" of "none",
@@ -38,6 +39,7 @@ class _AppState extends State<MyApp> {
       Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
     } else if (initialMessage?.notification?.title == "Test Notification")
       Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
+      */
 
     // Also handle any interaction when the app is in the background via a
     // Stream listener

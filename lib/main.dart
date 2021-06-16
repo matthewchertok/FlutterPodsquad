@@ -26,6 +26,7 @@ class _AppState extends State<MyApp> {
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
   late FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
+  ///This function can read push notification payload data and open a specified view.
   void respondToPushNotification() async {
     //Get any messages which caused the application to open from
     // a terminated state.
@@ -44,12 +45,13 @@ class _AppState extends State<MyApp> {
       if (message.data['notificationType'] == 'none') {
         Navigator.pushNamed(context, '/StartingView');
       }
+      else if (message.notification.title == "Test Notification") Navigator.pushNamed(context, '/LoadingView')
     });
   }
 
   @override
   void initState() {
-    // TODO: implement initState
+    // Inside here, asynchronously set up a function to handle it when a push notification is tapped.
     super.initState();
     respondToPushNotification();
   }

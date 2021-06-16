@@ -45,7 +45,7 @@ class _AppState extends State<MyApp> {
       if (message.data['notificationType'] == 'none') {
         Navigator.pushNamed(context, '/StartingView');
       }
-      else if (message.notification.title == "Test Notification") Navigator.pushNamed(context, '/LoadingView');
+      else if (message.notification?.title == "Test Notification") Navigator.pushNamed(context, '/LoadingView');
     });
   }
 

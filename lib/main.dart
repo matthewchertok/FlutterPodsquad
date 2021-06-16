@@ -44,7 +44,8 @@ class _AppState extends State<MyApp> {
       if (message.data['notificationType'] == 'xxx') {
         Navigator.pushNamed(context, '/StartingView');
       } else
-        Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
+       // Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
+      print("BIDEN");
     });
   }
 

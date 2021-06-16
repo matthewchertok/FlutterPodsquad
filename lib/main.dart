@@ -43,6 +43,7 @@ class _AppState extends State<MyApp> {
           // Once Firebase is initialized, show the view that I want to appear when the app opens
           print("FlutterFire initialized!");
           if(Platform.isIOS) _messaging.requestPermission();
+          _messaging.subscribeToTopic("TEST_TOPIC");
           return CupertinoApp(home: StartingView());
         }
 

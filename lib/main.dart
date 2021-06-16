@@ -26,6 +26,34 @@ class _AppState extends State<MyApp> {
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
   late FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
+  void respondToPushNotification() async {
+    //Get any messages which caused the application to open from
+    // a terminated state.
+    RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    _messaging = FirebaseMessaging.instance;
+
+    // If the message also contains a data property with a "type" of "none",
+    // navigate to the main screen
+    if (initialMessage?.data['notificationType'] == 'none') {
+      Navigator.pushNamed(context, '/StartingView');
+    }
+
+    // Also handle any interaction when the app is in the background via a
+    // Stream listener
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      if (message.data['notificationType'] == 'none') {
+        Navigator.pushNamed(context, '/StartingView');
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    respondToPushNotification();
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(

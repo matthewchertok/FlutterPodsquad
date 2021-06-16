@@ -52,6 +52,7 @@ class _AppState extends State<MyApp> {
   void initState() {
     // Inside here, asynchronously set up a function to handle it when a push notification is tapped.
     super.initState();
+    Firebase.initializeApp();
     respondToPushNotification();
   }
 

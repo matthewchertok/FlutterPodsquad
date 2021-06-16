@@ -25,9 +25,12 @@ class _AppState extends State<MyApp> {
   /// The future is part of the state of our widget. We should not call `initializeApp`
   /// directly inside [build].
   FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  
+  @override
+  void initState() async  {
+    super.initState();
+    _messaging.subscribeToTopic("TEST_TOPIC");
 
-  ///This function can read push notification payload data and open a specified view.
-  void respondToPushNotification() async {
     //Get any messages which caused the application to open from
     // a terminated state.
     RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
@@ -49,13 +52,7 @@ class _AppState extends State<MyApp> {
     });
 
     print("BIDEN");
-  }
 
-  @override
-  void initState() {
-    super.initState();
-    _messaging.subscribeToTopic("TEST_TOPIC");
-    respondToPushNotification();
   }
 
   @override

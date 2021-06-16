@@ -10,6 +10,7 @@ class StartingView extends StatefulWidget {
 
 class _StartingViewState extends State<StartingView> {
   ThemeMode _themeMode = ThemeMode.system;
+  bool isDarkMode = Brightness == Brightness.dark;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +22,7 @@ class _StartingViewState extends State<StartingView> {
         "Login successful. This is the starting "
         "view!",
         textAlign: TextAlign.center,
-        style: TextStyle(color: _themeMode == ThemeMode.dark ? Colors.white : Colors.black),
+        style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
       ),
     )));
   }

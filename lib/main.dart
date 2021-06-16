@@ -26,8 +26,34 @@ class _AppState extends State<MyApp> {
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
   FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
+  ///This function can read push notification payload data and open a specified view.
+  Future<void> respondToPushNotification() async {
+    //Get any messages which caused the application to open from
+    // a terminated state.
+    RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
 
-  
+    // If the message also contains a data property with a "type" of "none",
+    // navigate to the main screen
+    if (initialMessage?.data['notificationType'] == null) {
+      Navigator.pushNamed(context, '/LoadingView');
+    } else if (initialMessage?.notification?.title == "Test Notification") Navigator.pushNamed(context, '/LoadingView');
+
+    // Also handle any interaction when the app is in the background via a
+    // Stream listener
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      if (message.data['notificationType'] == 'xxx') {
+        Navigator.pushNamed(context, '/StartingView');
+      } else
+        Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
+    });
+  }
+
+  @override
+  void initState() {
+    // Inside here, asynchronously set up a function to handle it when a push notification is tapped.
+    super.initState();
+    respondToPushNotification();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +73,6 @@ class _AppState extends State<MyApp> {
           print("FlutterFire initialized!");
           if (Platform.isIOS) _messaging.requestPermission();
           _messaging.subscribeToTopic("TEST_TOPIC");
-       //   respondToPushNotification();
           return CupertinoApp(home: StartingView());
         }
 

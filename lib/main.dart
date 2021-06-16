@@ -28,19 +28,6 @@ class _AppState extends State<MyApp> {
 
   ///This function can read push notification payload data and open a specified view.
   void respondToPushNotification() async {
-    //Get any messages which caused the application to open from
-    // a terminated state.
-    /*
-    RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-
-    // If the message also contains a data property with a "type" of "none",
-    // navigate to the main screen
-    if (initialMessage?.data['notificationType'] == null) {
-      Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
-    } else if (initialMessage?.notification?.title == "Test Notification")
-      Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
-      */
-
     // Also handle any interaction when the app is in the background via a
     // Stream listener
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
@@ -51,11 +38,25 @@ class _AppState extends State<MyApp> {
     });
 
     print("BIDEN");
+
+
+    //Get any messages which caused the application to open from
+    // a terminated state.
+    RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+
+    // If the message also contains a data property with a "type" of "none",
+    // navigate to the main screen
+    if (initialMessage?.data['notificationType'] == null) {
+      Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
+    } else if (initialMessage?.notification?.title == "Test Notification")
+      Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
+
   }
 
   @override
   void initState() {
     super.initState();
+    if(Platform.isIOS) _messaging.requestPermission();
     _messaging.subscribeToTopic("TEST_TOPIC");
     respondToPushNotification();
   }

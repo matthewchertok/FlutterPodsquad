@@ -10,13 +10,13 @@ class StartingView extends StatefulWidget {
 }
 
 class _StartingViewState extends State<StartingView> {
-  ThemeMode _themeMode = ThemeMode.system;
+  bool isDarkMode = false;
 
   @override
   void initState() {
     super.initState();
     var brightness = SchedulerBinding.instance?.window.platformBrightness;
-    bool isDarkMode = brightness == Brightness.dark;
+    isDarkMode = brightness == Brightness.dark;
   }
 
   @override

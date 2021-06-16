@@ -73,7 +73,6 @@ class _AppState extends State<MyApp> {
           if (Platform.isIOS) _messaging.requestPermission();
           _messaging.subscribeToTopic("TEST_TOPIC");
           return CupertinoApp(
-              home: StartingView(),
               initialRoute: '/',
               routes: {'/': (context) => StartingView(), '/StartingView': (context) => StartingView(), '/LoadingView':
           (context)

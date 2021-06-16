@@ -52,10 +52,10 @@ class _AppState extends State<MyApp> {
   }
 
   @override
-  void initState() async  {
+  void initState() {
     super.initState();
     _messaging.subscribeToTopic("TEST_TOPIC");
-
+    respondToPushNotification();
   }
 
   @override

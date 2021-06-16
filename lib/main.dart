@@ -23,7 +23,6 @@ class MyApp extends StatefulWidget {
 class _AppState extends State<MyApp> {
   /// The future is part of the state of our widget. We should not call `initializeApp`
   /// directly inside [build].
-  final Future<FirebaseApp> _initialization = Firebase.initializeApp();
   FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   ///This function can read push notification payload data and open a specified view.
@@ -49,13 +48,6 @@ class _AppState extends State<MyApp> {
   }
 
   @override
-  void initState() {
-    // Inside here, asynchronously set up a function to handle it when a push notification is tapped.
-    super.initState();
-    respondToPushNotification();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return FutureBuilder(
       // Initialize FlutterFire:
@@ -73,6 +65,7 @@ class _AppState extends State<MyApp> {
           print("FlutterFire initialized!");
           if (Platform.isIOS) _messaging.requestPermission();
           _messaging.subscribeToTopic("TEST_TOPIC");
+          respondToPushNotification();
           return CupertinoApp(home: StartingView());
         }
 

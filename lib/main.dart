@@ -36,17 +36,14 @@ class _AppState extends State<MyApp> {
     // navigate to the main screen
     if (initialMessage?.data['notificationType'] == null) {
       Navigator.pushNamed(context, '/LoadingView');
-    }
-    else if (initialMessage?.notification?.title == "Test Notification") Navigator.pushNamed(context, '/LoadingView');
-
+    } else if (initialMessage?.notification?.title == "Test Notification") Navigator.pushNamed(context, '/LoadingView');
 
     // Also handle any interaction when the app is in the background via a
     // Stream listener
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       if (message.data['notificationType'] == 'xxx') {
         Navigator.pushNamed(context, '/StartingView');
-      }
-      else if (message.notification?.title == "Test Notification") Navigator.pushNamed(context, '/LoadingView');
+      } else if (message.notification?.title == "Test Notification") Navigator.pushNamed(context, '/LoadingView');
     });
   }
 
@@ -73,11 +70,11 @@ class _AppState extends State<MyApp> {
         if (snapshot.connectionState == ConnectionState.done) {
           // Once Firebase is initialized, show the view that I want to appear when the app opens
           print("FlutterFire initialized!");
-          if(Platform.isIOS) _messaging.requestPermission();
+          if (Platform.isIOS) _messaging.requestPermission();
           _messaging.subscribeToTopic("TEST_TOPIC");
-          return CupertinoApp(home: StartingView(), routes: { '/StartingView': (context) => StartingView(), '/Loading'
-              'View': (context) => LoadingView()
-              });
+          return CupertinoApp(
+              home: StartingView(),
+              routes: {'/StartingView': (context) => StartingView(), '/LoadingView': (context) => LoadingView()});
         }
 
         // Otherwise, show something whilst waiting for initialization to complete

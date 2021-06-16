@@ -31,7 +31,6 @@ class _AppState extends State<MyApp> {
     //Get any messages which caused the application to open from
     // a terminated state.
     RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-    _messaging = FirebaseMessaging.instance;
 
     // If the message also contains a data property with a "type" of "none",
     // navigate to the main screen

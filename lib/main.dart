@@ -35,8 +35,8 @@ class _AppState extends State<MyApp> {
 
     // If the message also contains a data property with a "type" of "none",
     // navigate to the main screen
-    if (initialMessage?.data['notificationType'] == 'xxxx') {
-      Navigator.pushNamed(context, '/StartingView');
+    if (initialMessage?.data['notificationType'] == null) {
+      Navigator.pushNamed(context, '/LoadingView');
     }
     else if (initialMessage?.notification?.title == "Test Notification") Navigator.pushNamed(context, '/LoadingView');
 

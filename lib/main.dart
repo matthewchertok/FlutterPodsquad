@@ -27,7 +27,7 @@ class _AppState extends State<MyApp> {
   FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   ///This function can read push notification payload data and open a specified view.
-  Future<void> respondToPushNotification() async {
+  void respondToPushNotification() async {
     //Get any messages which caused the application to open from
     // a terminated state.
     RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
@@ -47,6 +47,8 @@ class _AppState extends State<MyApp> {
       } else
         Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
     });
+
+    print("BIDEN");
   }
 
   @override

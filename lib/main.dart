@@ -74,7 +74,11 @@ class _AppState extends State<MyApp> {
           _messaging.subscribeToTopic("TEST_TOPIC");
           return CupertinoApp(
               home: StartingView(),
-              routes: {'/StartingView': (context) => StartingView(), '/LoadingView': (context) => LoadingView()});
+              initialRoute: '/',
+              routes: {'/': (context) => StartingView(), '/StartingView': (context) => StartingView(), '/LoadingView':
+          (context)
+          => LoadingView
+          ()});
         }
 
         // Otherwise, show something whilst waiting for initialization to complete

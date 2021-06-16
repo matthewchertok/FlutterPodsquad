@@ -66,7 +66,7 @@ class _AppState extends State<MyApp> {
           print("FlutterFire initialized!");
           if (Platform.isIOS) _messaging.requestPermission();
           _messaging.subscribeToTopic("TEST_TOPIC");
-          respondToPushNotification();
+        //  respondToPushNotification();
           return CupertinoApp(home: StartingView());
         }
 

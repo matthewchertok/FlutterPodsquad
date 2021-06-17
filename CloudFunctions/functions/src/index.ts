@@ -1064,14 +1064,14 @@ export const sendPushNotification = functions.https.onCall(async data => {
   let recipientID = data.recipientID as string;
   let title = data.title as string;
   let body = data.body as string;
-  let category = data.category as string;
+  let clickAction = data.clickAction as string;
   let senderID = data.senderID as string;
   let senderName = data.senderName as string;
   let notificationType = data.notificationType as string;
   let podID = data.podID as string ?? "nil";
   let podName = data.podName as string ?? "nil";
 
-  let notificationPayload = { "title": title, "body": body, "sound": "notificationTone.wav", "badge": "1", "click_action": category };
+  let notificationPayload = { "title": title, "body": body, "sound": "notificationTone.wav", "badge": "1", "click_action": clickAction };
   let dataPayload = { "senderID": senderID, "senderName": senderName, "notificationType": notificationType, "podID": podID, "podName": podName };
   let payload = { notification: notificationPayload, data: dataPayload };
 

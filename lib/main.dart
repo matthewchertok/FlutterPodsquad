@@ -6,13 +6,12 @@ import 'dart:io';
 // Import the firebase_core plugin
 import 'package:firebase_core/firebase_core.dart';
 import 'package:podsquad/ContentViews/StartingView.dart';
-import 'package:podsquad/OtherSpecialViews/ErrorView.dart';
 import 'package:podsquad/OtherSpecialViews/LoadingView.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(MyApp());
+  runApp(CupertinoApp(home: MyApp()));
 }
 
 ///Required for Firebase to work with Flutter
@@ -31,32 +30,24 @@ class _AppState extends State<MyApp> {
     // Also handle any interaction when the app is in the background via a
     // Stream listener
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      if (message.data['notificationType'] == 'xxx') {
-        Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
-      } else
+      //handle navigation when the app is in the background and a push notification is tapped to open it
+      if (message.notification?.title == "Test Notification")
         Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
     });
-
-    print("BIDEN");
-
 
     //Get any messages which caused the application to open from
     // a terminated state.
     RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
 
-    // If the message also contains a data property with a "type" of "none",
-    // navigate to the main screen
-    if (initialMessage?.data['notificationType'] == null) {
+    //handle navigation when the app is launched from a push notification
+    if (initialMessage?.notification?.title == "Test Notification")
       Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
-    } else if (initialMessage?.notification?.title == "Test Notification")
-      Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
-
   }
 
   @override
   void initState() {
     super.initState();
-    if(Platform.isIOS) _messaging.requestPermission();
+    if (Platform.isIOS) _messaging.requestPermission();
     _messaging.subscribeToTopic("TEST_TOPIC");
     respondToPushNotification();
   }

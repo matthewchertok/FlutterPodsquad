@@ -8,6 +8,6 @@ class LoadingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(child: Center(child: Column(children: [CupertinoActivityIndicator(), Text("Loading...")
-    ])));
+    ], mainAxisAlignment: MainAxisAlignment.center)));
   }
 }

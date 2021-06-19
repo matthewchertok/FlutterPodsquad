@@ -20,7 +20,12 @@ extension StringComparison on String {
 
 }
 
-extension StringListExtensions on List<ProfileData> {
+extension ProfileDataListExtensions on List<ProfileData> {
   ///Extracts the user IDs from a list of ProfileData objects.
   List<String> memberIDs() => this.map((element) => element.userID).toList();
+
+  ///Removes a specified person from an array
+  void removePersonFromList({required String personUserID}){
+    this.removeWhere((element) => element.userID == personUserID);
+  }
 }

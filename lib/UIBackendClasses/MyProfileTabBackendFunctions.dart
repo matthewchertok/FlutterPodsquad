@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:podsquad/BackendDataclasses/MatchSurveyData.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/BackendDataclasses/BasicProfileInfoDict.dart';
-import 'package:podsquad/CommonlyUsedClasses/IdentifiableImage.dart';
+import 'package:podsquad/BackendDataclasses/IdentifiableImage.dart';
 import 'package:podsquad/BackendDataclasses/PodMemberInfoDict.dart';
 import 'package:podsquad/CommonlyUsedClasses/TimeAndDateFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';

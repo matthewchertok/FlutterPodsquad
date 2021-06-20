@@ -8,6 +8,7 @@ class PodMessage {
   String content;
   String senderID;
   String senderName;
+  String senderThumbnailURL;
   double timeStamp;
   String? imageURL;
   String? audioURL;
@@ -20,6 +21,7 @@ class PodMessage {
       required this.content,
       required this.senderID,
       required this.senderName,
+      required this.senderThumbnailURL,
       required this.timeStamp,
       this.imageURL,
       this.audioURL,
@@ -29,8 +31,7 @@ class PodMessage {
 
   // Declare that two PodMessage objects are the same if and only if they have the same ID.
   @override
-  bool operator ==(Object otherInstance) =>
-      otherInstance is PodMessage && id == otherInstance.id;
+  bool operator ==(Object otherInstance) => otherInstance is PodMessage && id == otherInstance.id;
 
   @override
   int get hashCode => id.hashCode;

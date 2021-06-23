@@ -2,6 +2,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:math';
 
 String get myFirebaseUserId => (FirebaseAuth.instance.currentUser?.uid ?? "null");
 
@@ -35,4 +36,9 @@ class UsefulValues {
 
    ///Equal to "date" - indicates that the user is looking for a relationship but the partner's gender doesn't matter.
   static final lookingForAnyGenderDate = "date";
+}
+
+///Calculates a logarithm with a specified base using the change of base formula
+double logWithBase({required double base, required double x}){
+  return log(x)/log(base);
 }

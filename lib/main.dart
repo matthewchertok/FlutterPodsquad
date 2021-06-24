@@ -5,6 +5,7 @@ import 'dart:io';
 
 // Import the firebase_core plugin
 import 'package:firebase_core/firebase_core.dart';
+import 'package:podsquad/ContentViews/LoginView.dart';
 import 'package:podsquad/ContentViews/StartingView.dart';
 import 'package:podsquad/OtherSpecialViews/LoadingView.dart';
 
@@ -54,7 +55,7 @@ class _AppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoApp(home: StartingView());
+    return CupertinoApp(home: LoginView());
   }
 }
 

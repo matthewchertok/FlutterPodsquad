@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -41,4 +43,10 @@ class UsefulValues {
 ///Calculates a logarithm with a specified base using the change of base formula
 double logWithBase({required double base, required double x}){
   return log(x)/log(base);
+}
+
+///Identifies an image in the assets folder. Pass in the name of the image only. For example, if the image was named
+///"Podsquad.png", then to use that image, call image(named: "Podsquad.png").
+Image image({required String named}){
+  return Image.asset('assets/$named');
 }

@@ -132,11 +132,11 @@ class _LoginViewState extends State<LoginView> {
                           CupertinoButton(
                               child: _passwordHidden
                                   ? Opacity(
-                                      opacity: 0.6,
+                                      opacity: 0.8,
                                       child: Icon(CupertinoIcons.eye_slash,
                                           size: 15, color: CupertinoColors.darkBackgroundGray))
                                   : Opacity(
-                                      opacity: 0.6,
+                                      opacity: 0.8,
                                       child: Icon(CupertinoIcons.eye,
                                           size: 15, color: CupertinoColors.darkBackgroundGray)),
                               onPressed: showHidePassword)

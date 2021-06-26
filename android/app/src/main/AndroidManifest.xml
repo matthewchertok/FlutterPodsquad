@@ -18,6 +18,11 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+
+            <!-- For Google Nearby -->
+            <meta-data
+                android:name="com.google.android.nearby.messages.API_KEY"
+                android:value="AIzaSyAFdNMfNpASvuVViGHB7lL4dMtgwLKWip4" />
             <!-- Displays an Android View that continues showing the launch screen
                  Drawable until Flutter paints its first frame, then this splash
                  screen fades out. A splash screen is useful to avoid any visual

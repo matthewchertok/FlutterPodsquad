@@ -8,6 +8,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:podsquad/ContentViews/LoginView.dart';
 import 'package:podsquad/ContentViews/StartingView.dart';
 import 'package:podsquad/OtherSpecialViews/LoadingView.dart';
+import 'package:podsquad/TabLayoutViews/WelcomeView.dart';
+
+import 'BackendDataHolders/UserAuth.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,7 +58,12 @@ class _AppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoApp(home: LoginView());
+    return CupertinoApp(
+        home: ValueListenableBuilder(
+            valueListenable: UserAuth.shared.isLoggedIn,
+            builder: (BuildContext context, bool value, Widget? child) {
+              return UserAuth.shared.isLoggedIn.value ? WelcomeView() : LoginView();
+            }));
   }
 }
 

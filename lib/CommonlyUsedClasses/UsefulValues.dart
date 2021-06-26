@@ -17,6 +17,9 @@ FirebaseStorage firebaseStorage = FirebaseStorage.instance;
 ///A reference to a Firebase Functions object used throughout the app
 FirebaseFunctions firebaseFunctions = FirebaseFunctions.instance;
 
+/// A reference to a Firebase Auth object that is used throughout the app
+FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+
 class UsefulValues {
   ///Equal to "he/him/his"
   static final malePronouns = "he/him/his";

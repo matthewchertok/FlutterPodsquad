@@ -1,21 +1,24 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 
 class UserAuth {
   static final shared = UserAuth();
-  User? currentUser;
-  late ValueNotifier<bool> isLoggedIn;
+  User? currentUser = firebaseAuth.currentUser;
+  ValueNotifier<bool> isLoggedIn = ValueNotifier(firebaseAuth.currentUser != null);
 
-  UserAuth(){
-    this.currentUser = FirebaseAuth.instance.currentUser;
-    this.isLoggedIn.value = currentUser != null; // I'm logged in if the value of currentUser is not null.
-  }
-
-  void login(){
+  ///Changes isLoggedIn to true to update the UI. Does not handle Firebase stuff; that must be done separately.
+  void updateUIToLoggedInView() {
     this.isLoggedIn.value = true;
   }
 
-  void logOut(){
-    this.isLoggedIn.value = false;
+  ///Handles sign out logic and updates the UI.
+  void logOut({Function? onCompletion}) {
+    firebaseAuth.signOut().then((value) {
+      this.isLoggedIn.value = false;
+      if (onCompletion != null) onCompletion();
+    }).catchError((error) {
+      print("An error occurred while trying to sign out: $error");
+    });
   }
 }

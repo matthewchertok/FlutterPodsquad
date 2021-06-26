@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:podsquad/BackendDataHolders/UserAuth.dart';
 import 'package:podsquad/BackendFunctions/PushNotificationSender.dart';
 import 'package:podsquad/BackendDataclasses/NotificationTypes.dart';
 
@@ -45,10 +46,11 @@ class _StartingViewState extends State<StartingView> {
                       content: Text("Are you sure you want to send a test notification? You must believe in science to "
                           "continue."),
                       actions: <Widget>[
-                        CupertinoButton(child: Text("Yes, I voted for Biden"), onPressed: sendTestPushNotification),
+                        CupertinoButton(child: Text("Yes, I voted for Biden"), onPressed: _sendTestPushNotification),
                         CupertinoButton(
-                            child: Text("No, I'm anti-vax"),
+                            child: Text("No, I'm anti-vax. Sign me out!"),
                             onPressed: () {
+                              UserAuth.shared.logOut();
                               Navigator.of(context, rootNavigator: true).pop();
                             })
                       ],
@@ -57,7 +59,7 @@ class _StartingViewState extends State<StartingView> {
     ], mainAxisAlignment: MainAxisAlignment.center)));
   }
 
-  void sendTestPushNotification() {
+  void _sendTestPushNotification() {
     PushNotificationSender.shared.sendPushNotification(
         recipientID: "TEST_TOPIC",
         title: "I Believe in Science",

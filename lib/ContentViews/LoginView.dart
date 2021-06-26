@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:podsquad/BackendDataHolders/UserAuth.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 
@@ -22,6 +24,18 @@ class _LoginViewState extends State<LoginView> {
 
   ///Determine whether to show or hide the password text
   bool _passwordHidden = true;
+
+  ///Determine whether to disable the sign up button. Button should be disable while waiting for network response to
+  ///prevent multiple requests from being made.
+  bool _signUpButtonDisabled = false;
+
+  ///Determine whether to disable the sign in button. Button should be disabled while waiting for network response in
+  /// order to prevent multiple requests from being made
+  bool _signInButtonDisabled = false;
+
+  ///Determine whether to disable the forgot password button. Button should be disable while waiting for network response to
+  /// prevent multiple requests from being made.
+  bool _forgotPasswordButtonDisabled = false;
 
   ///Switch between showing the password text and blocking it out
   void showHidePassword() {
@@ -56,7 +70,232 @@ class _LoginViewState extends State<LoginView> {
   ]);
 
   /// Handle user sign ups via Firebase Authentication
-  void signUp() {}
+  void _signUp({required String email, required String password}) {
+    final isValidEmail = emailValidator.isValid(email);
+    final isValidPassword = passwordValidator.isValid(password);
+    if (isValidEmail && isValidPassword) {
+      _signUpButtonDisabled = true; // disable the button while a network request is in progress
+      firebaseAuth.createUserWithEmailAndPassword(email: email, password: password).then((authResult) {
+        // if there is no error, send the verification link to the email address and re-enable the sign up button.
+        _sendEmailVerificationLink(email: email, password: password);
+      }).catchError((error) {
+        final alert = CupertinoAlertDialog(
+            title: Text("Error Creating Account"),
+            content: Text("If you previously "
+                "signed up with this email address, tap Resend for a new verification link."),
+            actions: [
+              CupertinoButton(
+                  child: Text("Resend"),
+                  onPressed: () {
+                    // send an email verification link
+                    _sendEmailVerificationLink(email: email, password: password);
+                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
+                  }),
+              CupertinoButton(
+                  child: Text("Cancel"),
+                  onPressed: () {
+                    _signUpButtonDisabled = false; // re-enable the sign up button
+                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
+                  })
+            ]);
+        showCupertinoDialog(
+            context: context,
+            builder: (context) {
+              return alert;
+            });
+      });
+    } else {
+      final alert = CupertinoAlertDialog(
+          title: Text("Sign Up Failed"),
+          content: Text("The email and password "
+              "combination is not valid."),
+          actions: [
+            CupertinoButton(
+                child: Text("OK"),
+                onPressed: () {
+                  _signUpButtonDisabled = false;
+                  Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
+                })
+          ]);
+      showCupertinoDialog(context: context, builder: (context) => alert);
+    }
+  }
+
+  ///Send an email verification link to verify a user and re-enables the sign up button once the sign up process is
+  ///complete
+  void _sendEmailVerificationLink({required String email, required String password}) {
+    final actionCodeSettings = ActionCodeSettings(
+        url: 'https://podsquad.page.link/Zi7X', handleCodeInApp: false, iOSBundleId: 'com.coldex.podsquad');
+
+    // sign the user in with Firebase (but don't update the UI) so that we can send an email verification link
+    firebaseAuth.signInWithEmailAndPassword(email: email, password: password).then((authResult) {
+      // we must sign out after sending the email verification link to force the user to actually verify their email
+      UserAuth.shared.logOut();
+
+      // Now send the email verification link
+      firebaseAuth.currentUser?.sendEmailVerification(actionCodeSettings).then((value) {
+        final alert = CupertinoAlertDialog(
+            title: Text("Check Your Email"),
+            content: Text("Click the link that was "
+                "sent to your email address to confirm your account!"),
+            actions: [
+              CupertinoButton(
+                  child: Text("OK"),
+                  onPressed: () {
+                    _signUpButtonDisabled = false;
+                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
+                  })
+            ]);
+        showCupertinoDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return alert;
+            });
+      }).catchError((error) {
+        final alert = CupertinoAlertDialog(
+            title: Text("An Error Occurred"),
+            content: Text("Unable to send a "
+                "verification link to $email"),
+            actions: [
+              CupertinoButton(
+                  child: Text("OK"),
+                  onPressed: () {
+                    _signUpButtonDisabled = false;
+                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
+                  })
+            ]);
+        showCupertinoDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return alert;
+            });
+      });
+    }).catchError((error) {
+      final alert = CupertinoAlertDialog(
+          title: Text("Sign Up Failed"),
+          content: Text("This email address is already "
+              "taken."),
+          actions: [
+            CupertinoButton(
+                child: Text("OK"),
+                onPressed: () {
+                  _signUpButtonDisabled = false;
+                  Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
+                })
+          ]);
+      showCupertinoDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return alert;
+          });
+    });
+  }
+
+  /// Handles the sign in process
+  void _signIn({required String email, required String password}) {
+    _signInButtonDisabled = true;
+
+    firebaseAuth.signInWithEmailAndPassword(email: email, password: password).then((authResult) {
+      final isEmailVerified = authResult.user?.emailVerified ?? false;
+
+      // if the email is verified, update the UI since sign in was successful.
+      if (isEmailVerified) {
+        _signInButtonDisabled = false;
+        UserAuth.shared.updateUIToLoggedInView();
+      } else {
+        UserAuth.shared.logOut();
+        final alert = CupertinoAlertDialog(
+            title: Text("Email Address Not Verified"),
+            content: Text("Please click "
+                "the link that was sent to your email address to verify your account. If you lost that email, please "
+                "sign up again."),
+            actions: [
+              CupertinoButton(
+                  child: Text("OK"),
+                  onPressed: () {
+                    _signInButtonDisabled = false;
+                    Navigator.of(context, rootNavigator: true).pop();
+                  })
+            ]);
+        showCupertinoDialog(
+            context: context,
+            builder: (context) {
+              return alert;
+            });
+      }
+    }).catchError((error) {
+      UserAuth.shared.logOut();
+      final alert = CupertinoAlertDialog(
+          title: Text("Login Failed"),
+          content: Text("The email and password combination is incorrect."),
+          actions: [
+            CupertinoButton(
+                child: Text("OK"),
+                onPressed: () {
+                  _signInButtonDisabled = false;
+                  Navigator.of(context, rootNavigator: true).pop();
+                })
+          ]);
+      showCupertinoDialog(
+          context: context,
+          builder: (context) {
+            return alert;
+          });
+    });
+  }
+
+  /// Send a link to the user's email address so they can reset their password
+  void sendPasswordResetEmail({required String emailAddress}) {
+    _forgotPasswordButtonDisabled = true; // stop the user from repeatedly tapping this and sending themselves
+    // multiple emails
+
+    // make sure the email address is valid
+    if (emailValidator.isValid(emailAddress)) {
+      firebaseAuth.sendPasswordResetEmail(email: emailAddress).then((value) {
+        final alert = CupertinoAlertDialog(
+            title: Text("Password Reset Sent"),
+            content: Text("Check your email for a "
+                "link to reset your password!"),
+            actions: [
+              CupertinoButton(
+                  child: Text("OK"),
+                  onPressed: () {
+                    _forgotPasswordButtonDisabled = false; // allow the user to tap the Forgot Password button again
+                    Navigator.of(context, rootNavigator: true).pop();
+                  })
+            ]);
+        showCupertinoDialog(context: context, builder: (context) => alert);
+      }).catchError((error) {
+        final alert = CupertinoAlertDialog(
+            title: Text("Password Reset Error"),
+            content: Text("Password reset email "
+                "failed to send. Make sure this email address is associated with a valid Podsquad account."),
+            actions: [
+              CupertinoButton(
+                  child: Text("OK"),
+                  onPressed: () {
+                    _forgotPasswordButtonDisabled = false;
+                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
+                  })
+            ]);
+        showCupertinoDialog(context: context, builder: (context) => alert);
+      });
+    } else {
+      final alert = CupertinoAlertDialog(
+          title: Text("Invalid Email"),
+          content: Text("You must be a current or "
+              "recent university student to use Podsquad. Please enter a valid .edu email address."),
+          actions: [
+            CupertinoButton(
+                child: Text("OK"),
+                onPressed: () {
+                  _forgotPasswordButtonDisabled = false;
+                  Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
+                })
+          ]);
+      showCupertinoDialog(context: context, builder: (context) => alert);
+    }
+  }
 
   @override
   void initState() {
@@ -160,7 +399,8 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         onPressed: () {
                           this.showEmailPasswordAutoValidation();
-                          print("sign up pressed");
+                          if (!_signUpButtonDisabled) _signUp(email: _emailFieldController.text.trim(), password:
+                              _passwordFieldController.text);
                         }),
 
                     // sign in button
@@ -171,7 +411,8 @@ class _LoginViewState extends State<LoginView> {
                         ]),
                         onPressed: () {
                           this.showEmailPasswordAutoValidation();
-                          print("sign in pressed");
+                          if (!_signInButtonDisabled)
+                            _signIn(email: _emailFieldController.text.trim(), password: _passwordFieldController.text);
                         }),
 
                     // forgot password button
@@ -187,7 +428,8 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         onPressed: () {
                           this.showEmailPasswordAutoValidation();
-                          print("forgot password pressed");
+                          if (!_forgotPasswordButtonDisabled)
+                            sendPasswordResetEmail(emailAddress: _emailFieldController.text.trim());
                         })
                   ])
                 ]),

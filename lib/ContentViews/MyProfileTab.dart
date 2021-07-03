@@ -547,7 +547,8 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                     child: CupertinoPageScaffold(
                                       child: Column(
                                         children: [
-                                          Padding(padding: EdgeInsets.all(10), child: Text("Enter Birthday")),
+                                          Padding(padding: EdgeInsets.all(10), child: Text("Enter Birthday", style:
+                                          TextStyle(color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),)),
                                           Expanded(
                                               child: Padding(
                                                   padding: EdgeInsets.only(top: 20),

@@ -388,7 +388,8 @@ class _MyProfileTabState extends State<MyProfileTab> {
                     ),
                   ),
 
-                  if (_showingMultiImageUploader) MultiImageUploader()
+                  AnimatedSwitcher(duration: Duration(milliseconds: 250), child: _showingMultiImageUploader ?
+                      MultiImageUploader() : Container())
                 ]),
 
                 // Name, pronouns, lookingFor, Birthday, school, bio, and Update Profile button

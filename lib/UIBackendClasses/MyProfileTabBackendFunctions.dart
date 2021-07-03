@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:podsquad/BackendDataclasses/MatchSurveyData.dart';
@@ -208,8 +207,11 @@ class MyProfileTabBackendFunctions {
           myImagesDict.forEach((imageID, imageData) {
             String? imageURLString = imageData["imageURL"];
             int? position = imageData["position"];
+            String? caption = imageData["caption"];
             if (imageURLString != null && position != null) {
-              final identifiableImage = IdentifiableImage(imageURL: imageURLString, position: position, id: imageID);
+              final identifiableImage = IdentifiableImage(imageURL: imageURLString, caption: caption, position: position,
+                  id:
+              imageID);
 
               //Now let's add each image to my extra images list.
               imagesList.add(identifiableImage); // now add the most recent image to the list

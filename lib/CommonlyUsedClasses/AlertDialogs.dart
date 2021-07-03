@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 
 /// Show a single-button CupertinoAlertDialog
 void showSingleButtonAlert(
@@ -11,7 +12,7 @@ void showSingleButtonAlert(
     CupertinoButton(
         child: Text(dismissButtonLabel),
         onPressed: () {
-          Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert dialog
+          dismissAlert(context: context);
           if (onAlertDismissed != null) onAlertDismissed();
         })
   ]);
@@ -32,13 +33,13 @@ void showTwoButtonAlert(
     CupertinoButton(
         child: Text(cancelButtonLabel),
         onPressed: () {
-          Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert dialog
+          dismissAlert(context: context);
           if (onCancelButtonPressed != null) onCancelButtonPressed();
         }),
     CupertinoButton(
         child: Text(actionButtonLabel, style: TextStyle(color: actionButtonColor)),
         onPressed: () {
-          Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert dialog
+          dismissAlert(context: context);
           if (onActionButtonPressed != null) onActionButtonPressed();
         })
   ]);

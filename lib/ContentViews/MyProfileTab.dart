@@ -196,12 +196,12 @@ class _MyProfileTabState extends State<MyProfileTab> {
       CupertinoButton(
           child: Text("No"),
           onPressed: () {
-            Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
+            dismissAlert(context: context);
           }),
       CupertinoButton(
           child: Text("Yes"),
           onPressed: () {
-            Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
+            dismissAlert(context: context);
             UserAuth.shared.logOut();
           })
     ]);
@@ -219,14 +219,14 @@ class _MyProfileTabState extends State<MyProfileTab> {
           CupertinoButton(
               child: Text("Cancel", style: TextStyle(fontWeight: FontWeight.bold)),
               onPressed: () {
-                Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
+                dismissAlert(context: context);
               }),
 
           // delete button
           CupertinoButton(
               child: Text("Yes", style: TextStyle(color: CupertinoColors.destructiveRed)),
               onPressed: () {
-                Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
+                dismissAlert(context: context);
                 _deleteAccount(); // delete my account
               })
         ]);
@@ -255,7 +255,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
             CupertinoButton(
                 child: Text("OK"),
                 onPressed: () {
-                  Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
+                  dismissAlert(context: context);
                   UserAuth.shared.logOut();
                 })
           ]);
@@ -270,12 +270,12 @@ class _MyProfileTabState extends State<MyProfileTab> {
             CupertinoButton(
                 child: Text("Cancel"),
                 onPressed: () {
-                  Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
+                  dismissAlert(context: context);
                 }),
             CupertinoButton(
                 child: Text("Sign Out"),
                 onPressed: () {
-                  Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
+                  dismissAlert(context: context);
                   UserAuth.shared.logOut(); // sign out
                 })
           ]);
@@ -406,19 +406,19 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                   child: Text(UsefulValues.malePronouns),
                                   onPressed: () {
                                     _preferredPronouns = UsefulValues.malePronouns;
-                                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the menu
+                                    dismissAlert(context: context);
                                   }),
                               CupertinoActionSheetAction(
                                   child: Text(UsefulValues.femalePronouns),
                                   onPressed: () {
                                     _preferredPronouns = UsefulValues.femalePronouns;
-                                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the menu
+                                    dismissAlert(context: context);
                                   }),
                               CupertinoActionSheetAction(
                                   child: Text(UsefulValues.nonbinaryPronouns),
                                   onPressed: () {
                                     _preferredPronouns = UsefulValues.nonbinaryPronouns;
-                                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the menu
+                                    dismissAlert(context: context);
                                   }),
 
                               // There is no cancel button because the user must pick a pronoun.
@@ -449,12 +449,11 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                     setState(() {
                                       _preferredRelationshipType = UsefulValues.lookingForFriends;
                                     });
-                                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the context menu
+                                    dismissAlert(context: context);
                                   }),
                               CupertinoActionSheetAction(
                                   child: Text("I want a relationship!"),
                                   onPressed: () {
-                                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the context menu
                                     final chooseRelationshipTypeSheet =
                                     CupertinoActionSheet(title: Text("Relationship Type"), actions: [
                                       CupertinoActionSheetAction(
@@ -463,7 +462,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                             setState(() {
                                               _preferredRelationshipType = UsefulValues.lookingForBoyfriend;
                                             });
-                                            Navigator.of(context, rootNavigator: true).pop();
+                                            dismissAlert(context: context);
                                           }),
                                       CupertinoActionSheetAction(
                                           child: Text("I like girls!"),
@@ -471,7 +470,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                             setState(() {
                                               _preferredRelationshipType = UsefulValues.lookingForGirlfriend;
                                             });
-                                            Navigator.of(context, rootNavigator: true).pop();
+                                            dismissAlert(context: context);
                                           }),
                                       CupertinoActionSheetAction(
                                           child: Text("I like all genders!"),
@@ -479,7 +478,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                             setState(() {
                                               _preferredRelationshipType = UsefulValues.lookingForAnyGenderDate;
                                             });
-                                            Navigator.of(context, rootNavigator: true).pop();
+                                            dismissAlert(context: context);
                                           })
                                     ]);
                                     showCupertinoModalPopup(
@@ -552,7 +551,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                             child: CupertinoButton(
                                               child: Text("Done"),
                                               onPressed: () {
-                                                Navigator.of(context, rootNavigator: true).pop();
+                                                dismissAlert(context: context);
                                               },
                                             ),
                                           )

@@ -8,7 +8,6 @@ import 'package:podsquad/BackendFunctions/ResizeAndUploadImage.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/ViewFullImage.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
-import 'package:uuid/uuid.dart';
 import 'dart:io';
 
 ///Allow a user to upload 5 extra images to their profile
@@ -182,7 +181,7 @@ class _MultiImageUploaderState extends State<MultiImageUploader> {
                                           CupertinoPageRoute(
                                               builder: (context) => ViewFullImage(
                                                   urlForImageToView: identifiableImage.imageURL,
-                                                  imageID: identifiableImage.id,
+                                                  imageID: identifiableImage.id, savedCaption: identifiableImage.caption,
                                                   navigationBarTitle: "Caption Image",
                                                   canWriteCaption: true)));
                                     }),

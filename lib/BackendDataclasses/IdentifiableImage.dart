@@ -6,9 +6,10 @@ class IdentifiableImage {
 
   late String id;
   String imageURL;
+  String? caption;
   int position;
 
-  IdentifiableImage({String? id, required this.imageURL, required this.position}){
+  IdentifiableImage({String? id, required this.imageURL, this.caption, required this.position}){
     //If no ID is passed in (id is null), then use a randomly generated ID. However, if a value is passed in for id, then use that as the image ID.
     this.id = id == null ? this._uuid.v1() : id;
   }

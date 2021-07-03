@@ -78,3 +78,11 @@ Color accentColor({double opacity = 1}){
 Brightness? get _brightness => SchedulerBinding.instance?.window.platformBrightness;
 /// Determine whether the app is in dark mode
 bool get isDarkMode => _brightness == Brightness.dark;
+
+
+/// Dismiss an alert
+void dismissAlert({required BuildContext context}){
+  Navigator.of(context, rootNavigator: true).pop();
+  FocusScope.of(context)
+      .requestFocus(FocusNode()); // stop any text fields from becoming active inadvertently
+}

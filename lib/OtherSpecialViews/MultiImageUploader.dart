@@ -124,7 +124,7 @@ class _MultiImageUploaderState extends State<MultiImageUploader> {
                     children: [
                       // The delete image button, which should be above the image and to the right
                       Container(
-                        width: 140,
+                        width: 140, height: 25,
                         child: Row(
                           children: [
                             Spacer(),

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:podsquad/BackendDataclasses/IdentifiableImage.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
@@ -19,18 +20,25 @@ class ResizeAndUploadImage {
   /// After the image is uploaded and a download URL is ready, assign it to this property
   String? downloadedFullImageURL;
 
+  /// Use this to tell MyProfileTab to display a loading spinner if an image is actively uploading
+  ValueNotifier<bool> isUploadInProgress = ValueNotifier(false);
+
   /// Upload my profile thumbnail and full image to Firebase Storage and set the thumbnail and full image URL in
   /// Firestore.
   Future<void> uploadMyProfileImage({required File image, required Function onUploadComplete}) async {
     final thumbnailStoragePath = ProfileDatabasePaths(userID: myFirebaseUserId).profileImageThumbnailRef;
     final fullImageStoragePath = ProfileDatabasePaths(userID: myFirebaseUserId).profileImageFullImageRef;
+    this.isUploadInProgress.value = true;
 
     /// Compress the image before uploading the thumbnail, in order to make it small to save storage space and
     /// improve loading times
 
     // resize the thumbnail and full image to make them smaller
     var inputImage = decodeImage(image.readAsBytesSync());
-    if (inputImage == null) return;
+    if (inputImage == null) {
+      this.isUploadInProgress.value = false;
+      return;
+    }
     final resizingThumbnail = copyResize(inputImage, width: 250, height: 250); // thumbnail is 125x125
     final resizingFullPhoto = copyResize(inputImage, width: 1080, height: 1080); // full photo is 1080x1080
 
@@ -42,13 +50,25 @@ class ResizeAndUploadImage {
     final splitThumbnailPath = image.path.substring(0, lastIndexThumbnail);
     final thumbnailOutPath = "${splitThumbnailPath}_out${image.path.substring(lastIndexThumbnail)}";
     final thumbnailBytes =
-        await FlutterImageCompress.compressAndGetFile(image.absolute.path, thumbnailOutPath, quality: 40);
-    if (thumbnailBytes == null) return;
+        await FlutterImageCompress.compressAndGetFile(image.absolute.path, thumbnailOutPath, quality: 40).catchError((error){
+          print("An error occurred while compressing my thumbnail: $error");
+          this.isUploadInProgress.value = false;
+        });
+    if (thumbnailBytes == null) {
+      this.isUploadInProgress.value = false;
+      return;
+    }
 
     // upload the thumbnail and get the download URL
-    TaskSnapshot thumbnailUploadTask = await thumbnailStoragePath.putFile(thumbnailBytes);
+    TaskSnapshot thumbnailUploadTask = await thumbnailStoragePath.putFile(thumbnailBytes).catchError((error){
+      print("An error occurred while uploading my thumbnail to storage: $error");
+      this.isUploadInProgress.value = false;
+    });
     final pathToThumbnail = thumbnailUploadTask.ref.fullPath;
-    final thumbnailDownloadURL = await thumbnailUploadTask.ref.getDownloadURL();
+    final thumbnailDownloadURL = await thumbnailUploadTask.ref.getDownloadURL().catchError((error){
+      print("Error getting my thumbnail download URL: $error");
+      this.isUploadInProgress.value = false;
+    });
 
     // Save the full photo as a png and overwrite the thumbnail
     image.writeAsBytesSync(encodePng(resizingFullPhoto));
@@ -57,13 +77,25 @@ class ResizeAndUploadImage {
     final lastIndexFullPhoto = image.path.lastIndexOf(RegExp(r'.jp'));
     final splitFullPhotoPath = image.path.substring(0, lastIndexFullPhoto);
     final fullPhotoOutPath = "${splitFullPhotoPath}_out${image.path.substring(lastIndexFullPhoto)}";
-    final fullPhotoBytes = await FlutterImageCompress.compressAndGetFile(image.absolute.path, fullPhotoOutPath);
-    if (fullPhotoBytes == null) return;
+    final fullPhotoBytes = await FlutterImageCompress.compressAndGetFile(image.absolute.path, fullPhotoOutPath).catchError((error){
+      print("Image compression error: $error");
+      this.isUploadInProgress.value = false;
+    });
+    if (fullPhotoBytes == null) {
+      this.isUploadInProgress.value = false;
+      return;
+    }
 
     // upload the full photo and get the download URL
-    TaskSnapshot fullPhotoUploadTask = await fullImageStoragePath.putFile(fullPhotoBytes);
+    TaskSnapshot fullPhotoUploadTask = await fullImageStoragePath.putFile(fullPhotoBytes).catchError((error){
+      print("An error occurred while uploading my full profile image to storage: $error");
+      this.isUploadInProgress.value = false;
+    });
     final pathToFullImage = fullPhotoUploadTask.ref.fullPath;
-    final fullImageDownloadURL = await fullPhotoUploadTask.ref.getDownloadURL();
+    final fullImageDownloadURL = await fullPhotoUploadTask.ref.getDownloadURL().catchError((error){
+      print("Error getting the download URL: $error");
+      this.isUploadInProgress.value = false;
+    });
 
     // set my profile data with the thumbnail and full photo URL and path
     ProfileDatabasePaths(userID: myFirebaseUserId).userDataRef.set({
@@ -74,9 +106,13 @@ class ResizeAndUploadImage {
             "": fullImageDownloadURL,
         "fullPhotoPath": pathToFullImage
       }
-    }, SetOptions(merge: true));
-
-    onUploadComplete(); // call the completion handler
+    }, SetOptions(merge: true)).then((value) {
+      this.isUploadInProgress.value = false; // hide the loading spinner
+      onUploadComplete(); // call the completion handler
+    }).catchError((error){
+      print("An error occurred while setting my new thumbnail URL: $error");
+      this.isUploadInProgress.value = false;
+    });
   }
 
   /// Upload one of my (max 5) extra images. The imagePosition parameter indicates which order the image should

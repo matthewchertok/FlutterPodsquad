@@ -55,7 +55,6 @@ class _AppState extends State<MyApp> {
     if (Platform.isIOS) _messaging.requestPermission();
     _messaging.subscribeToTopic("TEST_TOPIC");
     respondToPushNotification();
-    MyProfileTabBackendFunctions.shared.getMyProfileData(); // download my profile data when the app starts
   }
 
   @override
@@ -63,8 +62,23 @@ class _AppState extends State<MyApp> {
     return CupertinoApp(
         home: ValueListenableBuilder(
             valueListenable: UserAuth.shared.isLoggedIn,
-            builder: (BuildContext context, bool value, Widget? child) {
-              return UserAuth.shared.isLoggedIn.value ? WelcomeView() : LoginView();
+            builder: (BuildContext context, bool isLoggedIn, Widget? child) {
+              if (isLoggedIn) {
+                // Must wait until profile data is ready; otherwise we'll run into the issue of profile data not
+                // loading. The reason I can't just put snapshots on profile data is that Flutter can behave weirdly,
+                // such that opening a text field can cause the widget to think it disappeared, which causes the view
+                // to reset and causes listeners to fire, erasing my changes and resetting my profile data to how it
+                // was. Using a FutureBuilder guarantees that my profile data will be available when the app opens.
+                return FutureBuilder(future: MyProfileTabBackendFunctions.shared.getMyProfileData(),builder:
+                    (context, snapshot){
+                    return WelcomeView();
+                });
+              }
+              else {
+                MyProfileTabBackendFunctions.shared.reset();
+                return LoginView();// stop listening to my profile data and reset if I sign
+                // out
+              }
             }));
   }
 }

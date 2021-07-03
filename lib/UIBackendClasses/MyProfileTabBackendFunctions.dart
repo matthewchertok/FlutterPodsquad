@@ -153,7 +153,7 @@ class MyProfileTabBackendFunctions {
   }
 
   ///ONLY CALL THIS FUNCTION ON THE SHARED INSTANCE OF THE CLASS! Gets my profile and match survey data from the database.
-  void getMyProfileData() {
+  Future getMyProfileData() async {
     _myExtraImagesList = []; // reset this list when the function is called to ensure I don't get duplicate items
     final profileDataDocumentListener =
         ProfileDatabasePaths(userID: myFirebaseUserId).userDataRef.snapshots().listen((docSnapshot) {
@@ -305,6 +305,7 @@ class MyProfileTabBackendFunctions {
           }
         }
       }
+      return;
     });
 
     //Add the listener to my list of listeners so that it can be removed later if needed.

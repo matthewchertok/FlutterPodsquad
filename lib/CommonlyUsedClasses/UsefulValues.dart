@@ -73,3 +73,8 @@ Color accentColor({double opacity = 1}){
   final isDarkMode = brightness == Brightness.dark;
   return isDarkMode ? darkModeAccentColor.withOpacity(opacity) : lightModeAccentColor.withOpacity(opacity);
 }
+
+
+Brightness? get _brightness => SchedulerBinding.instance?.window.platformBrightness;
+/// Determine whether the app is in dark mode
+bool get isDarkMode => _brightness == Brightness.dark;

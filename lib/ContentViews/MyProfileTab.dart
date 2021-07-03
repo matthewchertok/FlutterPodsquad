@@ -431,8 +431,8 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                             "to pick your pronouns",
                                     style: TextStyle(
                                         color: _preferredPronouns == null
-                                            ? CupertinoColors.black.withOpacity(0.25)
-                                            : CupertinoColors.black),
+                                            ? CupertinoColors.inactiveGray
+                                            : isDarkMode ? CupertinoColors.white : CupertinoColors.black),
                                   ))))),
 
                   // preferred relationship type menu
@@ -495,8 +495,8 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                             "to select a relationship preference",
                                     style: TextStyle(
                                         color: _preferredRelationshipType == null
-                                            ? CupertinoColors.black.withOpacity(0.25)
-                                            : CupertinoColors.black),
+                                            ? CupertinoColors.inactiveGray
+                                            : isDarkMode ? CupertinoColors.white : CupertinoColors.black),
                                   ))))),
 
                   // birthday picker
@@ -514,8 +514,8 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                         "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).day}, ${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).year}",
                                 style: TextStyle(
                                     color: _birthday == -42069
-                                        ? CupertinoColors.black.withOpacity(0.25)
-                                        : CupertinoColors.black),
+                                        ? CupertinoColors.inactiveGray
+                                        : isDarkMode ? CupertinoColors.white : CupertinoColors.black),
                               )),
                           onPressed: () {
                             // show a sheet where the user can pick their birthday

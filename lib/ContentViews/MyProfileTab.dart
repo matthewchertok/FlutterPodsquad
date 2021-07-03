@@ -182,8 +182,8 @@ class _MyProfileTabState extends State<MyProfileTab> {
         sourcePath: sourcePath,
         aspectRatioPresets: [CropAspectRatioPreset.square],
         androidUiSettings: AndroidUiSettings(
-            toolbarTitle: "Select Image", initAspectRatio: CropAspectRatioPreset.square, lockAspectRatio: true),
-        iosUiSettings: IOSUiSettings(minimumAspectRatio: 1.0));
+            toolbarTitle: "Crop Image", initAspectRatio: CropAspectRatioPreset.square, lockAspectRatio: true),
+        iosUiSettings: IOSUiSettings(minimumAspectRatio: 1.0, title: "Crop Image"));
     setState(() {
       this.imageFile = croppedImage;
     });
@@ -344,7 +344,9 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                       builder: (context, ProfileData profileData, widget) {
                                         return profileData.thumbnailURL.isEmpty
                                             ? Icon(CupertinoIcons.person)
-                                            : CachedNetworkImage(imageUrl: profileData.thumbnailURL, fit: BoxFit.fill);
+                                            : CachedNetworkImage(imageUrl: profileData.thumbnailURL, fit: BoxFit
+                                            .fitWidth, progressIndicatorBuilder: (context, string, progress) =>
+                                            CupertinoActivityIndicator(),);
                                       }))))),
 
                   // Take photo button

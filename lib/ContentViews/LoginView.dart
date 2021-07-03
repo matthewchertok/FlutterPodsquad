@@ -85,18 +85,18 @@ class _LoginViewState extends State<LoginView> {
                 "signed up with this email address, tap Resend for a new verification link."),
             actions: [
               CupertinoButton(
+                  child: Text("Cancel"),
+                  onPressed: () {
+                    _signUpButtonDisabled = false; // re-enable the sign up button
+                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
+                  }),
+              CupertinoButton(
                   child: Text("Resend"),
                   onPressed: () {
                     // send an email verification link
                     _sendEmailVerificationLink(email: email, password: password);
                     Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
                   }),
-              CupertinoButton(
-                  child: Text("Cancel"),
-                  onPressed: () {
-                    _signUpButtonDisabled = false; // re-enable the sign up button
-                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the alert
-                  })
             ]);
         showCupertinoDialog(
             context: context,
@@ -129,11 +129,10 @@ class _LoginViewState extends State<LoginView> {
 
     // sign the user in with Firebase (but don't update the UI) so that we can send an email verification link
     firebaseAuth.signInWithEmailAndPassword(email: email, password: password).then((authResult) {
-      // we must sign out after sending the email verification link to force the user to actually verify their email
-      UserAuth.shared.logOut();
-
       // Now send the email verification link
       firebaseAuth.currentUser?.sendEmailVerification(actionCodeSettings).then((value) {
+        // we must sign out after sending the email verification link to force the user to actually verify their email
+        UserAuth.shared.logOut();
         final alert = CupertinoAlertDialog(
             title: Text("Check Your Email"),
             content: Text("Click the link that was "
@@ -349,7 +348,7 @@ class _LoginViewState extends State<LoginView> {
                       CupertinoTextFormFieldRow(
                           keyboardType: TextInputType.emailAddress,
                           autovalidateMode: _autoValidateEmail ? AutovalidateMode.always : AutovalidateMode.disabled,
-                          prefix: Text("Email", style: TextStyle(color: CupertinoColors.inactiveGray)),
+                          placeholder: "Email",
                           controller: _emailFieldController,
                           validator: emailValidator),
                       Row(
@@ -359,10 +358,7 @@ class _LoginViewState extends State<LoginView> {
                               keyboardType: TextInputType.visiblePassword,
                               autovalidateMode:
                                   _autoValidatePassword ? AutovalidateMode.always : AutovalidateMode.disabled,
-                              prefix: Text(
-                                "Password",
-                                style: TextStyle(color: CupertinoColors.inactiveGray),
-                              ),
+                              placeholder: "Password",
                               controller: _passwordFieldController,
                               obscureText: _passwordHidden,
                               validator: passwordValidator,
@@ -399,8 +395,8 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         onPressed: () {
                           this.showEmailPasswordAutoValidation();
-                          if (!_signUpButtonDisabled) _signUp(email: _emailFieldController.text.trim(), password:
-                              _passwordFieldController.text);
+                          if (!_signUpButtonDisabled)
+                            _signUp(email: _emailFieldController.text.trim(), password: _passwordFieldController.text);
                         }),
 
                     // sign in button

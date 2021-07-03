@@ -9,13 +9,14 @@ import 'package:podsquad/ContentViews/LoginView.dart';
 import 'package:podsquad/ContentViews/StartingView.dart';
 import 'package:podsquad/OtherSpecialViews/LoadingView.dart';
 import 'package:podsquad/TabLayoutViews/WelcomeView.dart';
+import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 
 import 'BackendDataHolders/UserAuth.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(CupertinoApp(home: MyApp()));
+  runApp(MyApp());
 }
 
 ///Required for Firebase to work with Flutter
@@ -54,6 +55,7 @@ class _AppState extends State<MyApp> {
     if (Platform.isIOS) _messaging.requestPermission();
     _messaging.subscribeToTopic("TEST_TOPIC");
     respondToPushNotification();
+    MyProfileTabBackendFunctions.shared.getMyProfileData(); // download my profile data when the app starts
   }
 
   @override

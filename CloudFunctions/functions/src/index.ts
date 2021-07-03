@@ -223,6 +223,16 @@ export const deleteUserData = functions.https.onCall(data => {
     const fullPhotoPath = document.get("profileData.fullPhotoPath") as string;
     storage().bucket().file(thumbnailPath).delete(); // delete the user's thumbnail
     storage().bucket().file(fullPhotoPath).delete(); // delete the user's full photo
+
+    // now delete all the extra images from storage
+    const extraImages = document.get("extraImages") as Map<String, Map<String, any>> | null;
+    if(extraImages != null){
+      extraImages.forEach((image) => {
+        const imagePath = image["imagePath"] as string;
+
+      })
+    }
+
     document.ref.delete(); // delete the document containing the user's profile data
   });
   promises.push(profileData);

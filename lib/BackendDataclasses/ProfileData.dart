@@ -2,6 +2,14 @@ import 'package:podsquad/BackendDataclasses/MatchSurveyData.dart';
 import 'package:podsquad/CommonlyUsedClasses/TimeAndDateFunctions.dart';
 
 class ProfileData {
+
+  /// A blank ProfileData object with all fields empty and the birthday equal to the number of seconds since January
+  /// 1, 1970 on this day 21 years ago.
+  static final blank = ProfileData(userID: "", name: "", preferredPronoun: "", preferredRelationshipType: "",
+  birthday: (DateTime.now().millisecondsSinceEpoch - 662709600 * 1000)*0.001, school: "", bio: "", podScore:
+  0, thumbnailURL:
+  "", fullPhotoURL: "");
+
   String name;
   String preferredPronoun;
   String preferredRelationshipType;

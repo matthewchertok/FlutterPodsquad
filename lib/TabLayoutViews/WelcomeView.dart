@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:podsquad/BackendDataclasses/MainListDisplayViewModes.dart';
-import 'package:podsquad/CommonlyUsedClasses/MyProfileTab.dart';
+import 'package:podsquad/ContentViews/MyProfileTab.dart';
 import 'package:podsquad/ContentViews/MainListDisplayView.dart';
 import 'package:podsquad/ContentViews/MessagingTab.dart';
 import 'package:podsquad/ContentViews/ScannerView.dart';

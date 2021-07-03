@@ -39,14 +39,14 @@ class ResizeAndUploadImage {
       this.isUploadInProgress.value = false;
       return;
     }
-    final resizingThumbnail = inputImage.resizedWithAspectRatio(maxResizedWidth: 250, maxResizedHeight: 250); // thumbnail is 125x125
+    final resizingThumbnail = inputImage.resizedWithAspectRatio(maxResizedWidth: 250, maxResizedHeight: 250); //thumbnail is 250x250
     final resizingFullPhoto = inputImage.resizedWithAspectRatio(maxResizedWidth: 1080, maxResizedHeight: 1080); // full photo is 1080x1080
 
     // Save the thumbnail as a PNG and overwrite the original image
     image.writeAsBytesSync(encodePng(resizingThumbnail));
 
     // Create an output path for the compressed thumbnail
-    final lastIndexThumbnail = image.path.lastIndexOf(RegExp(r'.jp'));
+    final lastIndexThumbnail = image.path.lastIndexOf(RegExp(r'.pn'));
     final splitThumbnailPath = image.path.substring(0, lastIndexThumbnail);
     final thumbnailOutPath = "${splitThumbnailPath}_out${image.path.substring(lastIndexThumbnail)}";
     final thumbnailBytes =
@@ -74,7 +74,7 @@ class ResizeAndUploadImage {
     image.writeAsBytesSync(encodePng(resizingFullPhoto));
 
     // Create an output path for the compressed full photo
-    final lastIndexFullPhoto = image.path.lastIndexOf(RegExp(r'.jp'));
+    final lastIndexFullPhoto = image.path.lastIndexOf(RegExp(r'.pn'));
     final splitFullPhotoPath = image.path.substring(0, lastIndexFullPhoto);
     final fullPhotoOutPath = "${splitFullPhotoPath}_out${image.path.substring(lastIndexFullPhoto)}";
     final fullPhotoBytes = await FlutterImageCompress.compressAndGetFile(image.absolute.path, fullPhotoOutPath).catchError((error){

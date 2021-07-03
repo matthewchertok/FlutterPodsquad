@@ -343,7 +343,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                         return profileData.thumbnailURL.isEmpty
                                             ? Icon(CupertinoIcons.person)
                                             : CachedNetworkImage(
-                                                imageUrl: profileData.thumbnailURL,
+                                                imageUrl: profileData.thumbnailURL, fit: BoxFit.cover,
                                                 errorWidget: (context, url, error) =>
                                                     Icon(CupertinoIcons.exclamationmark_triangle_fill),
                                                 progressIndicatorBuilder: (context, url, progress) =>

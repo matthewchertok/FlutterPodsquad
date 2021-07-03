@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -39,14 +40,31 @@ class ResizeAndUploadImage {
       this.isUploadInProgress.value = false;
       return;
     }
-    final resizingThumbnail = inputImage.resizedWithAspectRatio(maxResizedWidth: 250, maxResizedHeight: 250); //thumbnail is 250x250
-    final resizingFullPhoto = inputImage.resizedWithAspectRatio(maxResizedWidth: 1080, maxResizedHeight: 1080); // full photo is 1080x1080
+
+    // Get the aspect ratio. For some reason, resizing with aspect ratio using the built-in function doesn't work 
+    // (image fails to upload).
+    final currentWidth = inputImage.width;
+    final currentHeight = inputImage.height;
+    double targetToCurrentWidthRatio(targetWidth) => targetWidth/currentWidth;
+    double targetToCurrentHeightRatio(targetHeight) => targetHeight/currentHeight;
+
+    // We want to resize by the smaller of smaller of the two target to current ratios in order to make sure the
+    // image does not exceed the maximum allowed width or height.
+    int resizedImageWidth(targetWidth, targetHeight) => (currentWidth * min(targetToCurrentWidthRatio(targetWidth), 
+        targetToCurrentHeightRatio(targetHeight)))
+        .toInt();
+    int resizedImageHeight(targetWidth, targetHeight) => (currentHeight * min(targetToCurrentWidthRatio(targetWidth), 
+        targetToCurrentHeightRatio(targetHeight))).toInt();
+    final resizingThumbnail = copyResize(inputImage, width: resizedImageWidth(250, 250), height: resizedImageHeight(250, 250)); // thumbnail is 
+    // 125x125
+    final resizingFullPhoto = copyResize(inputImage, width: resizedImageWidth(1080, 1080), height: resizedImageHeight(1080, 1080)); // full 
+    // photo is 1080x1080
 
     // Save the thumbnail as a PNG and overwrite the original image
     image.writeAsBytesSync(encodePng(resizingThumbnail));
 
     // Create an output path for the compressed thumbnail
-    final lastIndexThumbnail = image.path.lastIndexOf(RegExp(r'.pn'));
+    final lastIndexThumbnail = image.path.lastIndexOf(RegExp(r'.jp'));
     final splitThumbnailPath = image.path.substring(0, lastIndexThumbnail);
     final thumbnailOutPath = "${splitThumbnailPath}_out${image.path.substring(lastIndexThumbnail)}";
     final thumbnailBytes =
@@ -74,7 +92,7 @@ class ResizeAndUploadImage {
     image.writeAsBytesSync(encodePng(resizingFullPhoto));
 
     // Create an output path for the compressed full photo
-    final lastIndexFullPhoto = image.path.lastIndexOf(RegExp(r'.pn'));
+    final lastIndexFullPhoto = image.path.lastIndexOf(RegExp(r'.jp'));
     final splitFullPhotoPath = image.path.substring(0, lastIndexFullPhoto);
     final fullPhotoOutPath = "${splitFullPhotoPath}_out${image.path.substring(lastIndexFullPhoto)}";
     final fullPhotoBytes = await FlutterImageCompress.compressAndGetFile(image.absolute.path, fullPhotoOutPath).catchError((error){

@@ -455,9 +455,9 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                   child: Text("I want a relationship!"),
                                   onPressed: () {
                                     Navigator.of(context, rootNavigator: true).pop(); // dismiss the context menu
-                                    final chooseRelationshipTypeAlert =
-                                    CupertinoAlertDialog(title: Text("Relationship Type"), actions: [
-                                      CupertinoButton(
+                                    final chooseRelationshipTypeSheet =
+                                    CupertinoActionSheet(title: Text("Relationship Type"), actions: [
+                                      CupertinoActionSheetAction(
                                           child: Text("I like guys!"),
                                           onPressed: () {
                                             setState(() {
@@ -465,7 +465,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                             });
                                             Navigator.of(context, rootNavigator: true).pop();
                                           }),
-                                      CupertinoButton(
+                                      CupertinoActionSheetAction(
                                           child: Text("I like girls!"),
                                           onPressed: () {
                                             setState(() {
@@ -473,7 +473,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                             });
                                             Navigator.of(context, rootNavigator: true).pop();
                                           }),
-                                      CupertinoButton(
+                                      CupertinoActionSheetAction(
                                           child: Text("I like all genders!"),
                                           onPressed: () {
                                             setState(() {
@@ -482,11 +482,9 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                             Navigator.of(context, rootNavigator: true).pop();
                                           })
                                     ]);
-                                    showCupertinoDialog(
+                                    showCupertinoModalPopup(
                                         context: context,
-                                        builder: (context) {
-                                          return chooseRelationshipTypeAlert;
-                                        });
+                                        builder: (context) => chooseRelationshipTypeSheet);
                                   })
                             ],);
                             showCupertinoModalPopup(context: context, builder: (context) => sheet);

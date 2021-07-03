@@ -42,7 +42,8 @@ class _ViewFullImageState extends State<ViewFullImage> {
           middle: Text(navigationBarTitle),
         ),
         child: Center(
-          child: CachedNetworkImage(
+          child:
+          CachedNetworkImage(
             imageUrl: urlForImageToView,
             fit: BoxFit.contain,
           ),

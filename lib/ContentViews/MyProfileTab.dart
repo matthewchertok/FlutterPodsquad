@@ -183,7 +183,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
         aspectRatioPresets: [CropAspectRatioPreset.square],
         androidUiSettings: AndroidUiSettings(
             toolbarTitle: "Select Image", initAspectRatio: CropAspectRatioPreset.square, lockAspectRatio: true),
-        iosUiSettings: IOSUiSettings(title: "Select Image", aspectRatioLockEnabled: true));
+        iosUiSettings: IOSUiSettings(title: "Select Image", rectWidth: 720, rectHeight: 720));
     setState(() {
       this.imageFile = croppedImage;
     });
@@ -454,6 +454,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                               CupertinoActionSheetAction(
                                   child: Text("I want a relationship!"),
                                   onPressed: () {
+                                    dismissAlert(context: context); // dismiss the previous alert and show a new one
                                     final chooseRelationshipTypeSheet =
                                     CupertinoActionSheet(title: Text("Relationship Type"), actions: [
                                       CupertinoActionSheetAction(
@@ -621,8 +622,8 @@ class _MyProfileTabState extends State<MyProfileTab> {
                           CupertinoActivityIndicator(radius: 15),
                           Padding(
                               padding: EdgeInsets.all(10),
-                              child: Text("Uploading Image"
-                                  "..."))
+                              child: Text("Uploading Image...", style: TextStyle(color: isDarkMode ? CupertinoColors
+                                  .white : CupertinoColors.black),))
                         ],
                       ))
                     ],

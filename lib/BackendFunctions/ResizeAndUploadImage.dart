@@ -9,6 +9,7 @@ import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image/image.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
+import 'package:uuid/uuid.dart';
 
 ///Contains methods to resize and upload an image to Firebase Storage
 class ResizeAndUploadImage {
@@ -137,7 +138,10 @@ class ResizeAndUploadImage {
   /// appear in (i.e. first, second, third, etc). The function also handles updating my profile with the image URL.
   Future<void> uploadMyExtraImage(
       {required File image, required int imagePosition, Function? onUploadComplete}) async {
-    final imageStoragePath = ProfileDatabasePaths(userID: myFirebaseUserId).extraImagesStorageRef;
+
+    // create a unique ID to identify the image with
+    final imageId = Uuid().v1();
+    final imageStoragePath = ProfileDatabasePaths(userID: myFirebaseUserId).extraImagesStorageRef.child(imageId);
 
     /// Compress the image before uploading the thumbnail, in order to make it small to save storage space and
     /// improve loading times
@@ -163,7 +167,7 @@ class ResizeAndUploadImage {
     final pathToFullImage = fullPhotoUploadTask.ref.fullPath;
     final fullImageDownloadURL = await fullPhotoUploadTask.ref.getDownloadURL();
 
-    final identifiableImage = IdentifiableImage(imageURL: fullImageDownloadURL, position: imagePosition);
+    final identifiableImage = IdentifiableImage(id: imageId, imageURL: fullImageDownloadURL, position: imagePosition);
     final imageID = identifiableImage.id;
 
     /// Contains the information for the image

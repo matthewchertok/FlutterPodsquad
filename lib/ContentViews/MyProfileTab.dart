@@ -177,8 +177,6 @@ class _MyProfileTabState extends State<MyProfileTab> {
   /// Allow the user to select a square crop from their image
   Future _cropImage({required String sourcePath}) async {
     File? croppedImage = await ImageCropper.cropImage(
-        maxHeight: 720,
-        maxWidth: 720,
         sourcePath: sourcePath,
         aspectRatioPresets: [CropAspectRatioPreset.square],
         androidUiSettings: AndroidUiSettings(
@@ -344,9 +342,16 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                       builder: (context, ProfileData profileData, widget) {
                                         return profileData.thumbnailURL.isEmpty
                                             ? Icon(CupertinoIcons.person)
-                                            : CachedNetworkImage(imageUrl: profileData.thumbnailURL, fit: BoxFit
-                                            .fitWidth, progressIndicatorBuilder: (context, string, progress) =>
-                                            CupertinoActivityIndicator(),);
+                                            : CachedNetworkImage(
+                                                imageUrl: profileData.thumbnailURL, errorWidget: (context, url,
+                                            error) =>
+                                            Icon(CupertinoIcons
+                                            .exclamationmark_triangle_fill),
+                                                progressIndicatorBuilder: (context, url, progress) =>
+                                                    CupertinoActivityIndicator(), imageBuilder: (context,
+                                            imageProvider) => Container(decoration: BoxDecoration(image: DecorationImage
+                                          (image: imageProvider, fit: BoxFit.contain)),),
+                                              );
                                       }))))),
 
                   // Take photo button
@@ -390,8 +395,9 @@ class _MyProfileTabState extends State<MyProfileTab> {
                     ),
                   ),
 
-                  AnimatedSwitcher(duration: Duration(milliseconds: 250), child: _showingMultiImageUploader ?
-                      MultiImageUploader() : Container())
+                  AnimatedSwitcher(
+                      duration: Duration(milliseconds: 250),
+                      child: _showingMultiImageUploader ? MultiImageUploader() : Container())
                 ]),
 
                 // Name, pronouns, lookingFor, Birthday, school, bio, and Update Profile button
@@ -401,30 +407,34 @@ class _MyProfileTabState extends State<MyProfileTab> {
 
                   // preferred pronouns menu - show an action sheet instead
                   CupertinoFormRow(
-                      child: CupertinoButton(padding: EdgeInsets.zero,
-                          onPressed: (){
-                            final sheet = CupertinoActionSheet(title: Text("Pick Pronouns"), actions: [
-                              CupertinoActionSheetAction(
-                                  child: Text(UsefulValues.malePronouns),
-                                  onPressed: () {
-                                    _preferredPronouns = UsefulValues.malePronouns;
-                                    dismissAlert(context: context);
-                                  }),
-                              CupertinoActionSheetAction(
-                                  child: Text(UsefulValues.femalePronouns),
-                                  onPressed: () {
-                                    _preferredPronouns = UsefulValues.femalePronouns;
-                                    dismissAlert(context: context);
-                                  }),
-                              CupertinoActionSheetAction(
-                                  child: Text(UsefulValues.nonbinaryPronouns),
-                                  onPressed: () {
-                                    _preferredPronouns = UsefulValues.nonbinaryPronouns;
-                                    dismissAlert(context: context);
-                                  }),
+                      child: CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () {
+                            final sheet = CupertinoActionSheet(
+                              title: Text("Pick Pronouns"),
+                              actions: [
+                                CupertinoActionSheetAction(
+                                    child: Text(UsefulValues.malePronouns),
+                                    onPressed: () {
+                                      _preferredPronouns = UsefulValues.malePronouns;
+                                      dismissAlert(context: context);
+                                    }),
+                                CupertinoActionSheetAction(
+                                    child: Text(UsefulValues.femalePronouns),
+                                    onPressed: () {
+                                      _preferredPronouns = UsefulValues.femalePronouns;
+                                      dismissAlert(context: context);
+                                    }),
+                                CupertinoActionSheetAction(
+                                    child: Text(UsefulValues.nonbinaryPronouns),
+                                    onPressed: () {
+                                      _preferredPronouns = UsefulValues.nonbinaryPronouns;
+                                      dismissAlert(context: context);
+                                    }),
 
-                              // There is no cancel button because the user must pick a pronoun.
-                            ],);
+                                // There is no cancel button because the user must pick a pronoun.
+                              ],
+                            );
                             showCupertinoModalPopup(context: context, builder: (context) => sheet);
                           },
                           child: Padding(
@@ -432,63 +442,67 @@ class _MyProfileTabState extends State<MyProfileTab> {
                               child: Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    _preferredPronouns ??
-                                        "Pick your pronouns",
+                                    _preferredPronouns ?? "Pick your pronouns",
                                     style: TextStyle(
                                         color: _preferredPronouns == null
                                             ? CupertinoColors.inactiveGray
-                                            : isDarkMode ? CupertinoColors.white : CupertinoColors.black),
+                                            : isDarkMode
+                                                ? CupertinoColors.white
+                                                : CupertinoColors.black),
                                   ))))),
 
                   // preferred relationship type menu
                   CupertinoFormRow(
-                      child: CupertinoButton(padding: EdgeInsets.zero,
-                          onPressed: (){
-                            final sheet = CupertinoActionSheet(title: Text("Pick Relationship Type"), actions: [
-                              CupertinoActionSheetAction(
-                                  child: Text("I want to make friends!"),
-                                  onPressed: () {
-                                    setState(() {
-                                      _preferredRelationshipType = UsefulValues.lookingForFriends;
-                                    });
-                                    dismissAlert(context: context);
-                                  }),
-                              CupertinoActionSheetAction(
-                                  child: Text("I want a relationship!"),
-                                  onPressed: () {
-                                    dismissAlert(context: context); // dismiss the previous alert and show a new one
-                                    final chooseRelationshipTypeSheet =
-                                    CupertinoActionSheet(title: Text("Relationship Type"), actions: [
-                                      CupertinoActionSheetAction(
-                                          child: Text("I like guys!"),
-                                          onPressed: () {
-                                            setState(() {
-                                              _preferredRelationshipType = UsefulValues.lookingForBoyfriend;
-                                            });
-                                            dismissAlert(context: context);
-                                          }),
-                                      CupertinoActionSheetAction(
-                                          child: Text("I like girls!"),
-                                          onPressed: () {
-                                            setState(() {
-                                              _preferredRelationshipType = UsefulValues.lookingForGirlfriend;
-                                            });
-                                            dismissAlert(context: context);
-                                          }),
-                                      CupertinoActionSheetAction(
-                                          child: Text("I like all genders!"),
-                                          onPressed: () {
-                                            setState(() {
-                                              _preferredRelationshipType = UsefulValues.lookingForAnyGenderDate;
-                                            });
-                                            dismissAlert(context: context);
-                                          })
-                                    ]);
-                                    showCupertinoModalPopup(
-                                        context: context,
-                                        builder: (context) => chooseRelationshipTypeSheet);
-                                  })
-                            ],);
+                      child: CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () {
+                            final sheet = CupertinoActionSheet(
+                              title: Text("Pick Relationship Type"),
+                              actions: [
+                                CupertinoActionSheetAction(
+                                    child: Text("I want to make friends!"),
+                                    onPressed: () {
+                                      setState(() {
+                                        _preferredRelationshipType = UsefulValues.lookingForFriends;
+                                      });
+                                      dismissAlert(context: context);
+                                    }),
+                                CupertinoActionSheetAction(
+                                    child: Text("I want a relationship!"),
+                                    onPressed: () {
+                                      dismissAlert(context: context); // dismiss the previous alert and show a new one
+                                      final chooseRelationshipTypeSheet =
+                                          CupertinoActionSheet(title: Text("Relationship Type"), actions: [
+                                        CupertinoActionSheetAction(
+                                            child: Text("I like guys!"),
+                                            onPressed: () {
+                                              setState(() {
+                                                _preferredRelationshipType = UsefulValues.lookingForBoyfriend;
+                                              });
+                                              dismissAlert(context: context);
+                                            }),
+                                        CupertinoActionSheetAction(
+                                            child: Text("I like girls!"),
+                                            onPressed: () {
+                                              setState(() {
+                                                _preferredRelationshipType = UsefulValues.lookingForGirlfriend;
+                                              });
+                                              dismissAlert(context: context);
+                                            }),
+                                        CupertinoActionSheetAction(
+                                            child: Text("I like all genders!"),
+                                            onPressed: () {
+                                              setState(() {
+                                                _preferredRelationshipType = UsefulValues.lookingForAnyGenderDate;
+                                              });
+                                              dismissAlert(context: context);
+                                            })
+                                      ]);
+                                      showCupertinoModalPopup(
+                                          context: context, builder: (context) => chooseRelationshipTypeSheet);
+                                    })
+                              ],
+                            );
                             showCupertinoModalPopup(context: context, builder: (context) => sheet);
                           },
                           child: Padding(
@@ -501,7 +515,9 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                     style: TextStyle(
                                         color: _preferredRelationshipType == null
                                             ? CupertinoColors.inactiveGray
-                                            : isDarkMode ? CupertinoColors.white : CupertinoColors.black),
+                                            : isDarkMode
+                                                ? CupertinoColors.white
+                                                : CupertinoColors.black),
                                   ))))),
 
                   // birthday picker
@@ -520,7 +536,9 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                 style: TextStyle(
                                     color: _birthday == -42069
                                         ? CupertinoColors.inactiveGray
-                                        : isDarkMode ? CupertinoColors.white : CupertinoColors.black),
+                                        : isDarkMode
+                                            ? CupertinoColors.white
+                                            : CupertinoColors.black),
                               )),
                           onPressed: () {
                             // show a sheet where the user can pick their birthday
@@ -624,8 +642,10 @@ class _MyProfileTabState extends State<MyProfileTab> {
                           CupertinoActivityIndicator(radius: 15),
                           Padding(
                               padding: EdgeInsets.all(10),
-                              child: Text("Uploading Image...", style: TextStyle(color: isDarkMode ? CupertinoColors
-                                  .white : CupertinoColors.black),))
+                              child: Text(
+                                "Uploading Image...",
+                                style: TextStyle(color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
+                              ))
                         ],
                       ))
                     ],

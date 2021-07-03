@@ -39,8 +39,8 @@ class ResizeAndUploadImage {
       this.isUploadInProgress.value = false;
       return;
     }
-    final resizingThumbnail = copyResize(inputImage, width: 250, height: 250); // thumbnail is 125x125
-    final resizingFullPhoto = copyResize(inputImage, width: 1080, height: 1080); // full photo is 1080x1080
+    final resizingThumbnail = inputImage.resizedWithAspectRatio(maxResizedWidth: 250, maxResizedHeight: 250); // thumbnail is 125x125
+    final resizingFullPhoto = inputImage.resizedWithAspectRatio(maxResizedWidth: 1080, maxResizedHeight: 1080); // full photo is 1080x1080
 
     // Save the thumbnail as a PNG and overwrite the original image
     image.writeAsBytesSync(encodePng(resizingThumbnail));

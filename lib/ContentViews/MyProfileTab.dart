@@ -397,38 +397,41 @@ class _MyProfileTabState extends State<MyProfileTab> {
                   // name text field
                   CupertinoTextFormFieldRow(controller: _nameTextController, placeholder: "Name"),
 
-                  // preferred pronouns menu
+                  // preferred pronouns menu - show an action sheet instead
                   CupertinoFormRow(
-                      child: CupertinoContextMenu(
-                          actions: [
-                        CupertinoContextMenuAction(
-                            child: Text(UsefulValues.malePronouns),
-                            onPressed: () {
-                              _preferredPronouns = UsefulValues.malePronouns;
-                              Navigator.of(context, rootNavigator: true).pop(); // dismiss the menu
-                            }),
-                        CupertinoContextMenuAction(
-                            child: Text(UsefulValues.femalePronouns),
-                            onPressed: () {
-                              _preferredPronouns = UsefulValues.femalePronouns;
-                              Navigator.of(context, rootNavigator: true).pop(); // dismiss the menu
-                            }),
-                        CupertinoContextMenuAction(
-                            child: Text(UsefulValues.nonbinaryPronouns),
-                            onPressed: () {
-                              _preferredPronouns = UsefulValues.nonbinaryPronouns;
-                              Navigator.of(context, rootNavigator: true).pop(); // dismiss the menu
-                            })
-                      ],
+                      child: CupertinoButton(padding: EdgeInsets.zero,
+                          onPressed: (){
+                            final sheet = CupertinoActionSheet(title: Text("Pick Pronouns"), actions: [
+                              CupertinoActionSheetAction(
+                                  child: Text(UsefulValues.malePronouns),
+                                  onPressed: () {
+                                    _preferredPronouns = UsefulValues.malePronouns;
+                                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the menu
+                                  }),
+                              CupertinoActionSheetAction(
+                                  child: Text(UsefulValues.femalePronouns),
+                                  onPressed: () {
+                                    _preferredPronouns = UsefulValues.femalePronouns;
+                                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the menu
+                                  }),
+                              CupertinoActionSheetAction(
+                                  child: Text(UsefulValues.nonbinaryPronouns),
+                                  onPressed: () {
+                                    _preferredPronouns = UsefulValues.nonbinaryPronouns;
+                                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the menu
+                                  }),
+
+                              // There is no cancel button because the user must pick a pronoun.
+                            ],);
+                            showCupertinoModalPopup(context: context, builder: (context) => sheet);
+                          },
                           child: Padding(
                               padding: EdgeInsets.all(5),
                               child: Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
                                     _preferredPronouns ??
-                                        "Lo"
-                                            "ng press "
-                                            "to pick your pronouns",
+                                        "Pick your pronouns",
                                     style: TextStyle(
                                         color: _preferredPronouns == null
                                             ? CupertinoColors.inactiveGray
@@ -437,62 +440,64 @@ class _MyProfileTabState extends State<MyProfileTab> {
 
                   // preferred relationship type menu
                   CupertinoFormRow(
-                      child: CupertinoContextMenu(
-                          actions: [
-                        CupertinoContextMenuAction(
-                            child: Text("I want to make friends!"),
-                            onPressed: () {
-                              setState(() {
-                                _preferredRelationshipType = UsefulValues.lookingForFriends;
-                              });
-                              Navigator.of(context, rootNavigator: true).pop(); // dismiss the context menu
-                            }),
-                        CupertinoContextMenuAction(
-                            child: Text("I want a relationship!"),
-                            onPressed: () {
-                              Navigator.of(context, rootNavigator: true).pop(); // dismiss the context menu
-                              final chooseRelationshipTypeAlert =
-                                  CupertinoAlertDialog(title: Text("Relationship Type"), actions: [
-                                CupertinoButton(
-                                    child: Text("I like guys!"),
-                                    onPressed: () {
-                                      setState(() {
-                                        _preferredRelationshipType = UsefulValues.lookingForBoyfriend;
-                                      });
-                                      Navigator.of(context, rootNavigator: true).pop();
-                                    }),
-                                CupertinoButton(
-                                    child: Text("I like girls!"),
-                                    onPressed: () {
-                                      setState(() {
-                                        _preferredRelationshipType = UsefulValues.lookingForGirlfriend;
-                                      });
-                                      Navigator.of(context, rootNavigator: true).pop();
-                                    }),
-                                CupertinoButton(
-                                    child: Text("I like all genders!"),
-                                    onPressed: () {
-                                      setState(() {
-                                        _preferredRelationshipType = UsefulValues.lookingForAnyGenderDate;
-                                      });
-                                      Navigator.of(context, rootNavigator: true).pop();
-                                    })
-                              ]);
-                              showCupertinoDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return chooseRelationshipTypeAlert;
-                                  });
-                            })
-                      ],
+                      child: CupertinoButton(padding: EdgeInsets.zero,
+                          onPressed: (){
+                            final sheet = CupertinoActionSheet(title: Text("Pick Relationship Type"), actions: [
+                              CupertinoActionSheetAction(
+                                  child: Text("I want to make friends!"),
+                                  onPressed: () {
+                                    setState(() {
+                                      _preferredRelationshipType = UsefulValues.lookingForFriends;
+                                    });
+                                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the context menu
+                                  }),
+                              CupertinoActionSheetAction(
+                                  child: Text("I want a relationship!"),
+                                  onPressed: () {
+                                    Navigator.of(context, rootNavigator: true).pop(); // dismiss the context menu
+                                    final chooseRelationshipTypeAlert =
+                                    CupertinoAlertDialog(title: Text("Relationship Type"), actions: [
+                                      CupertinoButton(
+                                          child: Text("I like guys!"),
+                                          onPressed: () {
+                                            setState(() {
+                                              _preferredRelationshipType = UsefulValues.lookingForBoyfriend;
+                                            });
+                                            Navigator.of(context, rootNavigator: true).pop();
+                                          }),
+                                      CupertinoButton(
+                                          child: Text("I like girls!"),
+                                          onPressed: () {
+                                            setState(() {
+                                              _preferredRelationshipType = UsefulValues.lookingForGirlfriend;
+                                            });
+                                            Navigator.of(context, rootNavigator: true).pop();
+                                          }),
+                                      CupertinoButton(
+                                          child: Text("I like all genders!"),
+                                          onPressed: () {
+                                            setState(() {
+                                              _preferredRelationshipType = UsefulValues.lookingForAnyGenderDate;
+                                            });
+                                            Navigator.of(context, rootNavigator: true).pop();
+                                          })
+                                    ]);
+                                    showCupertinoDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return chooseRelationshipTypeAlert;
+                                        });
+                                  })
+                            ],);
+                            showCupertinoModalPopup(context: context, builder: (context) => sheet);
+                          },
                           child: Padding(
                               padding: EdgeInsets.all(5),
                               child: Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
                                     _preferredRelationshipType?.formattedPronounForDisplay() ??
-                                        "Long press "
-                                            "to select a relationship preference",
+                                        "Select a relationship preference",
                                     style: TextStyle(
                                         color: _preferredRelationshipType == null
                                             ? CupertinoColors.inactiveGray
@@ -527,6 +532,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                     child: CupertinoPageScaffold(
                                       child: Column(
                                         children: [
+                                          Padding(padding: EdgeInsets.all(10), child: Text("Enter Birthday")),
                                           Expanded(
                                               child: Padding(
                                                   padding: EdgeInsets.only(top: 20),

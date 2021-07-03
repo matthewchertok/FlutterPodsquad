@@ -183,7 +183,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
         aspectRatioPresets: [CropAspectRatioPreset.square],
         androidUiSettings: AndroidUiSettings(
             toolbarTitle: "Select Image", initAspectRatio: CropAspectRatioPreset.square, lockAspectRatio: true),
-        iosUiSettings: IOSUiSettings(title: "Select Image", rectWidth: 720, rectHeight: 720));
+        iosUiSettings: IOSUiSettings(minimumAspectRatio: 1.0));
     setState(() {
       this.imageFile = croppedImage;
     });

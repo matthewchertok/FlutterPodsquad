@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Podsquad</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -26,8 +28,12 @@
 	<array>
 		<string>_dartobservatory._tcp</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera permission is required to take a picture using the camera</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Microphone permission is required to record voice messages</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo Library permission is required to choose an image from the photo library</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

@@ -65,15 +65,19 @@ class _ViewFullImageState extends State<ViewFullImage> {
             child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // the image to display
-            Expanded(
-              child: PhotoView(imageProvider: NetworkImage(urlForImageToView)),
-            ),
+            // the image to display. Put a progress indicator behind it, which will be covered up once the image loads
+            Container(child: Expanded(child: Stack(children: [
+              Center(child: CupertinoActivityIndicator()),
+              Expanded(
+                child: PhotoView(imageProvider: NetworkImage(urlForImageToView)),
+              ),
+            ],),),),
+
 
             // write and delete image captions
             if (canWriteCaption)
               // caption editing controls
-              Column(
+              Container(color: CupertinoColors.systemBackground, child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   CupertinoTextField(
@@ -207,7 +211,7 @@ class _ViewFullImageState extends State<ViewFullImage> {
                     ],
                   )
                 ],
-              )
+              ),)
           ],
         )));
   }

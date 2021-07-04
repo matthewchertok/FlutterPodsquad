@@ -104,6 +104,13 @@ class ChatMessage {
       }
     }
   }
+
+  // Declare that two PodMessage objects are the same if and only if they have the same ID.
+  @override
+  bool operator ==(Object otherInstance) => otherInstance is ChatMessage && id == otherInstance.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 //No need for a DownloadedChatMessage class, because I can simply use the CachedNetworkImage widget to automatically

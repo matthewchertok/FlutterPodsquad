@@ -38,7 +38,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                 }
               case 2:
                 {
-                  return MessagingTab(isPodMode: false);
+                  return MessagingTab();
                 }
               case 3:
                 {

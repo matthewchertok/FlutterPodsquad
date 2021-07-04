@@ -333,103 +333,112 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(middle: Text("Welcome to Podsquad")),
-        child: SafeArea(
-            child: SingleChildScrollView(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  // Podsquad logo
-                  CupertinoFormSection(
-                      children: [CupertinoFormRow(child: image(named: 'podsquad_logo_improved_2.png'))]),
+      child: CustomScrollView(
+        slivers: [
+          CupertinoSliverNavigationBar(
+            largeTitle: Text("Podsquad"),
+          ),
+          SliverList(
+              delegate: SliverChildListDelegate([
+            SafeArea(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                // Podsquad logo
 
-                  // Email and password
-                  CupertinoFormSection(
-                    header: Text("Credentials"),
-                    children: [
-                      CupertinoTextFormFieldRow(
-                          keyboardType: TextInputType.emailAddress,
-                          autovalidateMode: _autoValidateEmail ? AutovalidateMode.always : AutovalidateMode.disabled,
-                          placeholder: "Email",
-                          controller: _emailFieldController,
-                          validator: emailValidator),
-                      Row(
-                        children: [
-                          Flexible(
-                            child: CupertinoTextFormFieldRow(
-                              keyboardType: TextInputType.visiblePassword,
-                              autovalidateMode:
-                                  _autoValidatePassword ? AutovalidateMode.always : AutovalidateMode.disabled,
-                              placeholder: "Password",
-                              controller: _passwordFieldController,
-                              obscureText: _passwordHidden,
-                              validator: passwordValidator,
-                            ),
+                CupertinoFormRow(child: image(named: 'podsquad_logo_improved_2.png')),
+
+                // Email and password
+                CupertinoFormSection(
+                  header: Text("Credentials"),
+                  children: [
+                    CupertinoTextFormFieldRow(
+                        keyboardType: TextInputType.emailAddress,
+                        autovalidateMode: _autoValidateEmail ? AutovalidateMode.always : AutovalidateMode.disabled,
+                        placeholder: "Email",
+                        controller: _emailFieldController,
+                        validator: emailValidator),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: CupertinoTextFormFieldRow(
+                            keyboardType: TextInputType.visiblePassword,
+                            autovalidateMode:
+                                _autoValidatePassword ? AutovalidateMode.always : AutovalidateMode.disabled,
+                            placeholder: "Password",
+                            controller: _passwordFieldController,
+                            obscureText: _passwordHidden,
+                            validator: passwordValidator,
                           ),
-                          CupertinoButton(
-                              child: _passwordHidden
-                                  ? Opacity(
-                                      opacity: 0.8,
-                                      child: Icon(CupertinoIcons.eye_slash,
-                                          size: 15, color: CupertinoColors.darkBackgroundGray))
-                                  : Opacity(
-                                      opacity: 0.8,
-                                      child: Icon(CupertinoIcons.eye,
-                                          size: 15, color: CupertinoColors.darkBackgroundGray)),
-                              onPressed: showHidePassword)
+                        ),
+                        CupertinoButton(
+                            child: _passwordHidden
+                                ? Opacity(
+                                    opacity: 0.8,
+                                    child: Icon(CupertinoIcons.eye_slash,
+                                        size: 15, color: CupertinoColors.darkBackgroundGray))
+                                : Opacity(
+                                    opacity: 0.8,
+                                    child:
+                                        Icon(CupertinoIcons.eye, size: 15, color: CupertinoColors.darkBackgroundGray)),
+                            onPressed: showHidePassword)
+                      ],
+                    ),
+                  ],
+                ),
+
+                // Sign up, sign in, and forgot password buttons
+                CupertinoFormSection(header: Text("Options"), children: [
+                  // sign up button
+                  CupertinoButton(
+                      child: Row(
+                        children: [
+                          Icon(CupertinoIcons.plus_circle),
+                          Padding(
+                              padding: EdgeInsets.only(left: 10),
+                              child: Text("Sign "
+                                  "Up"))
                         ],
                       ),
-                    ],
-                  ),
+                      onPressed: () {
+                        this.showEmailPasswordAutoValidation();
+                        if (!_signUpButtonDisabled)
+                          _signUp(email: _emailFieldController.text.trim(), password: _passwordFieldController.text);
+                      }),
 
-                  // Sign up, sign in, and forgot password buttons
-                  CupertinoFormSection(header: Text("Options"), children: [
-                    // sign up button
-                    CupertinoButton(
-                        child: Row(
-                          children: [
-                            Icon(CupertinoIcons.plus_circle),
-                            Padding(
-                                padding: EdgeInsets.only(left: 10),
-                                child: Text("Sign "
-                                    "Up"))
-                          ],
-                        ),
-                        onPressed: () {
-                          this.showEmailPasswordAutoValidation();
-                          if (!_signUpButtonDisabled)
-                            _signUp(email: _emailFieldController.text.trim(), password: _passwordFieldController.text);
-                        }),
+                  // sign in button
+                  CupertinoButton(
+                      child: Row(children: [
+                        Icon(CupertinoIcons.arrow_right_circle),
+                        Padding(padding: EdgeInsets.only(left: 10), child: Text("Sign In"))
+                      ]),
+                      onPressed: () {
+                        this.showEmailPasswordAutoValidation();
+                        if (!_signInButtonDisabled)
+                          _signIn(email: _emailFieldController.text.trim(), password: _passwordFieldController.text);
+                      }),
 
-                    // sign in button
-                    CupertinoButton(
-                        child: Row(children: [
-                          Icon(CupertinoIcons.arrow_right_circle),
-                          Padding(padding: EdgeInsets.only(left: 10), child: Text("Sign In"))
-                        ]),
-                        onPressed: () {
-                          this.showEmailPasswordAutoValidation();
-                          if (!_signInButtonDisabled)
-                            _signIn(email: _emailFieldController.text.trim(), password: _passwordFieldController.text);
-                        }),
-
-                    // forgot password button
-                    CupertinoButton(
-                        child: Row(
-                          children: [
-                            Icon(CupertinoIcons.question_circle),
-                            Padding(
-                              padding: EdgeInsets.only(left: 10),
-                              child: Text("Forgot Password?"),
-                            )
-                          ],
-                        ),
-                        onPressed: () {
-                          this.showEmailPasswordAutoValidation();
-                          if (!_forgotPasswordButtonDisabled)
-                            sendPasswordResetEmail(emailAddress: _emailFieldController.text.trim());
-                        })
-                  ])
-                ]),
-                clipBehavior: Clip.none)));
+                  // forgot password button
+                  CupertinoButton(
+                      child: Row(
+                        children: [
+                          Icon(CupertinoIcons.question_circle),
+                          Padding(
+                            padding: EdgeInsets.only(left: 10),
+                            child: Text("Forgot Password?"),
+                          )
+                        ],
+                      ),
+                      onPressed: () {
+                        this.showEmailPasswordAutoValidation();
+                        if (!_forgotPasswordButtonDisabled)
+                          sendPasswordResetEmail(emailAddress: _emailFieldController.text.trim());
+                      })
+                ])
+              ]),
+            )
+          ]))
+        ],
+      ),
+    );
   }
 }
 

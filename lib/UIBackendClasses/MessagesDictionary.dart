@@ -128,7 +128,7 @@ class MessagesDictionary {
         .snapshots()
         .listen((docSnapshot) {
       docSnapshot.docChanges.forEach((diff) {
-        final participants = diff.doc.get("participants") as List<String>;
+        final participants = diff.doc.get("participants") as List<dynamic>;
         final chatPartnerID = participants.first == myFirebaseUserId ? participants.last : participants.first;
         final conversationID = diff.doc.id;
 
@@ -239,12 +239,13 @@ class MessagesDictionary {
         snapshot.docChanges.forEach((diff) {
           if (diff.type == DocumentChangeType.added) {
             shouldChatLogScroll[chatPartnerID] = true; // scroll to the bottom when a new message is added
+            final data = diff.doc.data();
             final systemTime = diff.doc.get("systemTime") as double;
             final id = diff.doc.get("id") as String;
-            final imageURL = diff.doc.get("imageURL") as String;
-            final imagePath = diff.doc.get("imagePath") as String;
-            final audioURL = diff.doc.get("audioURL") as String;
-            final audioPath = diff.doc.get("audioPath") as String;
+            final imageURL = data?["imageURL"] as String?;
+            final imagePath = data?["imagePath"] as String?;
+            final audioURL = data?["audioURL"] as String?;
+            final audioPath = data?["audioPath"] as String?;
             final recipientId = diff.doc.get("recipientId") as String;
             final recipientName = diff.doc.get("recipientName") as String;
             final senderId = diff.doc.get("senderId") as String;
@@ -270,14 +271,23 @@ class MessagesDictionary {
 
             //Add the message to the associated chat partner ID in the dictionary
             if (chatMessage.text.trim().isNotEmpty) {
-              if (directMessagesDict.value[chatPartnerID] != null) {
-                if (!directMessagesDict.value[chatPartnerID]!.contains(chatMessage))
+              // if the list is null, then it obviously doesn't contain the message
+                if (!(directMessagesDict.value[chatPartnerID]?.contains(chatMessage) ?? false)) {
+
+                  // initialize a list if it's null
+                  if(directMessagesDict.value[chatPartnerID] == null) directMessagesDict.value[chatPartnerID] = [];
                   directMessagesDict.value[chatPartnerID]?.add(chatMessage);
-              }
+                  directMessagesDict.notifyListeners(); // it's required here because otherwise Dart doesn't know to
+                  // update listeners.
+                  print("BIDEN: just added a DM with text ${chatMessage.text}");
+                }
+
             }
           } else if (diff.type == DocumentChangeType.removed) {
             final messageID = diff.doc.get("id") as String;
             directMessagesDict.value[chatPartnerID]?.removeWhere((message) => message.id == messageID);
+            directMessagesDict.notifyListeners(); // it's required here because otherwise Dart doesn't know to
+            // update listeners.
           }
         });
       });
@@ -322,12 +332,13 @@ class MessagesDictionary {
 
         snapshot.docChanges.forEach((diff) {
           if (diff.type == DocumentChangeType.added) {
+            final data = diff.doc.data();
             final systemTime = diff.doc.get("systemTime") as double;
             final id = diff.doc.get("id") as String;
-            final imageURL = diff.doc.get("imageURL") as String;
-            final imagePath = diff.doc.get("imagePath") as String;
-            final audioURL = diff.doc.get("audioURL") as String;
-            final audioPath = diff.doc.get("audioPath") as String;
+            final imageURL = data?["imageURL"] as String?;
+            final imagePath = data?["imagePath"] as String?;
+            final audioURL = data?["audioURL"] as String?;
+            final audioPath = data?["audioPath"] as String?;
             final recipientId = diff.doc.get("recipientId") as String;
             final recipientName = diff.doc.get("recipientName") as String;
             final senderId = diff.doc.get("senderId") as String;
@@ -489,12 +500,13 @@ class MessagesDictionary {
         snapshot.docChanges.forEach((diff) {
           if (diff.type == DocumentChangeType.added) {
             shouldChatLogScroll[podID] = true; // scroll to the bottom when a new message is added
+            final data = diff.doc.data();
             final systemTime = diff.doc.get("systemTime") as double;
             final id = diff.doc.get("id") as String;
-            final imageURL = diff.doc.get("imageURL") as String;
-            final imagePath = diff.doc.get("imagePath") as String;
-            final audioURL = diff.doc.get("audioURL") as String;
-            final audioPath = diff.doc.get("audioPath") as String;
+            final imageURL = data?["imageURL"] as String?;
+            final imagePath = data?["imagePath"] as String?;
+            final audioURL = data?["audioURL"] as String?;
+            final audioPath = data?["audioPath"] as String?;
             final senderId = diff.doc.get("senderId") as String;
             final senderName = diff.doc.get("senderName") as String;
             final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
@@ -502,7 +514,7 @@ class MessagesDictionary {
 
             final podMessage = PodMessage(
                 id: id,
-                content: text,
+                text: text,
                 senderID: senderId,
                 senderName: senderName,
                 timeStamp: systemTime,
@@ -510,10 +522,10 @@ class MessagesDictionary {
                 audioURL: audioURL,
                 imagePath: imagePath,
                 audioPath: audioPath,
-                senderThumbnailURL: senderThumbnailURL);
+                senderThumbnailURL: senderThumbnailURL, podID: podID);
 
             //Add the message to the associated chat partner ID in the dictionary
-            if (podMessage.content.trim().isNotEmpty) {
+            if (podMessage.text.trim().isNotEmpty) {
               if (podMessageDict.value[podID] != null) {
                 if (!podMessageDict.value[podID]!.contains(podMessage)) podMessageDict.value[podID]?.add(podMessage);
               }
@@ -584,7 +596,7 @@ class MessagesDictionary {
 
             final podMessage = PodMessage(
                 id: messageID,
-                content: text,
+                text: text,
                 senderID: senderId,
                 senderName: senderName,
                 senderThumbnailURL: senderThumbnailURL,
@@ -592,10 +604,10 @@ class MessagesDictionary {
                 imageURL: imageURL,
                 audioURL: audioURL,
                 imagePath: imagePath,
-                audioPath: audioPath);
+                audioPath: audioPath, podID: podID);
 
             //Add the message to the associated chat partner ID in the dictionary
-            if (podMessage.content.trim().isNotEmpty) {
+            if (podMessage.text.trim().isNotEmpty) {
               if (podMessageDict.value[podID] != null) {
                 if (!podMessageDict.value[podID]!.contains(podMessage)) podMessageDict.value[podID]?.add(podMessage);
               }

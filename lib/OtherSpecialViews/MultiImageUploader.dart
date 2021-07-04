@@ -123,7 +123,8 @@ class _MultiImageUploaderState extends State<MultiImageUploader> {
                     children: [
                       // The delete image button, which should be above the image and to the right
                       Container(
-                        width: 140, height: 25,
+                        width: 140,
+                        height: 25,
                         child: Row(
                           children: [
                             Spacer(),
@@ -171,6 +172,8 @@ class _MultiImageUploaderState extends State<MultiImageUploader> {
                                       width: 80,
                                       height: null,
                                       child: CachedNetworkImage(
+                                        progressIndicatorBuilder: (context, url, progress) =>
+                                            CupertinoActivityIndicator(),
                                         imageUrl: identifiableImage.imageURL,
                                         fit: BoxFit.fitWidth,
                                       ),
@@ -181,7 +184,8 @@ class _MultiImageUploaderState extends State<MultiImageUploader> {
                                           CupertinoPageRoute(
                                               builder: (context) => ViewFullImage(
                                                   urlForImageToView: identifiableImage.imageURL,
-                                                  imageID: identifiableImage.id, savedCaption: identifiableImage.caption,
+                                                  imageID: identifiableImage.id,
+                                                  savedCaption: identifiableImage.caption,
                                                   navigationBarTitle: "Caption Image",
                                                   canWriteCaption: true)));
                                     }),
@@ -228,7 +232,10 @@ class _MultiImageUploaderState extends State<MultiImageUploader> {
                                     ),
                                   )
                                 else
-                                  Center(child: Opacity(opacity: 0, child: Container(width: 112, child: Icon(CupertinoIcons.arrow_right))))
+                                  Center(
+                                      child: Opacity(
+                                          opacity: 0,
+                                          child: Container(width: 112, child: Icon(CupertinoIcons.arrow_right))))
                               ],
                             ),
                           )),
@@ -269,7 +276,6 @@ class _MultiImageUploaderState extends State<MultiImageUploader> {
                                 border: Border.all(width: 2, color: CupertinoColors.systemBlue)),
                             child: Icon(CupertinoIcons.plus))),
                   )
-
               ],
             ),
           );

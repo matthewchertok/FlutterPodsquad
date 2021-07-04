@@ -1,11 +1,7 @@
-import 'dart:ui';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
-
 class PodMessage {
   String id;
-  String content;
+  String text;
+  String podID;
   String senderID;
   String senderName;
   String senderThumbnailURL;
@@ -18,7 +14,8 @@ class PodMessage {
 
   PodMessage(
       {required this.id,
-      required this.content,
+      required this.text,
+      required this.podID,
       required this.senderID,
       required this.senderName,
       required this.senderThumbnailURL,

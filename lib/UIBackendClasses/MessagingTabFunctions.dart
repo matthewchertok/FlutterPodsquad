@@ -16,44 +16,18 @@ class MessagingTabFunctions {
 
   ///Tracks the latest message in each conversation. Every time this dictionary changes, the displayed list is
   ///automatically updated as well.
-  ValueNotifier<Map<String, ChatMessage>> get latestMessagesDict => latestMessagesDict;
+  Map<String, ChatMessage> latestMessagesDict = {};
 
-  set latestMessagesDict(ValueNotifier<Map<String, ChatMessage>> newValue) {
-    latestMessagesDict.value = newValue.value;
-    _refreshLatestMessagesList(newDict: newValue.value);
-  }
-
-  ///Saves a copy of sortedLatestMessageList so that the list can be filtered and searched without losing the
+  ///Saves a copy of _latestMessageList so that the list can be filtered and searched without losing the
   ///original data
   var savedLatestMessageList = <ChatMessage>[];
 
   ///Stores an ordered list of the latest message in all messaging conversations.
-  ValueNotifier<List<ChatMessage>> get sortedLatestMessageList => sortedLatestMessageList;
+  List<ChatMessage> _latestMessageList = [];
 
-  set sortedLatestMessageList(ValueNotifier<List<ChatMessage>> newMessagesList) {
-    if (newMessagesList.value.isNotEmpty) {
-      //sorts from newest message to oldest message
-      newMessagesList.value.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
-      sortedLatestMessageList.value = newMessagesList.value.reversed.toList(); // reverse the list so the newest
-      // message appears at the top
+  /// IMPORTANT: The sorted latest messages list, which is displayed in the messaging tab.
+  ValueNotifier<List<ChatMessage>> sortedLatestMessageList = ValueNotifier([]);
 
-      //Say that I don't have any messages if either 1) the list is empty OR 2) all conversations are hidden
-      final messageIDsList = isPodMode
-          ? sortedLatestMessageList.value.map((message) => message.podID).toList()
-          : sortedLatestMessageList.value.map((message) => message.chatPartnerId).toList();
-      final areAllConversationsHidden = isPodMode
-          ? messageIDsList.difference(betweenOtherList: MessagesDictionary.shared.listOfPodChatsIveHidden.value).isEmpty
-          : messageIDsList
-              .difference(betweenOtherList: MessagesDictionary.shared.listOfDMConversationsIveHidden.value)
-              .isEmpty;
-
-      if (sortedLatestMessageList.value.isEmpty || areAllConversationsHidden)
-        isShowingNoMessages.value = true;
-      else
-        isShowingNoMessages.value = false;
-    } else
-      sortedLatestMessageList.value = []; // don't bother to run the sort function if we want to clear the list
-  }
 
   ///Determines when to display "No messages found"
   ValueNotifier<bool> isShowingNoMessages = ValueNotifier(false);
@@ -78,12 +52,12 @@ class MessagingTabFunctions {
 
     //stop listening for the latest message in each direct message conversation
     _latestMessageListenersDict.forEach((chatPartnerID, streamSubscription) {
-      latestMessagesDict.value.removeWhere((key, value) => key == chatPartnerID);
+      latestMessagesDict.removeWhere((key, value) => key == chatPartnerID);
       streamSubscription.cancel();
     });
     _latestMessageListenersDict.clear();
-    latestMessagesDict.value.clear();
-    sortedLatestMessageList.value.clear();
+    latestMessagesDict.clear();
+    _latestMessageList.clear();
     savedLatestMessageList.clear();
     isShowingNoMessages.value = false;
     didGetData.value = false;
@@ -91,7 +65,7 @@ class MessagingTabFunctions {
 
   ///Reset the list of message conversations to the original, unfiltered list. Call this when navigating away from a
   ///widget.
-  void resetSearch() => sortedLatestMessageList.value = savedLatestMessageList;
+  void resetSearch() => _latestMessageList = savedLatestMessageList;
 
   ///When latestMessageDict changes, ensure those changes are reflected in latestMessageList.
   void _refreshLatestMessagesList({required Map<String, ChatMessage> newDict}) {
@@ -104,31 +78,61 @@ class MessagingTabFunctions {
     });
 
     // update the displayed lists with the new value
-    sortedLatestMessageList.value = latestMessageList;
+    _latestMessageList = latestMessageList;
     savedLatestMessageList = latestMessageList;
+
+    // Now update the sorted latest messages list
+    if (_latestMessageList.isNotEmpty) {
+      print("BIDEN: sortedLatestMessageList is not empty!");
+      //sorts from newest message to oldest message
+      _latestMessageList.sort((b, a) => a.timeStamp.compareTo(b.timeStamp));
+/*
+          //Say that I don't have any messages if either 1) the list is empty OR 2) all conversations are hidden
+          final messageIDsList = isPodMode
+              ? _latestMessageList.map((message) => message.podID).toList()
+              : _latestMessageList.map((message) => message.chatPartnerId).toList();
+          final areAllConversationsHidden = isPodMode
+              ? messageIDsList.difference(betweenOtherList: MessagesDictionary.shared.listOfPodChatsIveHidden.value).isEmpty
+              : messageIDsList
+              .difference(betweenOtherList: MessagesDictionary.shared.listOfDMConversationsIveHidden.value)
+              .isEmpty;
+
+          if (_latestMessageList.isEmpty || areAllConversationsHidden)
+            isShowingNoMessages.value = true;
+          else
+            isShowingNoMessages.value = false;
+*/
+
+      /// Return the sorted messages list after
+      sortedLatestMessageList.value.clear(); // clearing the value forces a state reset (otherwise nothing will
+      // change, because the message IDs stay the same so the message won't update)
+      sortedLatestMessageList.value = _latestMessageList;
+      print("BIDEN: I have the following message: ${sortedLatestMessageList.value[0].text}");
+    }
   }
 
   ///Allow the user to search their message conversations
   void searchMessagesList({required String searchText}) {
-    sortedLatestMessageList.value = savedLatestMessageList; // restores the original list so that while searching, I
+    _latestMessageList = savedLatestMessageList; // restores the original list so that while searching, I
     // can misspell something and hit backspace to get results instead of having to clear the search text entirely
     // and try again.
     if (searchText.isEmpty) return; // don't bother searching if the text is empty
     if (isPodMode) {
       // filter for messages where the pod name contains the search text
-      final messagesMatchingSearchText = sortedLatestMessageList.value
-          .where((message) => (message.podName ??
-                  "search "
-                      "term doesn't match")
+      final messagesMatchingSearchText = _latestMessageList
+          .where((message) =>
+          (message.podName ??
+              "search "
+                  "term doesn't match")
               .toLowerCase()
               .contains(searchText.toLowerCase()))
           .toList();
-      sortedLatestMessageList.value = messagesMatchingSearchText;
+      _latestMessageList = messagesMatchingSearchText;
     } else {
-      final messagesMatchingSearchText = sortedLatestMessageList.value
+      final messagesMatchingSearchText = _latestMessageList
           .where((message) => message.chatPartnerName.toLowerCase().contains(searchText.toLowerCase()))
           .toList();
-      sortedLatestMessageList.value = messagesMatchingSearchText;
+      _latestMessageList = messagesMatchingSearchText;
     }
   }
 
@@ -178,7 +182,7 @@ class MessagingTabFunctions {
               });
 
               // Remove the pod from my list of pod conversations
-              latestMessagesDict.value.removeWhere((key, value) => key == podID);
+              latestMessagesDict.removeWhere((key, value) => key == podID);
             });
           }
         }
@@ -236,7 +240,8 @@ class MessagingTabFunctions {
               audioPath: audioPath,
               readBy: readBy);
 
-          latestMessagesDict.value[podID] = message; // update the latest message that gets displayed for the pod
+          latestMessagesDict[podID] = message; // update the latest message that gets displayed for the pod
+          _refreshLatestMessagesList(newDict: latestMessagesDict);
           // conversation in the Messaging tab
         });
       }
@@ -244,7 +249,7 @@ class MessagingTabFunctions {
       // if the latest message in the conversation no longer exists, remove the message from memory
       else {
         _latestMessageListenersDict[podID]?.cancel(); // stop listening for new messages if the conversation is deleted
-        latestMessagesDict.value.removeWhere((key, value) => key == podID);
+        latestMessagesDict.removeWhere((key, value) => key == podID);
       }
     });
     _latestMessageListenersDict[podID] = podMessageListener; // track the listener in case I need to remove it later
@@ -256,14 +261,15 @@ class MessagingTabFunctions {
     final listener = firestoreDatabase.collection("pods").doc(podID).snapshots().listen((docSnapshot) {
       final podProfileData = docSnapshot.get("profileData") as Map<String, dynamic>;
       final podName = podProfileData["name"] as String;
-      latestMessagesDict.value[podID]?.podName = podName;
+      latestMessagesDict[podID]?.podName = podName;
+      _refreshLatestMessagesList(newDict: latestMessagesDict);
     });
     _podNameListenersDict[podID] = listener; // track the listener so it can be removed later
   }
 
   ///Pre-load direct messaging conversations
   void loadLatestMessageForAllDirectMessageConversations() {
-    latestMessagesDict.value.clear(); // clear the dictionary to be safe, then rebuild it.
+    latestMessagesDict.clear(); // clear the dictionary to be safe, then rebuild it.
     // get a list of all my direct message conversations
     // ignore: cancel_subscriptions
     final dmLoaderListener = firestoreDatabase
@@ -279,10 +285,13 @@ class MessagingTabFunctions {
         isShowingNoMessages.value = false;
 
       snapshot.docChanges.forEach((diff) {
+        print("BIDEN - I have ${snapshot.docs.length} DM conversations!");
+
         if (diff.type == DocumentChangeType.added) {
           // find out who the chat partner is in the list of either [myId, theirId] or [theirId, myId]
-          final participantIDs = diff.doc.get("participants") as List<String>;
-          final chatPartnerID = participantIDs.first == myFirebaseUserId ? participantIDs.last : participantIDs.first;
+          final participantIDs = diff.doc.get("participants") as List<dynamic>;
+          final String chatPartnerID = participantIDs.first == myFirebaseUserId ? participantIDs.last : participantIDs
+              .first;
 
           // the path where the messages in the conversation are stored
           final collectionRef = diff.doc.reference.collection("messages");
@@ -300,24 +309,26 @@ class MessagingTabFunctions {
     final listener = collectionRef.orderBy("systemTime").limitToLast(1).snapshots().listen((snapshot) {
       final latestMessageDocuments = snapshot.docs;
       didGetData.value = true; // set to true as soon as the first conversation is ready to hide the loading bar
-
+      print("BIDEN: observing latest message in the conversation with $chatPartnerID");
       //Check to make sure there are still messages in the conversation
       if (latestMessageDocuments.length > 0) {
         latestMessageDocuments.forEach((doc) {
-          final id = doc.get("id") as String;
-          final imageURL = doc.get("imageURL") as String;
-          final imagePath = doc.get("imagePath") as String;
-          final audioURL = doc.get("audioURL") as String;
-          final audioPath = doc.get("audioPath") as String;
-          final recipientId = doc.get("recipientId") as String;
-          final recipientName = doc.get("recipientName") as String;
-          final senderId = doc.get("senderId") as String;
-          final senderName = doc.get("senderName") as String;
-          final timeStamp = doc.get("systemTime") as double;
-          final text = doc.get("text") as String;
-          final senderThumbnailURL = doc.get("senderThumbnailURL") as String;
-          final recipientThumbnailURL = doc.get("recipientThumbnailURL") as String;
-          final readBy = doc.get("readBy") as List<String>;
+          final data = doc.data() as Map;
+          final id = data["id"] as String;
+          final imageURL = data["imageURL"] as String?;
+          final imagePath = data["imagePath"] as String?;
+          final audioURL = data["audioURL"] as String?;
+          final audioPath = data["audioPath"] as String?;
+          final recipientId = data["recipientId"] as String;
+          final recipientName = data["recipientName"] as String;
+          final senderId = data["senderId"] as String;
+          final senderName = data["senderName"] as String;
+          final timeStamp = data["systemTime"] as double;
+          final text = data["text"] as String;
+          final senderThumbnailURL = data["senderThumbnailURL"] as String;
+          final recipientThumbnailURL = data["recipientThumbnailURL"] as String;
+          final readByDynamic = data["readBy"] as List<dynamic>;
+          final readBy = List<String>.from(readByDynamic);
 
           final chatMessage = ChatMessage(
               id: id,
@@ -334,16 +345,17 @@ class MessagingTabFunctions {
               audioPath: audioPath,
               audioURL: audioURL,
               readBy: readBy);
-
-          //replace the value in the message dictionary with a value equal to the latest chat message
-          latestMessagesDict.value[chatPartnerID] = chatMessage;
+          print("BIDEN - the latest message in my conversation with $senderName is ${chatMessage.text}");
+          //replace the value in the message dictionary with a value equal to the latest chat message. Must
+          latestMessagesDict[chatPartnerID] = chatMessage;
+          _refreshLatestMessagesList(newDict: latestMessagesDict);
         });
       }
 
       // if the conversation was deleted, make sure to handle it
       else {
         _latestMessageListenersDict[chatPartnerID]?.cancel(); // cancel the stream subscription
-        latestMessagesDict.value.removeWhere((key, value) => key == chatPartnerID);
+        latestMessagesDict.removeWhere((key, value) => key == chatPartnerID);
       }
     });
     _latestMessageListenersDict[chatPartnerID] = listener; // track the listener so it can be removed later if needed

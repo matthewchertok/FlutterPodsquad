@@ -6,9 +6,10 @@ import 'dart:io';
 // Import the firebase_core plugin
 import 'package:firebase_core/firebase_core.dart';
 import 'package:podsquad/ContentViews/LoginView.dart';
-import 'package:podsquad/ContentViews/StartingView.dart';
 import 'package:podsquad/OtherSpecialViews/LoadingView.dart';
 import 'package:podsquad/TabLayoutViews/WelcomeView.dart';
+import 'package:podsquad/UIBackendClasses/MessagesDictionary.dart';
+import 'package:podsquad/UIBackendClasses/MessagingTabFunctions.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 
 import 'BackendDataHolders/UserAuth.dart';
@@ -64,12 +65,15 @@ class _AppState extends State<MyApp> {
             valueListenable: UserAuth.shared.isLoggedIn,
             builder: (BuildContext context, bool isLoggedIn, Widget? child) {
               if (isLoggedIn) {
+                LatestPodMessagesDictionary.shared.getListOfIDsForPodsImIn();
+                LatestDirectMessagesDictionary.shared.loadLatestMessageForAllDirectMessageConversations();
+                MessagesDictionary.shared.preLoadAllDirectMessageConversations();
                 // Must wait until profile data is ready; otherwise we'll run into the issue of profile data not
                 // loading. The reason I can't just put snapshots on profile data is that Flutter can behave weirdly,
                 // such that opening a text field can cause the widget to think it disappeared, which causes the view
                 // to reset and causes listeners to fire, erasing my changes and resetting my profile data to how it
                 // was. Using a FutureBuilder guarantees that my profile data will be available when the app opens.
-                return FutureBuilder(future: MyProfileTabBackendFunctions.shared.getMyProfileData(),builder:
+                return FutureBuilder(future: MyProfileTabBackendFunctions.shared.getMyProfileData(), builder:
                     (context, snapshot){
                     return WelcomeView();
                 });

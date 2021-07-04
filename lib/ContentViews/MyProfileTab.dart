@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/rendering.dart';
 import 'package:podsquad/BackendDataHolders/UserAuth.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/BackendFunctions/NearbyScanner.dart';
@@ -310,321 +311,340 @@ class _MyProfileTabState extends State<MyProfileTab> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: Text("My Profile"),
-      ),
-      child: SafeArea(
-
-          // contains the view underneath, and a progress spinner if a new profile image is loading
-          child: Stack(
-        children: [
-          // contains my profile tab view
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                // Profile image and photo section
-                CupertinoFormSection(children: [
-                  // Profile Image
-                  Padding(
-                      padding: EdgeInsets.all(20),
-                      child: Center(
-                          child: Container(
-                              width: 125.scaledForScreenSize(context: context),
-                              height: 125.scaledForScreenSize(context: context),
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15),
-                                  border: Border.all(color: CupertinoColors.white, width: 3),
-                                  boxShadow: [BoxShadow(color: accentColor(opacity: 0.5), blurRadius: 3)]),
-                              child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: ValueListenableBuilder(
-                                      valueListenable: MyProfileTabBackendFunctions.shared.myProfileData,
-                                      builder: (context, ProfileData profileData, widget) {
-                                        return profileData.thumbnailURL.isEmpty
-                                            ? Icon(CupertinoIcons.person)
-                                            : CachedNetworkImage(
-                                                imageUrl: profileData.thumbnailURL, fit: BoxFit.cover,
-                                                errorWidget: (context, url, error) =>
-                                                    Icon(CupertinoIcons.exclamationmark_triangle_fill),
-                                                progressIndicatorBuilder: (context, url, progress) =>
-                                                    CupertinoActivityIndicator(),
-                                              );
-                                      }))))),
-
-                  // Take photo button
-                  CupertinoButton(
-                    onPressed: () {
-                      this._pickImage(source: ImageSource.camera);
-                    },
-                    child: Row(
-                      children: [
-                        Icon(CupertinoIcons.camera),
-                        Padding(padding: EdgeInsets.only(left: 10), child: Text("Take photo"))
-                      ],
-                    ),
-                  ),
-
-                  // Choose photo button
-                  CupertinoButton(
-                    onPressed: () {
-                      this._pickImage(source: ImageSource.gallery);
-                    },
-                    child: Row(
-                      children: [
-                        Icon(CupertinoIcons.photo),
-                        Padding(padding: EdgeInsets.only(left: 10), child: Text("Choose from gallery"))
-                      ],
-                    ),
-                  ),
-
-                  // Add more photos button
-                  CupertinoButton(
-                    onPressed: () {
-                      setState(() {
-                        _showingMultiImageUploader = !_showingMultiImageUploader; // show or hide my extra images
-                      });
-                    },
-                    child: Row(
-                      children: [
-                        Icon(CupertinoIcons.photo_on_rectangle),
-                        Padding(padding: EdgeInsets.only(left: 10), child: Text("Add more photos"))
-                      ],
-                    ),
-                  ),
-
-                  AnimatedSwitcher(
-                      duration: Duration(milliseconds: 250),
-                      child: _showingMultiImageUploader ? MultiImageUploader() : Container())
-                ]),
-
-                // Name, pronouns, lookingFor, Birthday, school, bio, and Update Profile button
-                CupertinoFormSection(header: Text("Profile Info"), children: [
-                  // name text field
-                  CupertinoTextFormFieldRow(controller: _nameTextController, placeholder: "Name"),
-
-                  // preferred pronouns menu - show an action sheet instead
-                  CupertinoFormRow(
-                      child: CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () {
-                            final sheet = CupertinoActionSheet(
-                              title: Text("Pick Pronouns"),
-                              actions: [
-                                CupertinoActionSheetAction(
-                                    child: Text(UsefulValues.malePronouns),
-                                    onPressed: () {
-                                      _preferredPronouns = UsefulValues.malePronouns;
-                                      dismissAlert(context: context);
-                                    }),
-                                CupertinoActionSheetAction(
-                                    child: Text(UsefulValues.femalePronouns),
-                                    onPressed: () {
-                                      _preferredPronouns = UsefulValues.femalePronouns;
-                                      dismissAlert(context: context);
-                                    }),
-                                CupertinoActionSheetAction(
-                                    child: Text(UsefulValues.nonbinaryPronouns),
-                                    onPressed: () {
-                                      _preferredPronouns = UsefulValues.nonbinaryPronouns;
-                                      dismissAlert(context: context);
-                                    }),
-
-                                // There is no cancel button because the user must pick a pronoun.
-                              ],
-                            );
-                            showCupertinoModalPopup(context: context, builder: (context) => sheet);
-                          },
-                          child: Padding(
-                              padding: EdgeInsets.all(5),
-                              child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    _preferredPronouns ?? "Pick your pronouns",
-                                    style: TextStyle(
-                                        color: _preferredPronouns == null
-                                            ? CupertinoColors.inactiveGray
-                                            : isDarkMode
-                                                ? CupertinoColors.white
-                                                : CupertinoColors.black),
-                                  ))))),
-
-                  // preferred relationship type menu
-                  CupertinoFormRow(
-                      child: CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () {
-                            final sheet = CupertinoActionSheet(
-                              title: Text("Pick Relationship Type"),
-                              actions: [
-                                CupertinoActionSheetAction(
-                                    child: Text("I want to make friends!"),
-                                    onPressed: () {
-                                      setState(() {
-                                        _preferredRelationshipType = UsefulValues.lookingForFriends;
-                                      });
-                                      dismissAlert(context: context);
-                                    }),
-                                CupertinoActionSheetAction(
-                                    child: Text("I want a relationship!"),
-                                    onPressed: () {
-                                      dismissAlert(context: context); // dismiss the previous alert and show a new one
-                                      final chooseRelationshipTypeSheet =
-                                          CupertinoActionSheet(title: Text("Relationship Type"), actions: [
-                                        CupertinoActionSheetAction(
-                                            child: Text("I like guys!"),
-                                            onPressed: () {
-                                              setState(() {
-                                                _preferredRelationshipType = UsefulValues.lookingForBoyfriend;
-                                              });
-                                              dismissAlert(context: context);
-                                            }),
-                                        CupertinoActionSheetAction(
-                                            child: Text("I like girls!"),
-                                            onPressed: () {
-                                              setState(() {
-                                                _preferredRelationshipType = UsefulValues.lookingForGirlfriend;
-                                              });
-                                              dismissAlert(context: context);
-                                            }),
-                                        CupertinoActionSheetAction(
-                                            child: Text("I like all genders!"),
-                                            onPressed: () {
-                                              setState(() {
-                                                _preferredRelationshipType = UsefulValues.lookingForAnyGenderDate;
-                                              });
-                                              dismissAlert(context: context);
-                                            })
-                                      ]);
-                                      showCupertinoModalPopup(
-                                          context: context, builder: (context) => chooseRelationshipTypeSheet);
-                                    })
-                              ],
-                            );
-                            showCupertinoModalPopup(context: context, builder: (context) => sheet);
-                          },
-                          child: Padding(
-                              padding: EdgeInsets.all(5),
-                              child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    _preferredRelationshipType?.formattedPronounForDisplay() ??
-                                        "Select a relationship preference",
-                                    style: TextStyle(
-                                        color: _preferredRelationshipType == null
-                                            ? CupertinoColors.inactiveGray
-                                            : isDarkMode
-                                                ? CupertinoColors.white
-                                                : CupertinoColors.black),
-                                  ))))),
-
-                  // birthday picker
-                  Align(
-                      alignment: Alignment.centerLeft,
-                      child: CupertinoButton(
-                          child: Padding(
-                              padding: EdgeInsets.only(left: 8),
-                              child: Text(
-                                _birthday == -42069
-                                    ? "Select "
-                                        "your "
-                                        "birthday"
-                                    : "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).month.toHumanReadableMonth()} "
-                                        "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).day}, ${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).year}",
-                                style: TextStyle(
-                                    color: _birthday == -42069
-                                        ? CupertinoColors.inactiveGray
-                                        : isDarkMode
-                                            ? CupertinoColors.white
-                                            : CupertinoColors.black),
-                              )),
-                          onPressed: () {
-                            // show a sheet where the user can pick their birthday
-                            showCupertinoModalPopup(
-                                context: context,
-                                builder: (context) {
-                                  return Container(
-                                    height: 200,
-                                    child: CupertinoPageScaffold(
-                                      child: Column(
-                                        children: [
-                                          Padding(padding: EdgeInsets.all(10), child: Text("Enter Birthday", style:
-                                          TextStyle(color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),)),
-                                          Expanded(
-                                              child: Padding(
-                                                  padding: EdgeInsets.only(top: 20),
-                                                  child: CupertinoDatePicker(
-                                                      onDateTimeChanged: (DateTime selectedBirthday) {
-                                                        setState(() {
-                                                          this._birthday = selectedBirthday.millisecondsSinceEpoch *
-                                                              0.001; // divide by 1000 to convert to
-                                                          // seconds, since that's how the native iOS app handles time.
-                                                        });
-                                                      },
-                                                      initialDateTime: DateTime.fromMillisecondsSinceEpoch(
-                                                          ((_birthday ?? _twentyOneYearsAgo()) * 1000).toInt()),
-                                                      minimumDate: _earliestAllowedBirthday(),
-                                                      maximumDate: _latestAllowedBirthday(),
-                                                      mode: CupertinoDatePickerMode.date))),
-                                          Padding(
-                                            padding: EdgeInsets.all(5),
-                                            child: CupertinoButton(
-                                              child: Text("Done"),
-                                              onPressed: () {
-                                                dismissAlert(context: context);
-                                              },
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                });
-                          })),
-
-                  // school text field
-                  CupertinoTextFormFieldRow(controller: _schoolTextController, placeholder: "School"),
-
-                  // bio text field
-                  CupertinoTextFormFieldRow(controller: _bioTextController, placeholder: "Bio", maxLines: null),
-
-                  // Set profile data button
-                  Align(
-                      alignment: Alignment.centerLeft,
-                      child: CupertinoButton(
-                          child: Center(
-                              child: Text(MyProfileTabBackendFunctions.shared.isProfileComplete
-                                  ? "Update Profile"
-                                  : "Create Profile")),
-                          onPressed: _setMyProfileData)),
-                ]),
-
-                // Sign out and delete account section
-                CupertinoFormSection(header: Text("Other Options"), children: [
-                  // sign out button
-                  Align(
-                      alignment: Alignment.centerLeft,
-                      child: CupertinoButton(
-                          child: Center(child: Text("Sign Out")),
-                          onPressed: () {
-                            showSignOutDialog();
-                          })),
-
-                  // delete account button
-                  Align(
-                      alignment: Alignment.centerLeft,
-                      child: CupertinoButton(
-                          child: Center(
-                              child: Text("Delete Account", style: TextStyle(color: CupertinoColors.destructiveRed))),
-                          onPressed: () {
-                            _showDeleteAccountDialog();
-                          })),
-                ])
-              ],
+        child: Stack(
+      children: [
+        // Contains the My Profile Tab widget with text fields, the navigation bar, and everything
+        CustomScrollView(
+          slivers: [
+            CupertinoSliverNavigationBar(
+              largeTitle: Text("My Profile"),
             ),
-          ),
+            SliverList(
+              delegate: SliverChildListDelegate([
+                SafeArea(
+                  // contains the view underneath, and a progress spinner if a new profile image is loading
+                  child:
+                      // contains my profile tab view
+                      Column(
+                    children: [
+                      // Profile Image
+                      Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Center(
+                              child: Container(
+                                  width: 125.scaledForScreenSize(context: context),
+                                  height: 125.scaledForScreenSize(context: context),
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(15),
+                                      border: Border.all(color: CupertinoColors.white, width: 3),
+                                      boxShadow: [BoxShadow(color: accentColor(opacity: 0.5), blurRadius: 3)]),
+                                  child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: ValueListenableBuilder(
+                                          valueListenable: MyProfileTabBackendFunctions.shared.myProfileData,
+                                          builder: (context, ProfileData profileData, widget) {
+                                            return profileData.thumbnailURL.isEmpty
+                                                ? Icon(CupertinoIcons.person)
+                                                : CachedNetworkImage(
+                                                    imageUrl: profileData.thumbnailURL,
+                                                    fit: BoxFit.cover,
+                                                    errorWidget: (context, url, error) =>
+                                                        Icon(CupertinoIcons.exclamationmark_triangle_fill),
+                                                    progressIndicatorBuilder: (context, url, progress) =>
+                                                        CupertinoActivityIndicator(),
+                                                  );
+                                          }))))),
+                      // Profile image and photo section
+                      CupertinoFormSection(children: [
+                        // Take photo button
+                        CupertinoButton(
+                          onPressed: () {
+                            this._pickImage(source: ImageSource.camera);
+                          },
+                          child: Row(
+                            children: [
+                              Icon(CupertinoIcons.camera),
+                              Padding(padding: EdgeInsets.only(left: 10), child: Text("Take photo"))
+                            ],
+                          ),
+                        ),
 
-          // contains the loading spinner and blur effect
-          ValueListenableBuilder(
+                        // Choose photo button
+                        CupertinoButton(
+                          onPressed: () {
+                            this._pickImage(source: ImageSource.gallery);
+                          },
+                          child: Row(
+                            children: [
+                              Icon(CupertinoIcons.photo),
+                              Padding(padding: EdgeInsets.only(left: 10), child: Text("Choose from gallery"))
+                            ],
+                          ),
+                        ),
+
+                        // Add more photos button
+                        CupertinoButton(
+                          onPressed: () {
+                            setState(() {
+                              _showingMultiImageUploader = !_showingMultiImageUploader; // show or hide my extra images
+                            });
+                          },
+                          child: Row(
+                            children: [
+                              Icon(CupertinoIcons.photo_on_rectangle),
+                              Padding(padding: EdgeInsets.only(left: 10), child: Text("Add more photos"))
+                            ],
+                          ),
+                        ),
+
+                        AnimatedSwitcher(
+                            duration: Duration(milliseconds: 250),
+                            child: _showingMultiImageUploader ? MultiImageUploader() : Container())
+                      ]),
+
+                      // Name, pronouns, lookingFor, Birthday, school, bio, and Update Profile button
+                      CupertinoFormSection(header: Text("Profile Info"), children: [
+                        // name text field
+                        CupertinoTextFormFieldRow(controller: _nameTextController, placeholder: "Name"),
+
+                        // preferred pronouns menu - show an action sheet instead
+                        CupertinoFormRow(
+                            child: CupertinoButton(
+                                padding: EdgeInsets.zero,
+                                onPressed: () {
+                                  final sheet = CupertinoActionSheet(
+                                    title: Text("Pick Pronouns"),
+                                    actions: [
+                                      CupertinoActionSheetAction(
+                                          child: Text(UsefulValues.malePronouns),
+                                          onPressed: () {
+                                            _preferredPronouns = UsefulValues.malePronouns;
+                                            dismissAlert(context: context);
+                                          }),
+                                      CupertinoActionSheetAction(
+                                          child: Text(UsefulValues.femalePronouns),
+                                          onPressed: () {
+                                            _preferredPronouns = UsefulValues.femalePronouns;
+                                            dismissAlert(context: context);
+                                          }),
+                                      CupertinoActionSheetAction(
+                                          child: Text(UsefulValues.nonbinaryPronouns),
+                                          onPressed: () {
+                                            _preferredPronouns = UsefulValues.nonbinaryPronouns;
+                                            dismissAlert(context: context);
+                                          }),
+
+                                      // There is no cancel button because the user must pick a pronoun.
+                                    ],
+                                  );
+                                  showCupertinoModalPopup(context: context, builder: (context) => sheet);
+                                },
+                                child: Padding(
+                                    padding: EdgeInsets.all(5),
+                                    child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          _preferredPronouns ?? "Pick your pronouns",
+                                          style: TextStyle(
+                                              color: _preferredPronouns == null
+                                                  ? CupertinoColors.inactiveGray
+                                                  : isDarkMode
+                                                      ? CupertinoColors.white
+                                                      : CupertinoColors.black),
+                                        ))))),
+
+                        // preferred relationship type menu
+                        CupertinoFormRow(
+                            child: CupertinoButton(
+                                padding: EdgeInsets.zero,
+                                onPressed: () {
+                                  final sheet = CupertinoActionSheet(
+                                    title: Text("Pick Relationship Type"),
+                                    actions: [
+                                      CupertinoActionSheetAction(
+                                          child: Text("I want to make friends!"),
+                                          onPressed: () {
+                                            setState(() {
+                                              _preferredRelationshipType = UsefulValues.lookingForFriends;
+                                            });
+                                            dismissAlert(context: context);
+                                          }),
+                                      CupertinoActionSheetAction(
+                                          child: Text("I want a relationship!"),
+                                          onPressed: () {
+                                            dismissAlert(
+                                                context: context); // dismiss the previous alert and show a new one
+                                            final chooseRelationshipTypeSheet =
+                                                CupertinoActionSheet(title: Text("Relationship Type"), actions: [
+                                              CupertinoActionSheetAction(
+                                                  child: Text("I like guys!"),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _preferredRelationshipType = UsefulValues.lookingForBoyfriend;
+                                                    });
+                                                    dismissAlert(context: context);
+                                                  }),
+                                              CupertinoActionSheetAction(
+                                                  child: Text("I like girls!"),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _preferredRelationshipType = UsefulValues.lookingForGirlfriend;
+                                                    });
+                                                    dismissAlert(context: context);
+                                                  }),
+                                              CupertinoActionSheetAction(
+                                                  child: Text("I like all genders!"),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _preferredRelationshipType = UsefulValues.lookingForAnyGenderDate;
+                                                    });
+                                                    dismissAlert(context: context);
+                                                  })
+                                            ]);
+                                            showCupertinoModalPopup(
+                                                context: context, builder: (context) => chooseRelationshipTypeSheet);
+                                          })
+                                    ],
+                                  );
+                                  showCupertinoModalPopup(context: context, builder: (context) => sheet);
+                                },
+                                child: Padding(
+                                    padding: EdgeInsets.all(5),
+                                    child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          _preferredRelationshipType?.formattedPronounForDisplay() ??
+                                              "Select a relationship preference",
+                                          style: TextStyle(
+                                              color: _preferredRelationshipType == null
+                                                  ? CupertinoColors.inactiveGray
+                                                  : isDarkMode
+                                                      ? CupertinoColors.white
+                                                      : CupertinoColors.black),
+                                        ))))),
+
+                        // birthday picker
+                        Align(
+                            alignment: Alignment.centerLeft,
+                            child: CupertinoButton(
+                                child: Padding(
+                                    padding: EdgeInsets.only(left: 8),
+                                    child: Text(
+                                      _birthday == -42069
+                                          ? "Select "
+                                              "your "
+                                              "birthday"
+                                          : "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).month.toHumanReadableMonth()} "
+                                              "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).day}, ${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).year}",
+                                      style: TextStyle(
+                                          color: _birthday == -42069
+                                              ? CupertinoColors.inactiveGray
+                                              : isDarkMode
+                                                  ? CupertinoColors.white
+                                                  : CupertinoColors.black),
+                                    )),
+                                onPressed: () {
+                                  // show a sheet where the user can pick their birthday
+                                  showCupertinoModalPopup(
+                                      context: context,
+                                      builder: (context) {
+                                        return Container(
+                                          height: 200,
+                                          child: CupertinoPageScaffold(
+                                            child: Column(
+                                              children: [
+                                                Padding(
+                                                    padding: EdgeInsets.all(10),
+                                                    child: Text(
+                                                      "Enter Birthday",
+                                                      style: TextStyle(
+                                                          color: isDarkMode
+                                                              ? CupertinoColors.white
+                                                              : CupertinoColors.black),
+                                                    )),
+                                                Expanded(
+                                                    child: Padding(
+                                                        padding: EdgeInsets.only(top: 20),
+                                                        child: CupertinoDatePicker(
+                                                            onDateTimeChanged: (DateTime selectedBirthday) {
+                                                              setState(() {
+                                                                this._birthday =
+                                                                    selectedBirthday.millisecondsSinceEpoch *
+                                                                        0.001; // divide by 1000 to convert to
+                                                                // seconds, since that's how the native iOS app handles time.
+                                                              });
+                                                            },
+                                                            initialDateTime: DateTime.fromMillisecondsSinceEpoch(
+                                                                ((_birthday ?? _twentyOneYearsAgo()) * 1000).toInt()),
+                                                            minimumDate: _earliestAllowedBirthday(),
+                                                            maximumDate: _latestAllowedBirthday(),
+                                                            mode: CupertinoDatePickerMode.date))),
+                                                Padding(
+                                                  padding: EdgeInsets.all(5),
+                                                  child: CupertinoButton(
+                                                    child: Text("Done"),
+                                                    onPressed: () {
+                                                      dismissAlert(context: context);
+                                                    },
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      });
+                                })),
+
+                        // school text field
+                        CupertinoTextFormFieldRow(controller: _schoolTextController, placeholder: "School"),
+
+                        // bio text field
+                        CupertinoTextFormFieldRow(controller: _bioTextController, placeholder: "Bio", maxLines: null),
+
+                        // Set profile data button
+                        Align(
+                            alignment: Alignment.centerLeft,
+                            child: CupertinoButton(
+                                child: Center(
+                                    child: Text(MyProfileTabBackendFunctions.shared.isProfileComplete
+                                        ? "Update Profile"
+                                        : "Create Profile")),
+                                onPressed: _setMyProfileData)),
+                      ]),
+
+                      // Sign out and delete account section
+                      CupertinoFormSection(header: Text("Other Options"), children: [
+                        // sign out button
+                        Align(
+                            alignment: Alignment.centerLeft,
+                            child: CupertinoButton(
+                                child: Center(child: Text("Sign Out")),
+                                onPressed: () {
+                                  showSignOutDialog();
+                                })),
+
+                        // delete account button
+                        Align(
+                            alignment: Alignment.centerLeft,
+                            child: CupertinoButton(
+                                child: Center(
+                                    child: Text("Delete Account",
+                                        style: TextStyle(color: CupertinoColors.destructiveRed))),
+                                onPressed: () {
+                                  _showDeleteAccountDialog();
+                                })),
+                      ])
+                    ],
+                  ),
+                )
+              ]),
+            )
+          ],
+        ),
+
+        // Contains the image upload progress spinner
+        Center(
+          child: ValueListenableBuilder(
               valueListenable: ResizeAndUploadImage.sharedInstance.isUploadInProgress,
               builder: (context, bool inProgress, widget) {
                 if (inProgress) {
@@ -650,9 +670,9 @@ class _MyProfileTabState extends State<MyProfileTab> {
                   );
                 } else
                   return Container(); // return an empty widget if there's no image loading
-              })
-        ],
-      )),
-    );
+              }),
+        )
+      ],
+    ));
   }
 }

@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:podsquad/ContentViews/LoginView.dart';
 import 'package:podsquad/OtherSpecialViews/LoadingView.dart';
 import 'package:podsquad/TabLayoutViews/WelcomeView.dart';
+import 'package:podsquad/UIBackendClasses/MainListDisplayBackend.dart';
 import 'package:podsquad/UIBackendClasses/MessagesDictionary.dart';
 import 'package:podsquad/UIBackendClasses/MessagingTabFunctions.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
@@ -68,6 +69,8 @@ class _AppState extends State<MyApp> {
                 LatestPodMessagesDictionary.shared.getListOfIDsForPodsImIn();
                 LatestDirectMessagesDictionary.shared.loadLatestMessageForAllDirectMessageConversations();
                 MessagesDictionary.shared.preLoadAllDirectMessageConversations();
+                SentBlocksBackendFunctions.shared.addDataToListView();
+                ReceivedBlocksBackendFunctions.shared.addDataToListView();
                 // Must wait until profile data is ready; otherwise we'll run into the issue of profile data not
                 // loading. The reason I can't just put snapshots on profile data is that Flutter can behave weirdly,
                 // such that opening a text field can cause the widget to think it disappeared, which causes the view

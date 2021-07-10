@@ -14,16 +14,14 @@ import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 ///static instance of the MainListDisplayViewModes class.
 abstract class MainListDisplayBackend {
   ///Determine whether we're displaying likes, friends, people I met, etc.
-  late final String _viewMode;
+  final String viewMode;
 
   ///pass in true if showing a list of either likes I sent, friends I sent, or blocks I sent. Pass in false is
   ///showing a list of likes I received, friends I received, or blocks I received.
-  late final bool _showingSentDataNotReceivedData;
+  final bool showingSentDataNotReceivedData;
 
-  MainListDisplayBackend({required String viewMode, required bool showingSentDataNotReceivedData}) {
-    this._viewMode = _viewMode;
-    this._showingSentDataNotReceivedData = showingSentDataNotReceivedData;
-  }
+  // Class constructor
+  MainListDisplayBackend({required this.viewMode, required this.showingSentDataNotReceivedData});
 
   ///Continuously observe who is in the pod
   ValueNotifier<PodMembersDictionary> _podMembersDict = ValueNotifier(PodMembersDictionary.sharedInstance);
@@ -34,42 +32,29 @@ abstract class MainListDisplayBackend {
 
   //Important variable!
   ///The list of people to be displayed in the specified view.
-  ValueNotifier<List<ProfileData>> get sortedListOfPeople => sortedListOfPeople;
+  ValueNotifier<List<ProfileData>> sortedListOfPeople = ValueNotifier([]);
 
-  set sortedListOfPeople(ValueNotifier<List<ProfileData>> listOfPeople) {
-    // For a custom list, there is no need to sort it (although this case isn't used yet so don't worry about it)
-    if (this._viewMode == MainListDisplayViewModes.customList)
-      sortedListOfPeople.value = listOfPeople.value;
-
-    // When viewing the members of a pod or viewing the list of pods I'm in, sort the list alphabetically by name.
-    else if (this._viewMode == MainListDisplayViewModes.podMembers ||
-        this._viewMode == MainListDisplayViewModes.myPods) {
-      listOfPeople.value.sort((a, b) => a.name.compareTo(b.name));
-      sortedListOfPeople.value = listOfPeople.value;
-    }
-
-    // For all other cases, sort the list in descending order based on the time I met the person.
-    else {
-      listOfPeople.value.sort((a, b) => a.timeIMetThePerson!.compareTo(b.timeIMetThePerson!));
-      sortedListOfPeople.value = listOfPeople.value.reversed.toList();
-    }
-  }
+  /// Use this essentially as a setter for sortedListOfPeople. Update this value, and sortedListOfPeople will
+  /// automatically return the sorted results.
+  List<ProfileData> listOfPeople = [];
 
   //Important variable!
   ///The list of pods to be displayed in the specified view, if the view type is myPods.
-  ValueNotifier<List<PodData>> get sortedListOfPods => sortedListOfPods;
-
-  set sortedListOfPods(ValueNotifier<List<PodData>> listOfPods) {
+  ValueNotifier<List<PodData>> get sortedListOfPods {
     // For a custom list, there is no need to sort it (although this case isn't used yet so don't worry about it)
-    if (this._viewMode == MainListDisplayViewModes.customList)
-      sortedListOfPods.value = listOfPods.value;
+    if (this.viewMode == MainListDisplayViewModes.customList)
+      return listOfPods;
 
     // When viewing the members of a pod or viewing the list of pods I'm in, sort the list alphabetically by name.
     else {
       listOfPods.value.sort((a, b) => a.name.compareTo(b.name));
-      sortedListOfPods.value = listOfPods.value;
+      return listOfPods;
     }
   }
+
+  /// Use this essentially as a setter for sortedListOfPods. Update this value, and sortedListOfPods will
+  /// automatically return the sorted results.
+  ValueNotifier<List<PodData>> listOfPods = ValueNotifier([]);
 
   ///Saves the list of people so that we can get the list back after searching it
   List<ProfileData> _savedListOfPeople = [];
@@ -87,6 +72,25 @@ abstract class MainListDisplayBackend {
   ///A list of every stream subscription I registered. Use this list to remove all subscriptions when reset() is called.
   List<StreamSubscription> _listenerRegistrations = [];
 
+  /// Take listOfPeople and sort it in order to make sortedListOfPeople
+  void _sortListOfPeople(){
+    // For a custom list, there is no need to sort it (although this case isn't used yet so don't worry about it)
+    if (this.viewMode == MainListDisplayViewModes.customList)
+      sortedListOfPeople.value = listOfPeople;
+
+    // When viewing the members of a pod or viewing the list of pods I'm in, sort the list alphabetically by name.
+    else if (this.viewMode == MainListDisplayViewModes.podMembers || this.viewMode == MainListDisplayViewModes.myPods) {
+      listOfPeople.sort((a, b) => a.name.compareTo(b.name));
+      sortedListOfPeople.value = listOfPeople;
+    }
+
+    // For all other cases, sort the list in descending order based on the time I met the person.
+    else {
+      listOfPeople.sort((b, a) => a.timeIMetThePerson!.compareTo(b.timeIMetThePerson!));
+      sortedListOfPeople.value = listOfPeople;
+    }
+  }
+
   ///Resets the shared instance when the user signs out
   void reset() {
     _listenerRegistrations.forEach((streamSubscription) {
@@ -95,7 +99,7 @@ abstract class MainListDisplayBackend {
     _listenerRegistrations.clear();
 
     _lockIconDictionary.clear();
-    sortedListOfPeople.value.clear();
+    listOfPeople.clear();
     _savedListOfPeople.clear();
     isShowingNobodyFound.value = false;
     didGetData.value = false;
@@ -110,19 +114,19 @@ abstract class MainListDisplayBackend {
   ///Checks if there is any data to display in the list and get the data, if applicable. If not, show a message that
   ///no users were found.
   void addDataToListView() {
-    _getDataBasedOnListType(viewMode: _viewMode);
+    _getDataBasedOnListType(viewMode: viewMode);
   }
 
   ///This is the important function that gets data to fill the list that will be displayed. Pass in a static member
   ///of MainListDisplayViewModes for the viewMode parameter.
   void _getDataBasedOnListType({required String viewMode}) {
     // clear the lists of people to avoid duplicates (to be safe)
-    sortedListOfPeople.value.clear();
+    listOfPeople.clear();
     _savedListOfPeople.clear();
     switch (viewMode) {
       case MainListDisplayViewModes.likes:
         {
-          if (_showingSentDataNotReceivedData)
+          if (showingSentDataNotReceivedData)
             _getTheData(collectionName: "likes", fieldEqualToMyID: "liker.userID");
           else
             _getTheData(collectionName: "likes", fieldEqualToMyID: "likee.userID");
@@ -130,7 +134,7 @@ abstract class MainListDisplayBackend {
         }
       case MainListDisplayViewModes.friends:
         {
-          if (_showingSentDataNotReceivedData)
+          if (showingSentDataNotReceivedData)
             _getTheData(collectionName: "friends", fieldEqualToMyID: "friender.userID");
           else
             _getTheData(collectionName: "friends", fieldEqualToMyID: "friendee.userID");
@@ -138,7 +142,7 @@ abstract class MainListDisplayBackend {
         }
       case MainListDisplayViewModes.blocked:
         {
-          if (_showingSentDataNotReceivedData)
+          if (showingSentDataNotReceivedData)
             _getTheData(collectionName: "blocked-users", fieldEqualToMyID: "blocker.userID");
           else
             _getTheData(collectionName: "blocked-users", fieldEqualToMyID: "blockee.userID");
@@ -180,28 +184,34 @@ abstract class MainListDisplayBackend {
 
       getData.getListDataForPeopleILikedFriendedBlockedOrMet(
           query: query,
-          dataType: _viewMode,
+          dataType: viewMode,
           isGettingDataForPeopleIMetList: false,
           onChildAdded: () {
             // add the person to the displayed list
-            if (!sortedListOfPeople.value.contains(getData.profileData)) {
-              sortedListOfPeople.value.add(getData.profileData);
+            if (!listOfPeople.contains(getData.profileData)) {
+              listOfPeople.add(getData.profileData);
               _savedListOfPeople.add(getData.profileData);
+              this._sortListOfPeople();
+              sortedListOfPeople.notifyListeners(); // notify the views that data has changed
             }
           },
           onChildChanged: () {
             // remove the old entry and replace it with the new one
-            sortedListOfPeople.value.removeWhere((person) => person.userID == getData.changedChildID);
+            listOfPeople.removeWhere((person) => person.userID == getData.changedChildID);
             _savedListOfPeople.removeWhere((person) => person.userID == getData.changedChildID);
-            if (!sortedListOfPeople.value.contains(getData.profileData)) {
-              sortedListOfPeople.value.add(getData.profileData);
+            if (!listOfPeople.contains(getData.profileData)) {
+              listOfPeople.add(getData.profileData);
               _savedListOfPeople.add(getData.profileData);
+              this._sortListOfPeople();
+              sortedListOfPeople.notifyListeners(); // notify the views that data has changed
             }
           },
           onChildRemoved: () {
             // remove the person from the list
-            sortedListOfPeople.value.removeWhere((person) => person.userID == getData.removedChildID);
+            listOfPeople.removeWhere((person) => person.userID == getData.removedChildID);
             _savedListOfPeople.removeWhere((person) => person.userID == getData.removedChildID);
+            this._sortListOfPeople();
+            sortedListOfPeople.notifyListeners(); // notify the views that data has changed
           },
           onValueChanged: () {
             // if there is no data to show, display "you haven't met anyone yet" (or whatever the message should be for
@@ -212,7 +222,7 @@ abstract class MainListDisplayBackend {
               isShowingNobodyFound.value = false;
 
             // update my podScore with the formula: score = 10*(logBase2(peopleIMet+1))^1.2 if viewing people I met
-            if (_viewMode == MainListDisplayViewModes.peopleIMet) {
+            if (viewMode == MainListDisplayViewModes.peopleIMet) {
               final int numberOfPeopleIMet = getData.numberOfDocumentsInQuery ?? 0;
               final myPodScore = 10 * pow(logWithBase(base: 1.2, x: (numberOfPeopleIMet + 1).toDouble()), 1.2);
               firestoreDatabase.collection("users").doc(myFirebaseUserId).set({

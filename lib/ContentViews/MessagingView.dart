@@ -14,9 +14,11 @@ import 'package:podsquad/BackendFunctions/ResizeAndUploadImage.dart';
 import 'package:podsquad/BackendFunctions/UploadAudio.dart';
 import 'package:podsquad/CommonlyUsedClasses/TimeAndDateFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
+import 'package:podsquad/DatabasePaths/BlockedUsersDatabasePaths.dart';
 import 'package:podsquad/DatabasePaths/PodsDatabasePaths.dart';
 import 'package:podsquad/ListRowViews/MessagingRow.dart';
 import 'package:podsquad/OtherSpecialViews/AudioRecorder.dart';
+import 'package:podsquad/UIBackendClasses/MainListDisplayBackend.dart';
 import 'package:podsquad/UIBackendClasses/MessagesDictionary.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
@@ -97,11 +99,8 @@ class _MessagingViewState extends State<MessagingView> {
   /// Allows us to control the animated list
   final _listKey = GlobalKey<SliverAnimatedListState>();
 
-  /// If this is DM mode, listen to whether my chat partner or I hid the conversation
-  StreamSubscription? _conversationHiddenListener;
-
-  /// If this is pod mode, listen for the active pod members so I can send them a push notification if I send a message
-  StreamSubscription? _podActiveMembersListener;
+  /// Track all my stream subscriptions
+  List<StreamSubscription> _streamSubscriptions = [];
 
   /// Keep track of all the pod active members and update in real time
   List<String> _podActiveMemberIDsList = [];
@@ -154,7 +153,7 @@ class _MessagingViewState extends State<MessagingView> {
       }
     });
 
-    if (shouldScrollToBottom) _scrollChatLogToBottom();
+    if (shouldScrollToBottom) _scrollChatLogToBottom(overScrollBy: 10);
   }
 
   /// Show an alert asking the user to confirm that they want to delete a message from the conversation
@@ -230,14 +229,91 @@ class _MessagingViewState extends State<MessagingView> {
       messageText = "Image";
     else if (messageText.isEmpty && message.audioURL != null) messageText = "Voice Message";
     final canSendMessage = messageText.isNotEmpty && !_amIBlocked && !_didIBlockThem;
-    if (!canSendMessage) return; // don't proceed if the message is empty or if I blocked the other person or they
-    // blocked me
+
+    // Show a warning if I'm blocked by the person or pod
+    if (_amIBlocked) {
+      final alert = CupertinoAlertDialog(
+        title: Text("Sending Failed"),
+        content: Text("$chatPartnerOrPodName "
+            "blocked you."),
+        actions: [
+          CupertinoButton(
+              child: Text("OK"),
+              onPressed: () {
+                dismissAlert(context: context);
+              })
+        ],
+      );
+      showCupertinoDialog(context: context, builder: (context) => alert);
+    }
+
+    // Show a warning if I blocked the other person (only applicable in DM mode)
+    else if (_didIBlockThem) {
+      final alert = CupertinoAlertDialog(
+        title: Text("Sending Failed"),
+        content: Text("You blocked "
+            "$chatPartnerOrPodName."),
+        actions: [
+          CupertinoButton(
+              child: Text("OK"),
+              onPressed: () {
+                dismissAlert(context: context);
+              })
+        ],
+      );
+      showCupertinoDialog(context: context, builder: (context) => alert);
+    }
+
+    // don't proceed if the message is empty or if I blocked the other person or they blocked me
+    if (!canSendMessage) return;
+
     final isDM = message.podID == null; // determine whether this is a direct message or pod message
+
+    // A message has an image if the user has picked one
+    final messageHasImage = imageFile != null;
+    if (messageHasImage) {
+      // Wait for the image to upload, then get a list of [downloadURL, imagePathInStorage]
+      final List<String>? messageImageURLAndPath = await ResizeAndUploadImage.sharedInstance
+          .uploadMessagingImage(image: this.imageFile!, chatPartnerOrPodID: chatPartnerOrPodID, isPodMessage: !isDM);
+      if (messageImageURLAndPath != null) {
+        message.imageURL = messageImageURLAndPath.first;
+        message.imagePath = messageImageURLAndPath.last;
+      }
+    }
+
+    // message has audio if the recorder is open
+    final messageHasAudio = this.isRecordingAudio;
+    if (messageHasAudio) {
+      final recordingFile = AudioRecording.shared.recordingFile;
+      if (recordingFile != null) {
+        final List<String>? messageAudioURLAndPath = await UploadAudio.shared.uploadRecordingToDatabase(
+            recordingFile: recordingFile, chatPartnerOrPodID: chatPartnerOrPodID, isPodMessage: !isDM);
+        if (messageAudioURLAndPath != null) {
+          message.audioURL = messageAudioURLAndPath.first;
+          message.audioPath = messageAudioURLAndPath.last;
+        }
+      }
+    }
+
+    final messageToUpload = ChatMessage(
+        id: message.id,
+        recipientId: message.recipientId,
+        recipientName: message.recipientName,
+        senderId: message.senderId,
+        senderName: message.senderName,
+        timeStamp: message.timeStamp,
+        text: message.text,
+        senderThumbnailURL: message.senderThumbnailURL,
+        recipientThumbnailURL: message.recipientThumbnailURL,
+        imageURL: message.imageURL,
+        imagePath: message.imagePath,
+        audioURL: message.audioURL,
+        audioPath: message.audioPath);
+
+    // If we're sending a direct message, upload it to the right place and put in the right settings
     if (isDM) {
-      final documentID = chatPartnerOrPodID < myFirebaseUserId
-          ? chatPartnerOrPodID + myFirebaseUserId
-          : myFirebaseUserId + chatPartnerOrPodID;
-      final conversationRef = firestoreDatabase.collection("dm-conversations").doc(documentID).collection("messages");
+      final conversationRef =
+          firestoreDatabase.collection("dm-conversations").doc(conversationID).collection("messages");
 
       // If I'm starting a new conversation, I will need to create a document with the following structure: {user1ID:
       // {didHideChat: false}, user2ID: {didHideChat: false}, participants: {user1ID, user2ID}}
@@ -245,52 +321,17 @@ class _MessagingViewState extends State<MessagingView> {
       final user2ID = chatPartnerOrPodID < myFirebaseUserId ? myFirebaseUserId : chatPartnerOrPodID;
       final messagesList = MessagesDictionary.shared.directMessagesDict.value[chatPartnerOrPodID] ?? [];
       if (messagesList.isEmpty)
-        firestoreDatabase.collection("dm-conversations").doc(documentID).set({
+        firestoreDatabase.collection("dm-conversations").doc(conversationID).set({
           user1ID: {"didHideChat": false},
           user2ID: {"didHideChat": false},
           "participants": [user1ID, user2ID]
         });
+      _uploadMessage(message: messageToUpload, conversationRef: conversationRef);
+    }
 
-      // A message has an image if the user has picked one
-      final messageHasImage = imageFile != null;
-      if (messageHasImage) {
-        // Wait for the image to upload, then get a list of [downloadURL, imagePathInStorage]
-        final List<String>? messageImageURLAndPath = await ResizeAndUploadImage.sharedInstance
-            .uploadMessagingImage(image: this.imageFile!, chatPartnerOrPodID: chatPartnerOrPodID, isPodMessage: !isDM);
-        if (messageImageURLAndPath != null) {
-          message.imageURL = messageImageURLAndPath.first;
-          message.imagePath = messageImageURLAndPath.last;
-        }
-      }
-
-      // message has audio if the recorder is open
-      final messageHasAudio = this.isRecordingAudio;
-      if (messageHasAudio) {
-        final recordingFile = AudioRecording.shared.recordingFile;
-        if (recordingFile != null) {
-          final List<String>? messageAudioURLAndPath = await UploadAudio.shared.uploadRecordingToDatabase(
-              recordingFile: recordingFile, chatPartnerOrPodID: chatPartnerOrPodID, isPodMessage: !isDM);
-          if (messageAudioURLAndPath != null) {
-            message.audioURL = messageAudioURLAndPath.first;
-            message.audioPath = messageAudioURLAndPath.last;
-          }
-        }
-      }
-
-      final messageToUpload = ChatMessage(
-          id: message.id,
-          recipientId: message.recipientId,
-          recipientName: message.recipientName,
-          senderId: message.senderId,
-          senderName: message.senderName,
-          timeStamp: message.timeStamp,
-          text: message.text,
-          senderThumbnailURL: message.senderThumbnailURL,
-          recipientThumbnailURL: message.recipientThumbnailURL,
-          imageURL: message.imageURL,
-          imagePath: message.imagePath,
-          audioURL: message.audioURL,
-          audioPath: message.audioPath);
+    // If we're sending a pod message, upload it to the right place and put in the right settings
+    else {
+      final conversationRef = PodsDatabasePaths(podID: chatPartnerOrPodID).podDocument.collection("messages");
       _uploadMessage(message: messageToUpload, conversationRef: conversationRef);
     }
   }
@@ -419,7 +460,7 @@ class _MessagingViewState extends State<MessagingView> {
   /// the conversation so that I know to un-hide it if I send a message
   void _observeWhetherWeHidTheConversation() {
     if (isPodMode) return;
-    this._conversationHiddenListener =
+    final streamSubscription =
         firestoreDatabase.collection("dm-conversations").doc(conversationID).snapshots().listen((docSnapshot) {
       final theirConversationHiddenValue = docSnapshot.get(chatPartnerOrPodID);
       final didTheyHideTheChat = theirConversationHiddenValue["didHideChat"] as bool;
@@ -429,13 +470,14 @@ class _MessagingViewState extends State<MessagingView> {
       final didIHideTheConversation = myConversationHiddenValue["didHideChat"] as bool;
       this.didIHideTheConversation = didIHideTheConversation;
     });
+    this._streamSubscriptions.add(streamSubscription);
   }
 
   /// If this is displaying a pod messaging conversation, then get the IDs for active pod members so I can send them
   /// a push notification when I sent a new message
   void _getActivePodMemberIDs() {
     if (!isPodMode) return; // don't execute if this isn't showing a pod message conversation
-    this._podActiveMembersListener = PodsDatabasePaths(podID: chatPartnerOrPodID)
+    final streamSubscription = PodsDatabasePaths(podID: chatPartnerOrPodID)
         .podDocument
         .collection("members")
         .where("blocked", isEqualTo: false)
@@ -449,6 +491,7 @@ class _MessagingViewState extends State<MessagingView> {
       });
       this._podActiveMemberIDsList = activeMemberIDsList;
     });
+    this._streamSubscriptions.add(streamSubscription);
   }
 
   /// Load in older messages if the user pulls to refresh
@@ -461,14 +504,148 @@ class _MessagingViewState extends State<MessagingView> {
   }
 
   /// Scroll the chat log to teh bottom after a short delay (to allow the new message time to appear). Set overScroll
-  /// to true if calling inside initState to ensure the chat log scrolls all the way to the bottom of the last message.
-  void _scrollChatLogToBottom({int millisecondDelay = 250, bool overScroll = false}){
+  /// to a positive integer if calling inside initState to ensure the chat log scrolls all the way to the bottom of the
+  /// last message.
+  void _scrollChatLogToBottom({int millisecondDelay = 250, int overScrollBy = 0}) {
     Future.delayed(Duration(milliseconds: 250), () {
-      final extraMargin = overScroll ? 100 : 0;
       // scroll a little past max extents to ensure the bottom message comes fully into view
-      _scrollController.animateTo(_scrollController.position.maxScrollExtent + extraMargin,
+      _scrollController.animateTo(_scrollController.position.maxScrollExtent + overScrollBy,
           duration: Duration(milliseconds: millisecondDelay), curve: Curves.ease);
     });
+  }
+
+  /// Checks if I'm blocked, or if I blocked my chat partner (DM messaging only)
+  void _checkIfIAmBlocked() {
+    // check if I'm blocked from the pod
+    if (isPodMode) {
+      final subscription = firestoreDatabase
+          .collection("pods")
+          .doc(chatPartnerOrPodID)
+          .collection("members")
+          .where("userID", isEqualTo: myFirebaseUserId)
+          .where("blocked", isEqualTo: true)
+          .snapshots()
+          .listen((event) {
+        setState(() {
+          this._amIBlocked = event.docs.length > 0; // I'm blocked from the pod if this query returns any documents
+        });
+      });
+      _streamSubscriptions.add(subscription);
+    }
+
+    // Check if my chat partner blocked me, or if I blocked them.
+    else {
+      /// Must directly read in the people I blocked, because listeners do not automatically get notified
+      /// when a widget appears - a change must occur while the widget is open in order for it to get notified.
+      final peopleIBlocked = SentBlocksBackendFunctions.shared.sortedListOfPeople.value;
+      this._didIBlockThem = peopleIBlocked.memberIDs().contains(chatPartnerOrPodID);
+      SentBlocksBackendFunctions.shared.sortedListOfPeople.addListener(() {
+        final peopleIBlocked = SentBlocksBackendFunctions.shared.sortedListOfPeople.value;
+        setState(() {
+          this._didIBlockThem = peopleIBlocked.memberIDs().contains(chatPartnerOrPodID);
+        });
+
+        /// Must directly read in the people who blocked me, because listeners do not automatically get
+        /// notified when a widget appears - a change must occur while the widget is open in order for it to get
+        /// notified.
+        final peopleWhoBlockedMe = ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.value;
+        this._amIBlocked = peopleWhoBlockedMe.memberIDs().contains(chatPartnerOrPodID);
+        ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.addListener(() {
+          final peopleWhoBlockedMe = ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.value;
+          setState(() {
+            this._amIBlocked = peopleWhoBlockedMe.memberIDs().contains(chatPartnerOrPodID);
+          });
+        });
+      });
+    }
+  }
+
+  /// Block or unblock the chat partner (only applicable in DM mode, not pod mode)
+  void _blockOrUnblockChatPartner() {
+    // if I haven't yet blocked them, show the option to block them
+    if (!_didIBlockThem) {
+      final blockThemAlert = CupertinoAlertDialog(
+        title: Text("Block $chatPartnerOrPodName"),
+        content: Text("Are you sure you "
+            "want to proceed?"),
+        actions: [
+          // cancel button
+          CupertinoButton(
+              child: Text("No"),
+              onPressed: () {
+                dismissAlert(context: context);
+              }),
+
+          // block button
+          CupertinoButton(
+              child: Text(
+                "Yes",
+                style: TextStyle(color: CupertinoColors.destructiveRed),
+              ),
+              onPressed: () {
+                dismissAlert(context: context); // dismiss the first alert, then show a success alert
+                BlockedUsersDatabasePaths.blockUser(
+                    otherPersonsUserID: chatPartnerOrPodID,
+                    onCompletion: () {
+                      final success = CupertinoAlertDialog(
+                        title: Text("$chatPartnerOrPodName Blocked"),
+                        actions: [
+                          CupertinoButton(
+                              child: Text("OK"),
+                              onPressed: () {
+                                dismissAlert(context: context);
+                              })
+                        ],
+                      );
+                      showCupertinoDialog(context: context, builder: (context) => success); // show the success alert
+                    });
+              })
+        ],
+      );
+      showCupertinoDialog(context: context, builder: (context) => blockThemAlert);
+    }
+
+    // if I've already blocked them, show the option to unblock them
+    else {
+      final unblockThemAlert = CupertinoAlertDialog(
+        title: Text("Unblock $chatPartnerOrPodName"),
+        content: Text("Are "
+            "you sure you want to proceed?"),
+        actions: [
+          // cancel button
+          CupertinoButton(
+              child: Text("No"),
+              onPressed: () {
+                dismissAlert(context: context);
+              }),
+
+          // unblock button
+          CupertinoButton(
+              child: Text(
+                "Yes",
+              ),
+              onPressed: () {
+                dismissAlert(context: context); // dismiss the first alert, then show a success alert
+                BlockedUsersDatabasePaths.unBlockUser(
+                    otherPersonsUserID: chatPartnerOrPodID,
+                    onCompletion: () {
+                      final success = CupertinoAlertDialog(
+                        title: Text("$chatPartnerOrPodName Unblocked"),
+                        actions: [
+                          CupertinoButton(
+                              child: Text("OK"),
+                              onPressed: () {
+                                dismissAlert(context: context);
+                              })
+                        ],
+                      );
+                      showCupertinoDialog(context: context, builder: (context) => success); // show the success alert
+                    });
+              })
+        ],
+      );
+      showCupertinoDialog(context: context, builder: (context) => unblockThemAlert);
+    }
   }
 
   @override
@@ -490,7 +667,8 @@ class _MessagingViewState extends State<MessagingView> {
       displayedChatLog = combined;
     });
 
-    _scrollChatLogToBottom(overScroll: true);
+    _scrollChatLogToBottom(overScrollBy: 10);
+    _checkIfIAmBlocked();
 
     // Update in real time when the chat log changes (for direct messages)
     MessagesDictionary.shared.directMessagesDict.addListener(() {
@@ -524,8 +702,10 @@ class _MessagingViewState extends State<MessagingView> {
   void dispose() {
     MessagesDictionary.shared.directMessagesDict.removeListener(() {});
     MessagesDictionary.shared.podMessageDict.removeListener(() {});
-    _podActiveMembersListener?.cancel();
-    _conversationHiddenListener?.cancel();
+    _streamSubscriptions.forEach((subscription) => subscription.cancel());
+
+    SentBlocksBackendFunctions.shared.sortedListOfPeople.removeListener(() {});
+    ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.removeListener(() {});
     super.dispose();
   }
 
@@ -534,6 +714,41 @@ class _MessagingViewState extends State<MessagingView> {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text("Message $chatPartnerOrPodName"),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          child: Icon(CupertinoIcons.line_horizontal_3),
+          onPressed: () {
+            // show an action sheet with the option to block or unblock the user. There will also be a help button once
+            // I create the tutorial sheets at the end
+            final sheet = CupertinoActionSheet(
+              actions: [
+                // block or unblock button. Button is destructive if the option is to block, meaning that if I haven't
+                // blocked them, the button should be red so I don't accidentally block them.
+                CupertinoActionSheetAction(
+                  onPressed: () {
+                    dismissAlert(context: context); // dismiss the action sheet
+                    _blockOrUnblockChatPartner();
+                  },
+                  child: Text(_didIBlockThem
+                      ? "Unblock "
+                          "${chatPartnerOrPodName.split(" ").first}"
+                      : "Block ${chatPartnerOrPodName.split(" ").first}"),
+                  isDestructiveAction: !_didIBlockThem,
+                ),
+
+                // cancel button
+                CupertinoActionSheetAction(
+                  onPressed: () {
+                    dismissAlert(context: context);
+                  },
+                  child: Text("Cancel"),
+                  isDefaultAction: true,
+                )
+              ],
+            );
+            showCupertinoModalPopup(context: context, builder: (context) => sheet);
+          },
+        ),
       ),
       child: SafeArea(
         child: Column(
@@ -546,8 +761,11 @@ class _MessagingViewState extends State<MessagingView> {
                   // Show a message in the center if the conversation is empty
                   if (displayedChatLog.isEmpty)
                     Center(
-                      child: Text("Start a conversation with "
-                          "$chatPartnerOrPodName!", style: TextStyle(color: CupertinoColors.inactiveGray),),
+                      child: Text(
+                        "Start a conversation with "
+                        "$chatPartnerOrPodName!",
+                        style: TextStyle(color: CupertinoColors.inactiveGray),
+                      ),
                     ),
 
                   // Chat log

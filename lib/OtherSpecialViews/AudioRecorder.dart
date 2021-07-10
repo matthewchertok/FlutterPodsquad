@@ -75,7 +75,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
       setState(() => _recordDuration++);
-      if(_recordDuration >= 30) _stopRecording(); // don't allow recordings longer than 30 seconds
+      if(_recordDuration > 30) _stopRecording(); // don't allow recordings longer than 30 seconds
     });
 
     _ampTimer = Timer.periodic(const Duration(milliseconds: 200), (Timer t) async {

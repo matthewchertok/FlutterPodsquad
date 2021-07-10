@@ -90,14 +90,14 @@ class _MessagingTabState extends State<MessagingTab> {
                           setState(() {
                             this._selectedIndex = _displayedMessagesList.indexWhere((element) => element == message);
                           });
-                          Navigator.push(
-                              context,
+                          Navigator.of(context, rootNavigator: true).push(
                               CupertinoPageRoute(
                                   builder: (context) => MessagingView(
                                     chatPartnerOrPodID:
                                     message.podID != null ? message.podID! : message.chatPartnerId,
                                     chatPartnerOrPodName:
                                     message.podName != null ? message.podName! : message.chatPartnerName,
+                                    chatPartnerThumbnailURL: message.chatPartnerThumbnailURL,
                                     isPodMode: message.podID != null,
                                   ))).then((value) {
                             setState(() {

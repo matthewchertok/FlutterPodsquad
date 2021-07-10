@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:image/image.dart' as img;
-import 'package:podsquad/BackendDataclasses/PodMessageDataclasses.dart';
+import 'package:podsquad/BackendDataclasses/ChatMessageDataclasses.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 
@@ -41,12 +41,13 @@ extension ListDifference on List {
   List difference({required List betweenOtherList}) {
     final firstList = this;
     final secondList = betweenOtherList; // renaming the external named parameter for clarity
-    final difference = firstList.toSet().difference(secondList.toSet()).toList();
+    final difference = firstList.length > secondList.length ? firstList.toSet().difference(secondList.toSet()).toList
+      () : secondList.toSet().difference(firstList.toSet()).toList();
     return difference;
   }
 }
 
-extension PodMessageListExtensions on List<PodMessage> {
+extension PodMessageListExtensions on List<ChatMessage> {
   ///Change the sender name and/or thumbnail URL on a particular pod message. Useful when listening for member name
   ///changes in a pod conversation.
   void changeSenderNameAndOrThumbnailURL(

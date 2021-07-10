@@ -6,6 +6,8 @@ import 'package:photo_view/photo_view.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
 
+/// If canWriteCaption is false, then imageID can be set to an empty string (or anything, really) - imageID is only
+/// important if I'm trying to caption an image.
 class ViewFullImage extends StatefulWidget {
   const ViewFullImage(
       {Key? key,
@@ -68,9 +70,8 @@ class _ViewFullImageState extends State<ViewFullImage> {
             // the image to display. Put a progress indicator behind it, which will be covered up once the image loads
             Container(child: Expanded(child: Stack(children: [
               Center(child: CupertinoActivityIndicator()),
-              Expanded(
-                child: PhotoView(imageProvider: NetworkImage(urlForImageToView)),
-              ),
+              PhotoView(imageProvider: NetworkImage(urlForImageToView), minScale: 0.25, maxScale: 2.0,),
+
             ],),),),
 
 

@@ -45,21 +45,20 @@ class UsefulValues {
   ///Equal to "girlfriend" - indicates that the user is looking to meet a girlfriend
   static const lookingForGirlfriend = "girlfriend";
 
-   ///Equal to "date" - indicates that the user is looking for a relationship but the partner's gender doesn't matter.
+  ///Equal to "date" - indicates that the user is looking for a relationship but the partner's gender doesn't matter.
   static const lookingForAnyGenderDate = "date";
 }
 
 ///Calculates a logarithm with a specified base using the change of base formula
-double logWithBase({required double base, required double x}){
-  return log(x)/log(base);
+double logWithBase({required double base, required double x}) {
+  return log(x) / log(base);
 }
 
 ///Identifies an image in the assets folder. Pass in the name of the image only. For example, if the image was named
 ///"Podsquad.png", then to use that image, call image(named: "Podsquad.png").
-Image image({required String named}){
+Image image({required String named}) {
   return Image.asset('assets/$named');
 }
-
 
 /// The light mode accent color
 const lightModeAccentColor = Color(0xff6258ff);
@@ -67,22 +66,42 @@ const lightModeAccentColor = Color(0xff6258ff);
 /// The dark mode accent color
 const darkModeAccentColor = Color(0xff7e76ff);
 
-/// Determine the accent color depending on whether the app is in dark mode or not
-Color accentColor({double opacity = 1}){
-  final brightness = SchedulerBinding.instance?.window.platformBrightness;
-  final isDarkMode = brightness == Brightness.dark;
-  return isDarkMode ? darkModeAccentColor.withOpacity(opacity) : lightModeAccentColor.withOpacity(opacity);
-}
+/// A dynamic accent color that adjusts depending on whether the app is in light or dark mode.
+const accentColor = CupertinoDynamicColor(
+    color: lightModeAccentColor,
+    darkColor: darkModeAccentColor,
+    highContrastColor: lightModeAccentColor,
+    darkHighContrastColor: darkModeAccentColor,
+    elevatedColor: lightModeAccentColor,
+    darkElevatedColor: darkModeAccentColor,
+    highContrastElevatedColor: lightModeAccentColor,
+    darkHighContrastElevatedColor: darkModeAccentColor);
 
+/// The light mode accent color for a received message
+const lightModeReceivedMessageColor = Color(0xfff86800);
+
+/// The dark mode accent color for a received message
+const darkModeReceivedMessageColor = Color(0xfff87215);
+
+/// A dynamic accent color for received message bubbles that adjusts depending on whether the app is in light or dark
+/// mode.
+const receivedMessageBubbleColor = CupertinoDynamicColor(
+    color: lightModeReceivedMessageColor,
+    darkColor: darkModeReceivedMessageColor,
+    highContrastColor: lightModeReceivedMessageColor,
+    darkHighContrastColor: darkModeReceivedMessageColor,
+    elevatedColor: lightModeReceivedMessageColor,
+    darkElevatedColor: darkModeReceivedMessageColor,
+    highContrastElevatedColor: lightModeReceivedMessageColor,
+    darkHighContrastElevatedColor: darkModeReceivedMessageColor);
 
 Brightness? get _brightness => SchedulerBinding.instance?.window.platformBrightness;
+
 /// Determine whether the app is in dark mode
 bool get isDarkMode => _brightness == Brightness.dark;
 
-
 /// Dismiss an alert
-void dismissAlert({required BuildContext context}){
+void dismissAlert({required BuildContext context}) {
   Navigator.of(context, rootNavigator: true).pop();
-  FocusScope.of(context)
-      .requestFocus(FocusNode()); // stop any text fields from becoming active inadvertently
+  FocusScope.of(context).requestFocus(FocusNode()); // stop any text fields from becoming active inadvertently
 }

@@ -337,7 +337,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                   decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(15),
                                       border: Border.all(color: CupertinoColors.white, width: 3),
-                                      boxShadow: [BoxShadow(color: accentColor(opacity: 0.5), blurRadius: 3)]),
+                                      boxShadow: [BoxShadow(color: accentColor.withOpacity(0.5), blurRadius: 3)]),
                                   child: ClipRRect(
                                       borderRadius: BorderRadius.circular(10),
                                       child: ValueListenableBuilder(
@@ -397,7 +397,14 @@ class _MyProfileTabState extends State<MyProfileTab> {
                           ),
                         ),
 
-                        AnimatedSwitcher(
+                        AnimatedSwitcher(transitionBuilder: (child, animation) {
+                          final offsetAnimation =
+                          Tween<Offset>(begin: Offset(0, -0.1), end: Offset(0, 0)).animate(animation);
+                          return SlideTransition(
+                            position: offsetAnimation,
+                            child: child,
+                          );
+                        },
                             duration: Duration(milliseconds: 250),
                             child: _showingMultiImageUploader ? MultiImageUploader() : Container())
                       ]),

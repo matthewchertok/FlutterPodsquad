@@ -30,17 +30,31 @@ class ChatMessage {
   ///Pass in the recipient's thumbnail URL when downloading a message from the database
   String recipientThumbnailURL;
 
-  ///Automatically determines the chat partner thumbnail URL given a sender ID and recipient ID
-  String get chatPartnerThumbnailURL =>
-      senderId == myFirebaseUserId ? recipientThumbnailURL : senderThumbnailURL;
+  ///Automatically determines the chat partner thumbnail URL given a sender ID and recipient ID. If the message is a
+  ///pod message and has no recipient, then the chatPartnerThumbnailURL will be the sender's thumbnail URL.
+  String get chatPartnerThumbnailURL {
+    if(recipientThumbnailURL.isNotEmpty)
+      return senderId == myFirebaseUserId ? recipientThumbnailURL : senderThumbnailURL;
+    else return senderThumbnailURL;
+  }
 
-  ///Automatically determines the chat partner ID given a sender ID and recipient ID
-  String get chatPartnerId =>
-      senderId == myFirebaseUserId ? recipientId : senderId;
+  ///Automatically determines the chat partner ID given a sender ID and recipient ID. If the message is a pod message
+  /// and has no recipient ID, return the pod ID. If the recipient ID is blank and the pod ID is null, return the
+  /// String "null".
+  String get chatPartnerId {
+    if(recipientId.isNotEmpty) return senderId == myFirebaseUserId ? recipientId : senderId;
+    else return podID ?? "null";
+  }
 
-  ///Automatically determines the chat partner name given a sender name and recipient name
-  String get chatPartnerName =>
-      senderId == myFirebaseUserId ? recipientName : senderName;
+
+  ///Automatically determines the chat partner name given a sender name and recipient name. If the message is a pod
+  ///message and has no recipient name, return the pod name. If the recipient name is blank and the pod name is null,
+  /// return the String "null".
+  String get chatPartnerName {
+    if(recipientName.isNotEmpty) return senderId == myFirebaseUserId ? recipientName : senderName;
+    else return podName ?? "null";
+  }
+
 
   ///Pass in a list of people who read the message so I can determine whether to make the font bold
   List<String>? readBy;

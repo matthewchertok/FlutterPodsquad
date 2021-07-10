@@ -20,7 +20,7 @@ class LatestMessageRow extends StatelessWidget {
   final List<String>? readBy;
 
   /// Make text from the time stamp
-  Text timeStampText() {
+  Text timeStampText({double fontSize = 10}) {
     final messageTimeStamp = DateTime.fromMillisecondsSinceEpoch((timeStamp * 1000).toInt()); // must multiply by 1000
     // since
     // database
@@ -41,7 +41,7 @@ class LatestMessageRow extends StatelessWidget {
             "${messageTimeStamp.day} "
             "$hoursMinutes"
         : "${messageTimeStamp.month.toHumanReadableMonth()} ${messageTimeStamp.day} ${messageTimeStamp.year}";
-    return Text(timeStampText);
+    return Text(timeStampText, style: TextStyle(fontSize: fontSize),);
   }
 
   @override
@@ -57,7 +57,7 @@ class LatestMessageRow extends StatelessWidget {
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(color: CupertinoColors.white, width: 3),
-                  boxShadow: [BoxShadow(color: accentColor(opacity: 0.5), blurRadius: 3)]),
+                  boxShadow: [BoxShadow(color: accentColor.withOpacity(0.5), blurRadius: 3)]),
               child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: CachedNetworkImage(
@@ -90,7 +90,7 @@ class LatestMessageRow extends StatelessWidget {
 
           // The time stamp
           Container(
-            width: 60,
+            width: 40,
             child: timeStampText(),
           )
         ],

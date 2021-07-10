@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:podsquad/BackendDataclasses/ChatMessageDataclasses.dart';
-import 'package:podsquad/BackendDataclasses/PodMessageDataclasses.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/DatabasePaths/PodsDatabasePaths.dart';
 import 'package:podsquad/UIBackendClasses/MessagingTabFunctions.dart';
@@ -20,7 +19,7 @@ class MessagesDictionary {
   var directMessageConversationIDsDict = Map<String, String>();
 
   ///Maps {podID: List<PodMessage>}
-  ValueNotifier<Map<String, List<PodMessage>>> podMessageDict = ValueNotifier({});
+  ValueNotifier<Map<String, List<ChatMessage>>> podMessageDict = ValueNotifier({});
 
   ///Maps podID or chatPartnerID to the oldest message that has been downloaded. This allows swipe-to-refresh
   ///capability - i.e. a user could load the 10 newest messages in a conversation, and this dictionary would keep track
@@ -271,17 +270,16 @@ class MessagesDictionary {
 
             //Add the message to the associated chat partner ID in the dictionary
             if (chatMessage.text.trim().isNotEmpty) {
-              // if the list is null, then it obviously doesn't contain the message
-                if (!(directMessagesDict.value[chatPartnerID]?.contains(chatMessage) ?? false)) {
-
-                  // initialize a list if it's null
-                  if(directMessagesDict.value[chatPartnerID] == null) directMessagesDict.value[chatPartnerID] = [];
-                  directMessagesDict.value[chatPartnerID]?.add(chatMessage);
+              // initialize a list if it's null
+              if (directMessagesDict.value[chatPartnerID] == null) directMessagesDict.value[chatPartnerID] = [];
+              if (directMessagesDict.value[chatPartnerID] != null) {
+                if (!directMessagesDict.value[chatPartnerID]!.contains(chatMessage)) {
+                  directMessagesDict.value[chatPartnerID]!.add(chatMessage);
                   directMessagesDict.notifyListeners(); // it's required here because otherwise Dart doesn't know to
                   // update listeners.
                   print("BIDEN: just added a DM with text ${chatMessage.text}");
                 }
-
+              }
             }
           } else if (diff.type == DocumentChangeType.removed) {
             final messageID = diff.doc.get("id") as String;
@@ -364,9 +362,12 @@ class MessagesDictionary {
 
             //Add the message to the associated chat partner ID in the dictionary
             if (chatMessage.text.trim().isNotEmpty) {
+              // initialize a list if it's null
+              if (directMessagesDict.value[chatPartnerID] == null) directMessagesDict.value[chatPartnerID] = [];
               if (directMessagesDict.value[chatPartnerID] != null) {
                 if (!directMessagesDict.value[chatPartnerID]!.contains(chatMessage))
-                  directMessagesDict.value[chatPartnerID]?.add(chatMessage);
+                  directMessagesDict.value[chatPartnerID]!.add(chatMessage);
+                directMessagesDict.notifyListeners();
               }
             }
           }
@@ -375,6 +376,7 @@ class MessagesDictionary {
           else if (diff.type == DocumentChangeType.removed) {
             final messageID = diff.doc.get("id") as String;
             directMessagesDict.value[chatPartnerID]?.removeWhere((message) => message.id == messageID);
+            directMessagesDict.notifyListeners();
           }
         });
       });
@@ -512,17 +514,10 @@ class MessagesDictionary {
             final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
             final text = diff.doc.get("text") as String;
 
-            final podMessage = PodMessage(
-                id: id,
-                text: text,
-                senderID: senderId,
-                senderName: senderName,
-                timeStamp: systemTime,
-                imageURL: imageURL,
-                audioURL: audioURL,
-                imagePath: imagePath,
-                audioPath: audioPath,
-                senderThumbnailURL: senderThumbnailURL, podID: podID);
+            final podMessage = ChatMessage(id: id, recipientId: "", recipientName: "", senderId: senderId,
+                senderName: senderName, timeStamp: systemTime, text: text, senderThumbnailURL: senderThumbnailURL,
+              recipientThumbnailURL: "", imageURL: imageURL, audioURL: audioURL, imagePath: imagePath, audioPath:
+                audioPath, podID: podID);
 
             //Add the message to the associated chat partner ID in the dictionary
             if (podMessage.text.trim().isNotEmpty) {
@@ -594,17 +589,10 @@ class MessagesDictionary {
             final senderId = diff.doc.get("senderId") as String;
             final text = diff.doc.get("text") as String;
 
-            final podMessage = PodMessage(
-                id: messageID,
-                text: text,
-                senderID: senderId,
-                senderName: senderName,
-                senderThumbnailURL: senderThumbnailURL,
-                timeStamp: systemTime,
-                imageURL: imageURL,
-                audioURL: audioURL,
-                imagePath: imagePath,
-                audioPath: audioPath, podID: podID);
+            final podMessage = ChatMessage(id: messageID, recipientId: "", recipientName: "", senderId: senderId,
+                senderName: senderName, timeStamp: systemTime, text: text, senderThumbnailURL: senderThumbnailURL,
+                recipientThumbnailURL: "", imageURL: imageURL, audioURL: audioURL, imagePath: imagePath, audioPath:
+                audioPath, podID: podID);
 
             //Add the message to the associated chat partner ID in the dictionary
             if (podMessage.text.trim().isNotEmpty) {

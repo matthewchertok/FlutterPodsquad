@@ -138,7 +138,7 @@ class MessagesDictionary {
               conversationID: conversationID,
               onCompletion: () {
                 this.loadOlderDMMessagesIfNecessary(
-                    chatPartnerID: chatPartnerID, conversationID: conversationID, limitToLast: 9);
+                    chatPartnerID: chatPartnerID, conversationID: conversationID, limitToLast: 10);
               });
         } else if (diff.type == DocumentChangeType.removed)
           _stopListeningToDirectMessageConversation(chatPartnerID: chatPartnerID, conversationID: conversationID);
@@ -379,6 +379,8 @@ class MessagesDictionary {
             directMessagesDict.notifyListeners();
           }
         });
+        print("Loaded in ${snapshot.docs.length} new messages! The total conversation is ${directMessagesDict
+            .value[chatPartnerID]?.length ?? 0} messages long!");
       });
 
       // give a unique registration to the listener so that it can be tracked and removed if needed

@@ -189,7 +189,7 @@ class ResizeAndUploadImage {
     if (onUploadComplete != null) onUploadComplete(); // call the completion handler
   }
 
-  /// Upload an image to Storage to send with a message. Returns a list like this: {imageDownloadURL, imagePath}, so
+  /// Upload an image to Storage to send with a message. Returns a list like this: [imageDownloadURL, imagePath], so
   /// that the correct data can be uploaded to Firestore.
   Future<List<String>?> uploadMessagingImage(
       {required File image, required String chatPartnerOrPodID, required bool isPodMessage}) async {
@@ -204,9 +204,7 @@ class ResizeAndUploadImage {
 
     // resize the thumbnail and full image to make them smaller
     var inputImage = decodeImage(image.readAsBytesSync());
-    print("BIDEN THE INPUT IMAGE MIGHT BE NULL");
     if (inputImage == null) return null;
-    print("BIDEN THE INPUT IMAGE IS NOT NULL");
     final resizedPhoto = inputImage.width >= inputImage.height ?  copyResize(inputImage, width: 1080) : copyResize(inputImage, height: 1080); // max
     // allowed width or height for now is 1080 pixels
 
@@ -218,10 +216,8 @@ class ResizeAndUploadImage {
 
     // upload the photo and get the download URL
     TaskSnapshot fullPhotoUploadTask = await imageStoragePath.putFile(messageImageFile);
-    print("BIDEN THE PHOTO WAS UPLOADED SUCCESSFULLY");
     final pathToFullImage = fullPhotoUploadTask.ref.fullPath;
     final fullImageDownloadURL = await fullPhotoUploadTask.ref.getDownloadURL();
-    print("BIDEN THE DOWNLOAD URL IS READY");
 
     return [fullImageDownloadURL, pathToFullImage];
   }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/OtherSpecialViews/AudioPlayer.dart';
 import 'package:record/record.dart';
+import 'dart:io';
 
 class AudioRecorder extends StatefulWidget {
   const AudioRecorder({Key? key}) : super(key: key);
@@ -31,6 +32,9 @@ class _AudioRecorderState extends State<AudioRecorder> {
         print("YAY");
         await this._audioRecorder.start();
         bool isRecording = await this._audioRecorder.isRecording();
+
+        // Clear the previous recording from memory if I start a new one
+        AudioRecording.shared.recordingFile = null;
         setState(() {
           this._isRecording = _isRecording;
           _isRecording = isRecording;
@@ -63,7 +67,10 @@ class _AudioRecorderState extends State<AudioRecorder> {
     _timer?.cancel();
     _ampTimer?.cancel();
     this._recordingPath = await this._audioRecorder.stop();
-    bool isRecording = await _audioRecorder.isRecording();
+
+    // Save the recording file to a shared instance so it can be accessed elsewhere in the app
+    final path = this._recordingPath;
+    if (path != null) AudioRecording.shared.recordingFile = File(path);
     setState(() {
       _isRecording = false;
     });
@@ -115,6 +122,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
     _timer?.cancel();
     _ampTimer?.cancel();
     _audioRecorder.dispose();
+    AudioRecording.shared.recordingFile = null; // clear the recording from memory
     super.dispose();
   }
 
@@ -196,4 +204,11 @@ class _AudioRecorderState extends State<AudioRecorder> {
       ),
     );
   }
+}
+
+
+/// Store the file containing the most recent audio recording
+class AudioRecording {
+  static final shared = AudioRecording();
+  File? recordingFile;
 }

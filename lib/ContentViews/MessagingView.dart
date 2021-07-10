@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
@@ -10,6 +11,7 @@ import 'package:podsquad/BackendDataclasses/ChatMessageDataclasses.dart';
 import 'package:podsquad/BackendDataclasses/NotificationTypes.dart';
 import 'package:podsquad/BackendFunctions/PushNotificationSender.dart';
 import 'package:podsquad/BackendFunctions/ResizeAndUploadImage.dart';
+import 'package:podsquad/BackendFunctions/UploadAudio.dart';
 import 'package:podsquad/CommonlyUsedClasses/TimeAndDateFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/DatabasePaths/PodsDatabasePaths.dart';
@@ -19,6 +21,8 @@ import 'package:podsquad/UIBackendClasses/MessagesDictionary.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'dart:io';
+
+import 'package:uuid/uuid.dart';
 
 class MessagingView extends StatefulWidget {
   const MessagingView(
@@ -91,12 +95,22 @@ class _MessagingViewState extends State<MessagingView> {
   bool didChatPartnerHideTheConversation = false;
 
   /// Allows us to control the animated list
-  final _listKey = GlobalKey<AnimatedListState>();
+  final _listKey = GlobalKey<SliverAnimatedListState>();
 
-  /// Using a single instance in the entire class ensures that I can access the recording URL and file path so I can
-  /// upload it to
-  /// the database.
-  final _audioRecorder = AudioRecorder();
+  /// If this is DM mode, listen to whether my chat partner or I hid the conversation
+  StreamSubscription? _conversationHiddenListener;
+
+  /// If this is pod mode, listen for the active pod members so I can send them a push notification if I send a message
+  StreamSubscription? _podActiveMembersListener;
+
+  /// Keep track of all the pod active members and update in real time
+  List<String> _podActiveMemberIDsList = [];
+
+  /// If this is DM mode, get the conversation ID as an alphabetical combination of my user ID and my chat partner's
+  /// user ID
+  String get conversationID => chatPartnerOrPodID < myFirebaseUserId
+      ? chatPartnerOrPodID + myFirebaseUserId
+      : myFirebaseUserId + chatPartnerOrPodID;
 
   /// Insert or remove items with animation
   void _updateAnimatedList({required List<ChatMessage> newList}) {
@@ -105,10 +119,11 @@ class _MessagingViewState extends State<MessagingView> {
     final dynamicDifferences = newList.difference(betweenOtherList: displayedChatLog);
 
     var differences = List<ChatMessage>.from(dynamicDifferences);
-    print("BIDEN: these are the differences $differences");
+    // That way, we can loop through the list and add each message sequentially, and it will work out that the oldest
+    // message we be at the start of the list.
 
-    // Only scroll to the bottom if the new list is longer than the previous one (i.e. message added)
-    final shouldScrollToBottom = newList.length > displayedChatLog.length;
+    // Only scroll to the bottom if a new message is added.
+    final shouldScrollToBottom = newList.last.timeStamp > displayedChatLog.last.timeStamp;
 
     // For each differences, insert or remove items
     differences.forEach((difference) {
@@ -117,19 +132,17 @@ class _MessagingViewState extends State<MessagingView> {
 
       // if a new message was added, insert it at the end
       if (newMessageAdded) {
-        print("BIDEN: new message added: ${difference.text}. Scrolling!");
-
-        // insert at position 0, because the list is reversed so position 0 is at the bottom
-        displayedChatLog = newList;
-        if (_listKey.currentState != null) _listKey.currentState?.insertItem(0);
+        displayedChatLog.insert(0, difference);
+        displayedChatLog.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
+        _listKey.currentState!.insertItem(0);
       }
 
       if (newMessageRemoved) {
-        print("BIDEN: new message removed: ${difference.text}.");
-        final indexToRemove = displayedChatLog.indexWhere((element) => element == difference);
-        displayedChatLog = newList;
-        _listKey.currentState?.removeItem(
-            indexToRemove,
+        final index = displayedChatLog.indexWhere((element) => element == difference);
+        displayedChatLog.removeWhere((element) => element == difference);
+        displayedChatLog.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
+        _listKey.currentState!.removeItem(
+            index,
             (context, animation) => MessagingRow(
                 messageId: difference.id,
                 messageText: difference.text,
@@ -140,7 +153,8 @@ class _MessagingViewState extends State<MessagingView> {
     });
 
     if (shouldScrollToBottom)
-      _scrollController.animateTo(0.0, duration: Duration(milliseconds: 250), curve: Curves.ease);
+      _scrollController.animateTo(_scrollController.position.maxScrollExtent, duration: Duration(milliseconds: 250), curve: Curves
+          .ease);
   }
 
   /// Show an alert asking the user to confirm that they want to delete a message from the conversation
@@ -241,24 +255,32 @@ class _MessagingViewState extends State<MessagingView> {
           "participants": [user1ID, user2ID]
         });
 
-      /// A message has an image if the user has picked one
+      // A message has an image if the user has picked one
       final messageHasImage = imageFile != null;
       if (messageHasImage) {
         // Wait for the image to upload, then get a list of [downloadURL, imagePathInStorage]
         final List<String>? messageImageURLAndPath = await ResizeAndUploadImage.sharedInstance
             .uploadMessagingImage(image: this.imageFile!, chatPartnerOrPodID: chatPartnerOrPodID, isPodMessage: !isDM);
-        print("BIDEN THE AWAITING IMAGE");
         if (messageImageURLAndPath != null) {
           message.imageURL = messageImageURLAndPath.first;
           message.imagePath = messageImageURLAndPath.last;
-          print("BIDEN THE IMAGE URL IS ${message.imageURL}");
         }
       }
 
-      //TODO: if (messageHasAudio)...
-      print("BIDEN THE MESSAGE HAS AN IMAGE WITH URL ${message.imageURL}");
+      // message has audio if the recorder is open
+      final messageHasAudio = this.isRecordingAudio;
+      if (messageHasAudio) {
+        final recordingFile = AudioRecording.shared.recordingFile;
+        if (recordingFile != null) {
+          final List<String>? messageAudioURLAndPath = await UploadAudio.shared.uploadRecordingToDatabase(
+              recordingFile: recordingFile, chatPartnerOrPodID: chatPartnerOrPodID, isPodMessage: !isDM);
+          if (messageAudioURLAndPath != null) {
+            message.audioURL = messageAudioURLAndPath.first;
+            message.audioPath = messageAudioURLAndPath.last;
+          }
+        }
+      }
 
-      // For now, just for testing purposes, call uploadMessage() right away.
       final messageToUpload = ChatMessage(
           id: message.id,
           recipientId: message.recipientId,
@@ -274,9 +296,6 @@ class _MessagingViewState extends State<MessagingView> {
           audioURL: message.audioURL,
           audioPath: message.audioPath);
       _uploadMessage(message: messageToUpload, conversationRef: conversationRef);
-
-      //TODO: write an async function to upload a messaging image to the database. Then write another async function
-      // to upload message audio to the database.
     }
   }
 
@@ -285,43 +304,47 @@ class _MessagingViewState extends State<MessagingView> {
     final isDM = message.podID == null;
 
     // upload a direct message to the database and send the chat partner a push notification
-    if (isDM) {
-      final documentID = chatPartnerOrPodID < myFirebaseUserId
-          ? chatPartnerOrPodID + myFirebaseUserId
-          : myFirebaseUserId + chatPartnerOrPodID;
-      Map<String, dynamic> dmMessageDictionary = {
-        "id": message.id,
-        "recipientId": message.recipientId,
-        "senderId": message.senderId,
-        "systemTime": message.timeStamp,
-        "text": message.text
-      };
-      dmMessageDictionary["readBy"] = [myFirebaseUserId];
-      dmMessageDictionary["readTime"] = {myFirebaseUserId: message.timeStamp};
-      dmMessageDictionary["readName"] = {
-        myFirebaseUserId: MyProfileTabBackendFunctions.shared.myProfileData.value.name
-      };
-      dmMessageDictionary["senderName"] = MyProfileTabBackendFunctions.shared.myProfileData.value.name;
-      dmMessageDictionary["recipientName"] = chatPartnerOrPodName;
-      dmMessageDictionary["senderThumbnailURL"] = MyProfileTabBackendFunctions.shared.myProfileData.value.thumbnailURL;
-      dmMessageDictionary["recipientThumbnailURL"] = message.recipientThumbnailURL;
+    Map<String, dynamic> dmMessageDictionary = {
+      "id": message.id,
+      "recipientId": message.recipientId,
+      "senderId": message.senderId,
+      "systemTime": message.timeStamp,
+      "text": message.text
+    };
+    dmMessageDictionary["readBy"] = [myFirebaseUserId];
+    dmMessageDictionary["readTime"] = {myFirebaseUserId: message.timeStamp};
+    dmMessageDictionary["readName"] = {myFirebaseUserId: MyProfileTabBackendFunctions.shared.myProfileData.value.name};
+    dmMessageDictionary["senderName"] = MyProfileTabBackendFunctions.shared.myProfileData.value.name;
+    dmMessageDictionary["recipientName"] = chatPartnerOrPodName;
+    dmMessageDictionary["senderThumbnailURL"] = MyProfileTabBackendFunctions.shared.myProfileData.value.thumbnailURL;
+    dmMessageDictionary["recipientThumbnailURL"] = message.recipientThumbnailURL;
 
-      if (message.audioURL != null) {
-        dmMessageDictionary["audioURL"] = message.audioURL;
-        dmMessageDictionary["audioPath"] = message.audioPath;
-      }
-      if (message.imageURL != null) {
-        dmMessageDictionary["imageURL"] = message.imageURL;
-        dmMessageDictionary["imagePath"] = message.imagePath;
-      }
+    if (message.audioURL != null) {
+      dmMessageDictionary["audioURL"] = message.audioURL;
+      dmMessageDictionary["audioPath"] = message.audioPath;
+    }
+    if (message.imageURL != null) {
+      dmMessageDictionary["imageURL"] = message.imageURL;
+      dmMessageDictionary["imagePath"] = message.imagePath;
+    }
 
-      conversationRef.doc(message.id).set(dmMessageDictionary).then((value) {
-        // clear the text field, image, and audio (that might have been attached with the message)
-        setState(() {
-          _typingMessageController.clear();
-          isRecordingAudio = false;
-          imageFile = null;
-        });
+    conversationRef.doc(message.id).set(dmMessageDictionary).then((value) {
+      // clear the text field, image, and audio (that might have been attached with the message)
+      setState(() {
+        _typingMessageController.clear();
+        isRecordingAudio = false;
+        imageFile = null;
+      });
+
+      // Use this to send a push notification
+      final pushSender = PushNotificationSender();
+      final myName = MyProfileTabBackendFunctions.shared.myProfileData.value.name;
+
+      // Do the following if I just sent a direct message
+      if (isDM) {
+        final documentID = chatPartnerOrPodID < myFirebaseUserId
+            ? chatPartnerOrPodID + myFirebaseUserId
+            : myFirebaseUserId + chatPartnerOrPodID;
 
         // Un-hide the conversation for both me and my chat partner when a new message is sent
         if (didIHideTheConversation || didChatPartnerHideTheConversation)
@@ -330,31 +353,37 @@ class _MessagingViewState extends State<MessagingView> {
               .doc(documentID)
               .update({"$myFirebaseUserId.didHideChat": false, "$chatPartnerOrPodID.didHideChat": false});
 
-        // Send the other person a push notification
-        final pushSender = PushNotificationSender();
-        final myName = MyProfileTabBackendFunctions.shared.myProfileData.value.name;
         pushSender.sendPushNotification(
             recipientID: chatPartnerOrPodID,
             title: "New message from $myName",
             body: message.text,
             notificationType: NotificationTypes.message);
-      }).catchError((error) {
-        final alert = CupertinoAlertDialog(
-          title: Text("Sending Failed"),
-          content: Text("Check your internet "
-              "connection and try again."),
-          actions: [
-            CupertinoButton(
-                child: Text("OK"),
-                onPressed: () {
-                  dismissAlert(context: context);
-                })
-          ],
-        );
-        showCupertinoDialog(context: context, builder: (context) => alert);
-        print("Message failed to send: $error");
-      });
-    }
+      }
+
+      // Send every active member a push notification if I just sent a pod message
+      else {
+        _podActiveMemberIDsList.forEach((memberID) {
+            pushSender.sendPushNotification(recipientID: memberID, title: chatPartnerOrPodName, body: "$myName: "
+                "${message.text}", notificationType: NotificationTypes.podMessage, podID: chatPartnerOrPodID,
+                podName: chatPartnerOrPodName);
+        });
+      }
+    }).catchError((error) {
+      final alert = CupertinoAlertDialog(
+        title: Text("Sending Failed"),
+        content: Text("Check your internet "
+            "connection and try again."),
+        actions: [
+          CupertinoButton(
+              child: Text("OK"),
+              onPressed: () {
+                dismissAlert(context: context);
+              })
+        ],
+      );
+      showCupertinoDialog(context: context, builder: (context) => alert);
+      print("Message failed to send: $error");
+    });
   }
 
   /// Pick an image from the gallery
@@ -379,10 +408,53 @@ class _MessagingViewState extends State<MessagingView> {
   }
 
   /// Record audio
-  void _recordAudio(){
+  void _recordAudio() {
     setState(() {
       this.isRecordingAudio = true;
     });
+  }
+
+  /// If this is displaying a DM conversation, then continuously observe whether either myself or my chat partner hid
+  /// the conversation so that I know to un-hide it if I send a message
+  void _observeWhetherWeHidTheConversation(){
+    if(isPodMode) return;
+    this._conversationHiddenListener = firestoreDatabase.collection("dm-conversations").doc(conversationID).snapshots
+      ().listen((docSnapshot) {
+        final theirConversationHiddenValue = docSnapshot.get(chatPartnerOrPodID);
+        final didTheyHideTheChat = theirConversationHiddenValue["didHideChat"] as bool;
+        this.didChatPartnerHideTheConversation = didTheyHideTheChat;
+
+        final myConversationHiddenValue = docSnapshot.get(myFirebaseUserId);
+        final didIHideTheConversation = myConversationHiddenValue["didHideChat"] as bool;
+        this.didIHideTheConversation = didIHideTheConversation;
+    });
+  }
+
+  /// If this is displaying a pod messaging conversation, then get the IDs for active pod members so I can send them
+  /// a push notification when I sent a new message
+  void _getActivePodMemberIDs() {
+    if (!isPodMode) return; // don't execute if this isn't showing a pod message conversation
+    this._podActiveMembersListener = PodsDatabasePaths(podID: chatPartnerOrPodID)
+        .podDocument
+        .collection("members")
+        .where("blocked", isEqualTo: false)
+        .where("active", isEqualTo: true)
+        .snapshots()
+        .listen((snapshot) {
+      final List<String> activeMemberIDsList = [];
+      snapshot.docs.forEach((member) {
+        final memberID = member.get("userID") as String;
+        if (!activeMemberIDsList.contains(memberID)) activeMemberIDsList.add(memberID);
+      });
+      this._podActiveMemberIDsList = activeMemberIDsList;
+    });
+  }
+
+  /// Load in older messages if the user pulls to refresh
+  Future<void> _loadOlderMessages() async {
+    if(!isPodMode) MessagesDictionary.shared.loadOlderDMMessagesIfNecessary(chatPartnerID: chatPartnerOrPodID,
+        conversationID: conversationID);
+    else MessagesDictionary.shared.loadOlderPodMessagesIfNecessary(podID: chatPartnerOrPodID);
   }
 
   @override
@@ -393,8 +465,10 @@ class _MessagingViewState extends State<MessagingView> {
     var podMessages = MessagesDictionary.shared.podMessageDict.value[chatPartnerOrPodID] ?? [];
     var combined = dms + podMessages;
     combined = combined.toSet().toList(); // remove duplicates
-    combined.sort((b, a) => a.timeStamp.compareTo(b.timeStamp)); // sort in descending order, since the list is reversed
-    // (newest messages will appear at the beginning, which is at the bottom of the screen in a reversed list)
+    combined.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
+
+    if (isPodMode) this._getActivePodMemberIDs();
+    else this._observeWhetherWeHidTheConversation();
 
     setState(() {
       displayedChatLog = combined;
@@ -409,8 +483,7 @@ class _MessagingViewState extends State<MessagingView> {
         var combined = dms + podMessages;
         combined = combined.toSet().toList(); // remove duplicates
         combined
-            .sort((b, a) => a.timeStamp.compareTo(b.timeStamp)); // sort in descending order, since the list is reversed
-        // (newest messages will appear at the beginning, which is at the bottom of the screen in a reversed list)
+            .sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
 
         _updateAnimatedList(newList: combined);
       });
@@ -425,8 +498,7 @@ class _MessagingViewState extends State<MessagingView> {
         var combined = dms + podMessages;
         combined = combined.toSet().toList(); // remove duplicates
         combined
-            .sort((b, a) => a.timeStamp.compareTo(b.timeStamp)); // sort in descending order, since the list is reversed
-        // (newest messages will appear at the beginning, which is at the bottom of the screen in a reversed list)
+            .sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
         _updateAnimatedList(newList: combined);
       });
     });
@@ -436,6 +508,8 @@ class _MessagingViewState extends State<MessagingView> {
   void dispose() {
     MessagesDictionary.shared.directMessagesDict.removeListener(() {});
     MessagesDictionary.shared.podMessageDict.removeListener(() {});
+    _podActiveMembersListener?.cancel();
+    _conversationHiddenListener?.cancel();
     super.dispose();
   }
 
@@ -453,175 +527,189 @@ class _MessagingViewState extends State<MessagingView> {
               child: Stack(
                 alignment: Alignment.bottomCenter,
                 children: [
-                  AnimatedList(
-                      key: _listKey,
-                      controller: _scrollController,
-                      reverse: true,
-                      physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                      initialItemCount: displayedChatLog.length,
-                      itemBuilder: (context, index, animation) {
-                        // index both a direct message and a pod message to ensure the list is interchangeable for both
-                        // types. Must make sure the list index remains within range
-                        final message = displayedChatLog.length > index ? displayedChatLog[index] : null;
-                        if (message == null) return Container(); // empty container if message is null
+                  CustomScrollView(controller: _scrollController, physics: AlwaysScrollableScrollPhysics(), slivers: [
+                    CupertinoSliverRefreshControl(onRefresh: _loadOlderMessages,),
+                    SliverAnimatedList(
+                        key: _listKey,
+                        initialItemCount: displayedChatLog.length,
+                        itemBuilder: (context, index, animation) {
+                          // index both a direct message and a pod message to ensure the list is interchangeable for both
+                          // types. Must make sure the list index remains within range
+                          final message = displayedChatLog.length > index ? displayedChatLog[index] : null;
+                          if (message == null) return Container(); // empty container if message is null
 
-                        Center(
-                          child: Text("Start a conversation with "
-                              "$chatPartnerOrPodName!"),
-                        );
-                        final timeStamp = message.timeStamp;
+                          Center(
+                            child: Text("Start a conversation with "
+                                "$chatPartnerOrPodName!"),
+                          );
+                          final timeStamp = message.timeStamp;
 
-                        // Show/hide the time stamp when the row is tapped
-                        return SizeTransition(
-                          sizeFactor: animation,
-                          child: Slidable(
-                            actionPane: SlidableDrawerActionPane(),
-                            actionExtentRatio: 0.17,
-                            child: MessagingRow(
-                              messageId: message.id,
-                              messageText: message.text,
-                              senderId: message.senderId,
-                              senderThumbnailURL: message.senderThumbnailURL,
-                              timeStamp: message.timeStamp,
-                              messageImageURL: message.imageURL,
-                              messageAudioURL: message.audioURL,
-                              chatPartnerOrPodID: message.chatPartnerId,
-                              chatPartnerOrPodName: message.chatPartnerName,
+                          // Show/hide the time stamp when the row is tapped
+                          return SizeTransition(
+                            sizeFactor: animation,
+                            child: Slidable(
+                              actionPane: SlidableDrawerActionPane(),
+                              actionExtentRatio: 0.17,
+                              child: MessagingRow(
+                                messageId: message.id,
+                                messageText: message.text,
+                                senderId: message.senderId,
+                                senderThumbnailURL: message.senderThumbnailURL,
+                                timeStamp: message.timeStamp,
+                                messageImageURL: message.imageURL,
+                                messageAudioURL: message.audioURL,
+                                chatPartnerOrPodID: message.chatPartnerId,
+                                chatPartnerOrPodName: message.chatPartnerName,
+                              ),
+
+                              // Actions appear on the left. Use them for received messages
+                              actions: [
+                                if (message.senderId != myFirebaseUserId)
+                                // delete the message
+                                  CupertinoButton(
+                                    child: Icon(CupertinoIcons.trash, color: CupertinoColors.destructiveRed),
+                                    onPressed: () {
+                                      _deleteMessage(message: message);
+                                    },
+                                    padding: EdgeInsets.zero,
+                                  ),
+
+                                // copy the message
+                                if (message.senderId != myFirebaseUserId)
+                                  CupertinoButton(
+                                    child: Icon(CupertinoIcons.doc_on_clipboard),
+                                    onPressed: () {
+                                      Clipboard.setData(ClipboardData(text: message.text));
+                                    },
+                                    padding: EdgeInsets.zero,
+                                  ),
+
+                                // the message time stamp
+                                if (message.senderId != myFirebaseUserId)
+                                  Padding(
+                                    padding: EdgeInsets.all(10),
+                                    child: Text(
+                                      TimeAndDateFunctions.timeStampText(timeStamp),
+                                      style: TextStyle(fontSize: 10),
+                                    ),
+                                  ),
+                              ],
+
+                              // Secondary actions appear on the right. Use them for sent messages.
+                              secondaryActions: [
+                                // the message time stamp
+                                if (message.senderId == myFirebaseUserId)
+                                  Padding(
+                                    padding: EdgeInsets.all(10),
+                                    child: Text(
+                                      TimeAndDateFunctions.timeStampText(timeStamp),
+                                      style: TextStyle(fontSize: 10),
+                                    ),
+                                  ),
+
+                                // copy the message
+                                if (message.senderId == myFirebaseUserId)
+                                  CupertinoButton(
+                                    child: Icon(CupertinoIcons.doc_on_clipboard),
+                                    onPressed: () {
+                                      Clipboard.setData(ClipboardData(text: message.text));
+                                    },
+                                    padding: EdgeInsets.zero,
+                                  ),
+
+                                if (message.senderId == myFirebaseUserId)
+                                // delete the message
+                                  CupertinoButton(
+                                    child: Icon(CupertinoIcons.trash, color: CupertinoColors.destructiveRed),
+                                    onPressed: () {
+                                      _deleteMessage(message: message);
+                                    },
+                                    padding: EdgeInsets.zero,
+                                  ),
+                              ],
                             ),
-
-                            // Actions appear on the left. Use them for received messages
-                            actions: [
-                              if (message.senderId != myFirebaseUserId)
-                                // delete the message
-                                CupertinoButton(
-                                  child: Icon(CupertinoIcons.trash, color: CupertinoColors.destructiveRed),
-                                  onPressed: () {
-                                    _deleteMessage(message: message);
-                                  },
-                                  padding: EdgeInsets.zero,
-                                ),
-
-                              // copy the message
-                              if (message.senderId != myFirebaseUserId)
-                                CupertinoButton(
-                                  child: Icon(CupertinoIcons.doc_on_clipboard),
-                                  onPressed: () {
-                                    Clipboard.setData(ClipboardData(text: message.text));
-                                  },
-                                  padding: EdgeInsets.zero,
-                                ),
-
-                              // the message time stamp
-                              if (message.senderId != myFirebaseUserId)
-                                Padding(
-                                  padding: EdgeInsets.all(10),
-                                  child: Text(
-                                    TimeAndDateFunctions.timeStampText(timeStamp),
-                                    style: TextStyle(fontSize: 10),
-                                  ),
-                                ),
-                            ],
-
-                            // Secondary actions appear on the right. Use them for sent messages.
-                            secondaryActions: [
-                              // the message time stamp
-                              if (message.senderId == myFirebaseUserId)
-                                Padding(
-                                  padding: EdgeInsets.all(10),
-                                  child: Text(
-                                    TimeAndDateFunctions.timeStampText(timeStamp),
-                                    style: TextStyle(fontSize: 10),
-                                  ),
-                                ),
-
-                              // copy the message
-                              if (message.senderId == myFirebaseUserId)
-                                CupertinoButton(
-                                  child: Icon(CupertinoIcons.doc_on_clipboard),
-                                  onPressed: () {
-                                    Clipboard.setData(ClipboardData(text: message.text));
-                                  },
-                                  padding: EdgeInsets.zero,
-                                ),
-
-                              if (message.senderId == myFirebaseUserId)
-                                // delete the message
-                                CupertinoButton(
-                                  child: Icon(CupertinoIcons.trash, color: CupertinoColors.destructiveRed),
-                                  onPressed: () {
-                                    _deleteMessage(message: message);
-                                  },
-                                  padding: EdgeInsets.zero,
-                                ),
-                            ],
-                          ),
-                        );
-                      }),
+                          );
+                        }),
+                  ],),
                   if (imageFile != null || isRecordingAudio)
                     BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
                         child: Container(color: CupertinoColors.black.withOpacity(0.1))),
 
                   // Image preview and audio recorder
-                  Column(crossAxisAlignment: CrossAxisAlignment.center, mainAxisAlignment: MainAxisAlignment.end,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
+                      // image preview
+                      if (imageFile != null)
+                        Padding(
+                          padding: EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              // clear image button
+                              CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  child: Icon(
+                                    CupertinoIcons.xmark_circle_fill,
+                                    color: CupertinoColors.darkBackgroundGray,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      this.imageFile = null;
+                                    });
+                                  }),
 
-                    // image preview
-                    if (imageFile != null)
-                      Padding(
-                        padding: EdgeInsets.all(10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            // clear image button
-                            CupertinoButton(
-                                padding: EdgeInsets.zero,
-                                child: Icon(
-                                  CupertinoIcons.xmark_circle_fill,
-                                  color: CupertinoColors.darkBackgroundGray,
+                              Padding(
+                                padding: EdgeInsets.only(right: 20),
+                                child: Image.file(
+                                  imageFile!,
+                                  width: 150,
+                                  height: 150,
+                                  fit: BoxFit.contain,
                                 ),
-                                onPressed: () {
-                                  setState(() {
-                                    this.imageFile = null;
-                                  });
-                                }),
-
-                            Padding(
-                              padding: EdgeInsets.only(right: 20),
-                              child: Image.file(
-                                imageFile!,
-                                width: 150,
-                                height: 150,
-                                fit: BoxFit.contain,
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-
-                    // audio recorder
-                    if (isRecordingAudio) Padding(padding: EdgeInsets.all(10), child: Column(mainAxisAlignment:
-                    MainAxisAlignment.end, crossAxisAlignment: CrossAxisAlignment.end, children: [
-
-                      // clear audio recorder button
-                      CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          child: Icon(
-                            CupertinoIcons.xmark_circle_fill,
-                            color: CupertinoColors.darkBackgroundGray,
+                              )
+                            ],
                           ),
-                          onPressed: () {
-                            setState(() {
-                              this.isRecordingAudio = false;
-                            });
-                          }),
+                        ),
 
                       // audio recorder
-                      Card(child: Center(child: ConstrainedBox(constraints: BoxConstraints(maxWidth: 250), child: this
-                          ._audioRecorder,),),)
-                    ],),)
-                  ],)
+                      if (isRecordingAudio)
+                        Padding(
+                          padding: EdgeInsets.all(10),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              // clear audio recorder button
+                              CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  child: Icon(
+                                    CupertinoIcons.xmark_circle_fill,
+                                    color: CupertinoColors.darkBackgroundGray,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      this.isRecordingAudio = false;
+                                    });
+                                  }),
+
+                              // audio recorder
+                              Card(
+                                child: Center(
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(maxWidth: 250),
+                                    child: AudioRecorder(),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        )
+                    ],
+                  )
                 ],
               ),
             ),
@@ -653,15 +741,7 @@ class _MessagingViewState extends State<MessagingView> {
               suffix: CupertinoButton(
                   child: Icon(CupertinoIcons.paperplane),
                   onPressed: () {
-                    final documentID = chatPartnerOrPodID < myFirebaseUserId
-                        ? chatPartnerOrPodID + myFirebaseUserId
-                        : myFirebaseUserId + chatPartnerOrPodID;
-                    final randomID = firestoreDatabase
-                        .collection("dm-conversations")
-                        .doc(documentID)
-                        .collection("messages")
-                        .doc()
-                        .id;
+                    final randomID = Uuid().v1();
                     final myName = MyProfileTabBackendFunctions.shared.myProfileData.value.name;
                     final myThumbnailURL = MyProfileTabBackendFunctions.shared.myProfileData.value.thumbnailURL;
                     final timeStamp = DateTime.now().millisecondsSinceEpoch * 0.001;

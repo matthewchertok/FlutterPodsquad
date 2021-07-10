@@ -23,7 +23,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   Amplitude? _amplitude;
 
   /// Start recording
-  void _start() async {
+  void _startRecording() async {
     print("STARTING");
     try {
       print("C'mon man");
@@ -59,7 +59,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   /// Stop recording
-  void _stop() async {
+  void _stopRecording() async {
     _timer?.cancel();
     _ampTimer?.cancel();
     this._recordingPath = await this._audioRecorder.stop();
@@ -75,6 +75,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
       setState(() => _recordDuration++);
+      if(_recordDuration >= 30) _stopRecording(); // don't allow recordings longer than 30 seconds
     });
 
     _ampTimer = Timer.periodic(const Duration(milliseconds: 200), (Timer t) async {
@@ -126,20 +127,33 @@ class _AudioRecorderState extends State<AudioRecorder> {
         children: [
           // if there's no recording, show a record button
           Row(
-            mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               if (this._recordDuration == 0 && !this._isRecording)
-                CupertinoButton(child: Icon(CupertinoIcons.smallcircle_fill_circle, color: CupertinoColors.systemRed,),
-                    onPressed:
-                _start),
+                CupertinoButton(
+                    child: Icon(
+                      CupertinoIcons.smallcircle_fill_circle,
+                      color: CupertinoColors.systemRed,
+                    ),
+                    onPressed: _startRecording),
               if (this._isRecording)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // stop recording button
-                    CupertinoButton(child: Icon(CupertinoIcons.stop_circle, color: CupertinoColors.systemRed,), onPressed:
-                    _stop),
-                    _buildText() // timer
+                    CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        child: Icon(
+                          CupertinoIcons.stop_circle,
+                          color: CupertinoColors.systemRed,
+                        ),
+                        onPressed: _stopRecording),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 10),
+                      child: _buildText(),
+                    ) // timer
                   ],
                 )
             ],
@@ -149,21 +163,32 @@ class _AudioRecorderState extends State<AudioRecorder> {
             Container(
               width: 180,
               height: 120,
-              child: Row(crossAxisAlignment: CrossAxisAlignment.center, mainAxisAlignment: MainAxisAlignment.center,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Expanded(
                       child: AudioPlayer(
-                        localFilePath: this._recordingPath,
-                      )),
-
-                  CupertinoButton(child: Column(crossAxisAlignment: CrossAxisAlignment.center, mainAxisAlignment:
-                  MainAxisAlignment.center, children: [
-                    Icon(CupertinoIcons.smallcircle_fill_circle, color: CupertinoColors.systemRed,),
-                    SizedBox(height: 5),
-                    Text("Record\nAgain", style: TextStyle(fontSize: 12, color: CupertinoColors.black.withOpacity(0.6)),
-                      textAlign:
-                    TextAlign.center,)
-                  ],), onPressed: _start)
+                    localFilePath: this._recordingPath,
+                  )),
+                  CupertinoButton(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            CupertinoIcons.smallcircle_fill_circle,
+                            color: CupertinoColors.systemRed,
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            "Record\nAgain",
+                            style: TextStyle(fontSize: 12, color: CupertinoColors.black.withOpacity(0.6)),
+                            textAlign: TextAlign.center,
+                          )
+                        ],
+                      ),
+                      onPressed: _startRecording)
                 ],
               ),
             )

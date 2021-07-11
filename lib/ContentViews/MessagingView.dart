@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -23,7 +24,7 @@ import 'package:podsquad/UIBackendClasses/MessagesDictionary.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'dart:io';
-
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:uuid/uuid.dart';
 
 class MessagingView extends StatefulWidget {
@@ -221,14 +222,14 @@ class _MessagingViewState extends State<MessagingView> {
   Future<void> _sendMessage({required ChatMessage messageToSend}) async {
     var message = messageToSend; // make a copy of the input so it can be modified with an image or audio URL, if
     // necessary
-    var messageText = message.text.trim();
-    if (messageText.isEmpty && imageFile != null && message.audioURL != null)
-      messageText = "Image and Voice "
+    final messageText = message.text.trim();
+    if (messageText.isEmpty && imageFile != null && isRecordingAudio)
+      message.text = "Image and Voice "
           "Message";
     else if (messageText.isEmpty && imageFile != null)
-      messageText = "Image";
-    else if (messageText.isEmpty && message.audioURL != null) messageText = "Voice Message";
-    final canSendMessage = messageText.isNotEmpty && !_amIBlocked && !_didIBlockThem;
+      message.text = "Image";
+    else if (messageText.isEmpty && isRecordingAudio) message.text = "Voice Message";
+    final canSendMessage = message.text.isNotEmpty && !_amIBlocked && !_didIBlockThem;
 
     // Show a warning if I'm blocked by the person or pod
     if (_amIBlocked) {
@@ -667,7 +668,12 @@ class _MessagingViewState extends State<MessagingView> {
       displayedChatLog = combined;
     });
 
-    _scrollChatLogToBottom(overScrollBy: 10);
+    // A large over scroll ensures that the chat log will make it to the end. Without the over scroll, the chat log
+    // will sometimes get stuck a few messages short of the end, which would be confusing to users. Of course, the
+    // best solution would be to just reverse the chat log, but then I wouldn't be able to use the swipe to refresh
+    // indicator. Additionally, an advantage of not reversing the chat log is that I get a nice scroll animation when
+    // a new message is added.
+    _scrollChatLogToBottom(overScrollBy: 200);
     _checkIfIAmBlocked();
 
     // Update in real time when the chat log changes (for direct messages)
@@ -696,12 +702,30 @@ class _MessagingViewState extends State<MessagingView> {
         _updateAnimatedList(newList: combined);
       });
     });
+
+    // handle the text field when the keyboard appears
+    Future.delayed(Duration(milliseconds: 250), () {
+      // Scroll the chat log to the bottom when the keyboard opens
+      var keyboardVisibilityController = KeyboardVisibilityController();
+      final keyboardVisibilityListener = keyboardVisibilityController.onChange.listen((bool visible) {
+        if (visible) _scrollChatLogToBottom();
+      });
+      _streamSubscriptions.add(keyboardVisibilityListener);
+
+      // Hide the keyboard if the user scrolls up to see older messages
+      _scrollController.addListener(() {
+        final isScrolling = _scrollController.position.isScrollingNotifier.value;
+        final scrollDirection = _scrollController.position.userScrollDirection;
+        if (isScrolling && scrollDirection == ScrollDirection.forward) hideKeyboard(context: context);
+      });
+    });
   }
 
   @override
   void dispose() {
     MessagesDictionary.shared.directMessagesDict.removeListener(() {});
     MessagesDictionary.shared.podMessageDict.removeListener(() {});
+    _scrollController.removeListener(() {});
     _streamSubscriptions.forEach((subscription) => subscription.cancel());
 
     SentBlocksBackendFunctions.shared.sortedListOfPeople.removeListener(() {});
@@ -750,7 +774,8 @@ class _MessagingViewState extends State<MessagingView> {
           },
         ),
       ),
-      child: SafeArea(
+      child: KeyboardDismissOnTap(
+          child: SafeArea(
         child: Column(
           children: [
             // Stack allows drawing an image preview over the chat log if an image is attached
@@ -961,25 +986,61 @@ class _MessagingViewState extends State<MessagingView> {
               maxLines: null,
               controller: _typingMessageController,
               placeholder: "Message ${isPodMode ? chatPartnerOrPodName : chatPartnerOrPodName.split(" ").first}",
-              prefix: Row(
-                children: [
-                  // take photo with camera
-                  CupertinoButton(
-                      child: Icon(CupertinoIcons.camera),
-                      onPressed: () {
-                        this._pickImage(source: ImageSource.camera);
-                      }),
+              prefix: CupertinoButton(
+                padding: EdgeInsets.zero,
+                child: Icon(CupertinoIcons.paperclip),
+                onPressed: () {
+                  final attachmentSheet = CupertinoActionSheet(
+                    title: Text("Attachment Options"),
+                    actions: [
+                      // take photo with camera
+                      CupertinoActionSheetAction(
+                          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                            Icon(CupertinoIcons.camera),
+                            SizedBox(width: 10),
+                            Text("Take Photo")
+                          ],),
+                          onPressed: () {
+                            dismissAlert(context: context);
+                            this._pickImage(source: ImageSource.camera);
+                          }),
 
-                  // pick photo from gallery
-                  CupertinoButton(
-                      child: Icon(CupertinoIcons.photo),
-                      onPressed: () {
-                        this._pickImage(source: ImageSource.gallery);
-                      }),
+                      // pick photo from gallery
+                      CupertinoActionSheetAction(
+                          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                            Icon(CupertinoIcons.photo),
+                            SizedBox(width: 10),
+                            Text("Choose Photo")
+                          ],),
+                          onPressed: () {
+                            dismissAlert(context: context);
+                            this._pickImage(source: ImageSource.gallery);
+                          }),
 
-                  // record audio
-                  CupertinoButton(child: Icon(CupertinoIcons.mic), onPressed: _recordAudio)
-                ],
+                      // record audio
+                      CupertinoActionSheetAction(
+                          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                            Icon(CupertinoIcons.mic),
+                            SizedBox(width: 10),
+                            Text("Voice Message")
+                          ],),
+                          onPressed: () {
+                            dismissAlert(context: context);
+                            this._recordAudio();
+                          }),
+
+                      // cancel
+                      CupertinoActionSheetAction(
+                        onPressed: () {
+                          dismissAlert(context: context);
+                        },
+                        child: Text("Cancel"),
+                        isDefaultAction: true,
+                      )
+                    ],
+                  );
+                  showCupertinoModalPopup(context: context, builder: (context) => attachmentSheet);
+                },
               ),
               suffix: CupertinoButton(
                   child: Icon(CupertinoIcons.paperplane),
@@ -1004,7 +1065,7 @@ class _MessagingViewState extends State<MessagingView> {
             ),
           ],
         ),
-      ),
+      )),
     );
   }
 }

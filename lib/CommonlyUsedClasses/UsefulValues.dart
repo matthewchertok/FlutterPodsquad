@@ -105,3 +105,8 @@ void dismissAlert({required BuildContext context}) {
   Navigator.of(context, rootNavigator: true).pop();
   FocusScope.of(context).requestFocus(FocusNode()); // stop any text fields from becoming active inadvertently
 }
+
+/// Hide the keyboard
+void hideKeyboard({required BuildContext context}){
+  FocusScope.of(context).requestFocus(FocusNode());
+}

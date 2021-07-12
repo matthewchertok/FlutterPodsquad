@@ -64,7 +64,8 @@ class _MessagingViewState extends State<MessagingView> {
       required this.isPodMode});
 
   final _typingMessageController = TextEditingController();
-  final _scrollController = ScrollController();
+  final _chatLogScrollController = ScrollController();
+  final _imageAndAudioScrollController = ScrollController();
   final _imagePicker = ImagePicker();
 
   /// The image that gets picked from the photo library
@@ -96,6 +97,9 @@ class _MessagingViewState extends State<MessagingView> {
   /// Use this to track whether my chat partner hid the conversation from their messaging tab. Ignore if pod
   /// messaging.
   bool didChatPartnerHideTheConversation = false;
+
+  /// Use this to determine when a message is sending to disable the Send button to avoid double-sending.
+  bool _sendingInProgress = false;
 
   /// Allows us to control the animated list
   final _listKey = GlobalKey<SliverAnimatedListState>();
@@ -220,6 +224,11 @@ class _MessagingViewState extends State<MessagingView> {
 
   /// Send a message
   Future<void> _sendMessage({required ChatMessage messageToSend}) async {
+    setState(() {
+      this._sendingInProgress = true; // disable the Send button while uploading is in progress to ensure
+      // double-sending doesn't happen
+    });
+
     var message = messageToSend; // make a copy of the input so it can be modified with an image or audio URL, if
     // necessary
     final messageText = message.text.trim();
@@ -266,29 +275,49 @@ class _MessagingViewState extends State<MessagingView> {
     }
 
     // don't proceed if the message is empty or if I blocked the other person or they blocked me
-    if (!canSendMessage) return;
+    if (!canSendMessage) {
+      setState(() {
+        _sendingInProgress = false; // sending is no longer in progress (the message is sent)
+      });
+      return;
+    }
 
     final isDM = message.podID == null; // determine whether this is a direct message or pod message
 
     // A message has an image if the user has picked one
     final messageHasImage = imageFile != null;
+
+    // message has audio if the recorder is open
+    final messageHasAudio = this.isRecordingAudio;
+
     if (messageHasImage) {
       // Wait for the image to upload, then get a list of [downloadURL, imagePathInStorage]
       final List<String>? messageImageURLAndPath = await ResizeAndUploadImage.sharedInstance
-          .uploadMessagingImage(image: this.imageFile!, chatPartnerOrPodID: chatPartnerOrPodID, isPodMessage: !isDM);
+          .uploadMessagingImage(image: this.imageFile!, chatPartnerOrPodID: chatPartnerOrPodID, isPodMessage: !isDM)
+          .catchError((error) {
+        print("Unable to upload message image: $error");
+        setState(() {
+          _sendingInProgress = false; // sending is no longer in progress (the message is sent)
+        });
+      });
       if (messageImageURLAndPath != null) {
         message.imageURL = messageImageURLAndPath.first;
         message.imagePath = messageImageURLAndPath.last;
       }
     }
 
-    // message has audio if the recorder is open
-    final messageHasAudio = this.isRecordingAudio;
     if (messageHasAudio) {
       final recordingFile = AudioRecording.shared.recordingFile;
       if (recordingFile != null) {
-        final List<String>? messageAudioURLAndPath = await UploadAudio.shared.uploadRecordingToDatabase(
-            recordingFile: recordingFile, chatPartnerOrPodID: chatPartnerOrPodID, isPodMessage: !isDM);
+        final List<String>? messageAudioURLAndPath = await UploadAudio.shared
+            .uploadRecordingToDatabase(
+                recordingFile: recordingFile, chatPartnerOrPodID: chatPartnerOrPodID, isPodMessage: !isDM)
+            .catchError((error) {
+          print("Unable to upload message audio: $error");
+          setState(() {
+            _sendingInProgress = false; // sending is no longer in progress (the message is sent)
+          });
+        });
         if (messageAudioURLAndPath != null) {
           message.audioURL = messageAudioURLAndPath.first;
           message.audioPath = messageAudioURLAndPath.last;
@@ -372,6 +401,7 @@ class _MessagingViewState extends State<MessagingView> {
         _typingMessageController.clear();
         isRecordingAudio = false;
         imageFile = null;
+        _sendingInProgress = false; // sending is no longer in progress (the message is sent)
       });
 
       // Use this to send a push notification
@@ -426,6 +456,10 @@ class _MessagingViewState extends State<MessagingView> {
       );
       showCupertinoDialog(context: context, builder: (context) => alert);
       print("Message failed to send: $error");
+
+      setState(() {
+        _sendingInProgress = false; // sending is no longer in progress (the message is sent)
+      });
     });
   }
 
@@ -510,7 +544,7 @@ class _MessagingViewState extends State<MessagingView> {
   void _scrollChatLogToBottom({int millisecondDelay = 250, int overScrollBy = 0}) {
     Future.delayed(Duration(milliseconds: 250), () {
       // scroll a little past max extents to ensure the bottom message comes fully into view
-      _scrollController.animateTo(_scrollController.position.maxScrollExtent + overScrollBy,
+      _chatLogScrollController.animateTo(_chatLogScrollController.position.maxScrollExtent + overScrollBy,
           duration: Duration(milliseconds: millisecondDelay), curve: Curves.ease);
     });
   }
@@ -708,14 +742,20 @@ class _MessagingViewState extends State<MessagingView> {
       // Scroll the chat log to the bottom when the keyboard opens
       var keyboardVisibilityController = KeyboardVisibilityController();
       final keyboardVisibilityListener = keyboardVisibilityController.onChange.listen((bool visible) {
-        if (visible) _scrollChatLogToBottom();
+        if (visible) {
+          _scrollChatLogToBottom();
+
+          /// Ensure proper scrolling if the keyboard opens while recording audio and previewing an image
+          if (imageFile != null && isRecordingAudio)
+            _imageAndAudioScrollController.animateTo(200, duration: Duration(milliseconds: 250), curve: Curves.ease);
+        }
       });
       _streamSubscriptions.add(keyboardVisibilityListener);
 
       // Hide the keyboard if the user scrolls up to see older messages
-      _scrollController.addListener(() {
-        final isScrolling = _scrollController.position.isScrollingNotifier.value;
-        final scrollDirection = _scrollController.position.userScrollDirection;
+      _chatLogScrollController.addListener(() {
+        final isScrolling = _chatLogScrollController.position.isScrollingNotifier.value;
+        final scrollDirection = _chatLogScrollController.position.userScrollDirection;
         if (isScrolling && scrollDirection == ScrollDirection.forward) hideKeyboard(context: context);
       });
     });
@@ -725,7 +765,7 @@ class _MessagingViewState extends State<MessagingView> {
   void dispose() {
     MessagesDictionary.shared.directMessagesDict.removeListener(() {});
     MessagesDictionary.shared.podMessageDict.removeListener(() {});
-    _scrollController.removeListener(() {});
+    _chatLogScrollController.removeListener(() {});
     _streamSubscriptions.forEach((subscription) => subscription.cancel());
 
     SentBlocksBackendFunctions.shared.sortedListOfPeople.removeListener(() {});
@@ -795,7 +835,7 @@ class _MessagingViewState extends State<MessagingView> {
 
                   // Chat log
                   CustomScrollView(
-                    controller: _scrollController,
+                    controller: _chatLogScrollController,
                     physics: AlwaysScrollableScrollPhysics(),
                     slivers: [
                       CupertinoSliverRefreshControl(
@@ -905,79 +945,97 @@ class _MessagingViewState extends State<MessagingView> {
                         child: Container(color: CupertinoColors.black.withOpacity(0.1))),
 
                   // Image preview and audio recorder
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      // image preview
-                      if (imageFile != null)
-                        Padding(
-                          padding: EdgeInsets.all(10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              // clear image button
-                              CupertinoButton(
-                                  padding: EdgeInsets.zero,
-                                  child: Icon(
-                                    CupertinoIcons.xmark_circle_fill,
-                                    color: CupertinoColors.darkBackgroundGray,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      this.imageFile = null;
-                                    });
-                                  }),
+                  SingleChildScrollView(
+                    controller: _imageAndAudioScrollController,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        // image preview
+                        if (imageFile != null)
+                          Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                // clear image button
+                                CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    child: Icon(
+                                      CupertinoIcons.xmark_circle_fill,
+                                      color: CupertinoColors.darkBackgroundGray,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        this.imageFile = null;
+                                      });
+                                    }),
 
-                              Padding(
-                                padding: EdgeInsets.only(right: 20),
-                                child: Image.file(
-                                  imageFile!,
-                                  width: 150,
-                                  height: 150,
-                                  fit: BoxFit.contain,
-                                ),
-                              )
-                            ],
+                                Padding(
+                                  padding: EdgeInsets.only(right: 20),
+                                  child: Image.file(
+                                    imageFile!,
+                                    width: 150,
+                                    height: 150,
+                                    fit: BoxFit.contain,
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
-                        ),
 
-                      // audio recorder
-                      if (isRecordingAudio)
-                        Padding(
-                          padding: EdgeInsets.all(10),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              // clear audio recorder button
-                              CupertinoButton(
-                                  padding: EdgeInsets.zero,
-                                  child: Icon(
-                                    CupertinoIcons.xmark_circle_fill,
-                                    color: CupertinoColors.darkBackgroundGray,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      this.isRecordingAudio = false;
-                                    });
-                                  }),
+                        // audio recorder
+                        if (isRecordingAudio)
+                          Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                // clear audio recorder button
+                                CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    child: Icon(
+                                      CupertinoIcons.xmark_circle_fill,
+                                      color: CupertinoColors.darkBackgroundGray,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        this.isRecordingAudio = false;
+                                      });
+                                    }),
 
-                              // audio recorder
-                              Card(
-                                child: Center(
-                                  child: ConstrainedBox(
-                                    constraints: BoxConstraints(maxWidth: 250),
-                                    child: AudioRecorder(),
+                                // audio recorder
+                                Card(
+                                  child: Center(
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(maxWidth: 250),
+                                      child: AudioRecorder(),
+                                    ),
                                   ),
-                                ),
-                              )
-                            ],
-                          ),
-                        )
-                    ],
-                  )
+                                )
+                              ],
+                            ),
+                          )
+                      ],
+                    ),
+                  ),
+
+                  // If the message has an image or audio, it may take a few seconds to send. In that case, show a toast informing
+                  // the user that the message is sending, so that they don't think the app froze.
+                  if ((imageFile != null || isRecordingAudio) && _sendingInProgress)
+                    Stack(alignment: Alignment.center, children: [
+                      BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+                          child: Container(color: CupertinoColors.white.withOpacity(0.5))),
+                     Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                          CupertinoActivityIndicator(radius: 15),
+                          SizedBox(height: 10,),
+                          Text("Sending Message...", style: TextStyle(color: CupertinoColors.inactiveGray),)
+                        ],),
+
+                    ],)
                 ],
               ),
             ),
@@ -995,11 +1053,10 @@ class _MessagingViewState extends State<MessagingView> {
                     actions: [
                       // take photo with camera
                       CupertinoActionSheetAction(
-                          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                            Icon(CupertinoIcons.camera),
-                            SizedBox(width: 10),
-                            Text("Take Photo")
-                          ],),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [Icon(CupertinoIcons.camera), SizedBox(width: 10), Text("Take Photo")],
+                          ),
                           onPressed: () {
                             dismissAlert(context: context);
                             this._pickImage(source: ImageSource.camera);
@@ -1007,11 +1064,10 @@ class _MessagingViewState extends State<MessagingView> {
 
                       // pick photo from gallery
                       CupertinoActionSheetAction(
-                          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                            Icon(CupertinoIcons.photo),
-                            SizedBox(width: 10),
-                            Text("Choose Photo")
-                          ],),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [Icon(CupertinoIcons.photo), SizedBox(width: 10), Text("Choose Photo")],
+                          ),
                           onPressed: () {
                             dismissAlert(context: context);
                             this._pickImage(source: ImageSource.gallery);
@@ -1019,11 +1075,10 @@ class _MessagingViewState extends State<MessagingView> {
 
                       // record audio
                       CupertinoActionSheetAction(
-                          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                            Icon(CupertinoIcons.mic),
-                            SizedBox(width: 10),
-                            Text("Voice Message")
-                          ],),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [Icon(CupertinoIcons.mic), SizedBox(width: 10), Text("Voice Message")],
+                          ),
                           onPressed: () {
                             dismissAlert(context: context);
                             this._recordAudio();
@@ -1060,7 +1115,7 @@ class _MessagingViewState extends State<MessagingView> {
                         text: text,
                         senderThumbnailURL: myThumbnailURL,
                         recipientThumbnailURL: chatPartnerThumbnailURL ?? "");
-                    _sendMessage(messageToSend: messageToSend);
+                    if (!_sendingInProgress) _sendMessage(messageToSend: messageToSend);
                   }),
             ),
           ],

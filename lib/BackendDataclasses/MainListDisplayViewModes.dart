@@ -8,5 +8,7 @@ class MainListDisplayViewModes {
   static const peopleIMet = "peopleIMet";
   static const podMembers = "podMembers";
   static const myPods = "myPods";
+  static const searchUsers = "searchUsers";
+  static const searchPods = "searchPods";
   static const customList = "customList";
 }

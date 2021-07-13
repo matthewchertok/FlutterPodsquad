@@ -6,7 +6,7 @@ import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/BackendDataclasses/BasicProfileInfoDict.dart';
 import 'package:podsquad/BackendDataclasses/IdentifiableImage.dart';
 import 'package:podsquad/BackendDataclasses/PodMemberInfoDict.dart';
-import 'package:podsquad/CommonlyUsedClasses/TimeAndDateFunctions.dart';
+import 'package:podsquad/BackendFunctions/TimeAndDateFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';

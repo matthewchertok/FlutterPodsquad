@@ -90,7 +90,7 @@ class LatestMessageRow extends StatelessWidget {
 
           // The time stamp
           Container(
-            width: 40,
+            width: 50,
             child: timeStampText(),
           )
         ],

@@ -1,5 +1,5 @@
 import 'package:podsquad/BackendDataclasses/MatchSurveyData.dart';
-import 'package:podsquad/CommonlyUsedClasses/TimeAndDateFunctions.dart';
+import 'package:podsquad/BackendFunctions/TimeAndDateFunctions.dart';
 
 class ProfileData {
 
@@ -28,7 +28,6 @@ class ProfileData {
   String fullPhotoURL;
   String userID;
   double? timeIMetThePerson;
-  DateTime? dateIMetThePerson;
 
   MatchSurveyData? matchSurveyData;
 
@@ -44,7 +43,6 @@ class ProfileData {
       required this.thumbnailURL,
       required this.fullPhotoURL,
       this.timeIMetThePerson,
-      this.dateIMetThePerson,
       this.matchSurveyData});
 
   ///Convert the object into a dictionary that can be set to Firestore. Format is {"bio: "...", "birthday: 123, name: "...", thumbnailURL: "...", userID: "..."}

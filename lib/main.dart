@@ -5,6 +5,7 @@ import 'dart:io';
 
 // Import the firebase_core plugin
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/services.dart';
 import 'package:podsquad/ContentViews/LoginView.dart';
 import 'package:podsquad/OtherSpecialViews/LoadingView.dart';
 import 'package:podsquad/TabLayoutViews/WelcomeView.dart';
@@ -61,6 +62,12 @@ class _AppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+
+    // Only allow portrait mode (app looks weird in landscape)
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp
+    ]);
+
     return CupertinoApp(
         home: ValueListenableBuilder(
             valueListenable: UserAuth.shared.isLoggedIn,

@@ -1,0 +1,67 @@
+import 'package:flutter/cupertino.dart';
+import 'package:podsquad/BackendFunctions/TimeAndDateFunctions.dart';
+import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
+import 'package:podsquad/OtherSpecialViews/DecoratedImage.dart';
+
+class PersonOrPodListRow extends StatelessWidget {
+  const PersonOrPodListRow(
+      {Key? key,
+      required this.personOrPodID,
+      required this.personOrPodName,
+      required this.personOrPodThumbnailURL,
+      required this.personOrPodBio,
+      this.timeIMetThePerson})
+      : super(key: key);
+  final String personOrPodID;
+  final String personOrPodName;
+  final String personOrPodThumbnailURL;
+  final String personOrPodBio;
+  final double? timeIMetThePerson;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // The chat partner or pod profile image
+          DecoratedImage(imageURL: this.personOrPodThumbnailURL, width: 80, height: 80),
+
+          // The name and bio (if not empty)
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(left: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    this.personOrPodName,
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  SizedBox(height: 10),
+                  if (this.personOrPodBio.isNotEmpty)
+                    Container(
+                      color: accentColor,
+                      child: Text(
+                        this.personOrPodBio,
+                        style: TextStyle(fontSize: 14, color: CupertinoColors.white),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    )
+                ],
+              ),
+            ),
+          ),
+
+          // The time stamp
+          if (timeIMetThePerson != null)
+            Container(
+              width: 50,
+              child: Text(TimeAndDateFunctions.timeStampText(timeIMetThePerson!)),
+            )
+        ],
+      ),
+    );
+  }
+}

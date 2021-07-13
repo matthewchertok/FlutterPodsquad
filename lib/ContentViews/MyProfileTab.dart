@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:podsquad/BackendDataHolders/UserAuth.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';
@@ -310,14 +311,14 @@ class _MyProfileTabState extends State<MyProfileTab> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-        child: Stack(
+    return Scaffold(
+        body: Stack(
       children: [
         // Contains the My Profile Tab widget with text fields, the navigation bar, and everything
         CustomScrollView(
           slivers: [
             CupertinoSliverNavigationBar(
-              largeTitle: Text("My Profile"),
+              largeTitle: Text("My Profile"), stretch: true,
             ),
             SliverList(
               delegate: SliverChildListDelegate([

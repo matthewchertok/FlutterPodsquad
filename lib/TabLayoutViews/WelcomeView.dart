@@ -34,7 +34,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                 }
               case 1:
                 {
-                  return MainListDisplayView(viewMode: MainListDisplayViewModes.peopleIMet);
+                  return MainListDisplayView(viewMode: MainListDisplayViewModes.searchUsers);
                 }
               case 2:
                 {

@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:podsquad/BackendDataclasses/ChatMessageDataclasses.dart';
 import 'package:podsquad/ContentViews/MessagingView.dart';
 import 'package:podsquad/ListRowViews/LatestMessageRow.dart';
+import 'package:podsquad/OtherSpecialViews/SearchTextField.dart';
 import 'package:podsquad/UIBackendClasses/MessagingTabFunctions.dart';
 
 class MessagingTab extends StatefulWidget {
@@ -131,10 +132,7 @@ class _MessagingTabState extends State<MessagingTab> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.only(bottom: 10),
-                child: CupertinoSearchTextField(
-                  controller: _searchTextController,
-                  placeholder: "Search",
-                ),
+                child: SearchTextField(controller: _searchTextController,),
               ),
             ),
 

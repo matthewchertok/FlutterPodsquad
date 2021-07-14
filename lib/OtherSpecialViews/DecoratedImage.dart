@@ -30,17 +30,11 @@ class DecoratedImage extends StatelessWidget {
             boxShadow: [BoxShadow(color: shadowColor, blurRadius: 3)]),
         child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: ValueListenableBuilder(
-                valueListenable: MyProfileTabBackendFunctions.shared.myProfileData,
-                builder: (context, ProfileData profileData, widget) {
-                  return profileData.thumbnailURL.isEmpty
-                      ? Icon(CupertinoIcons.person)
-                      : CachedNetworkImage(
-                          imageUrl: profileData.thumbnailURL,
-                          fit: BoxFit.cover,
-                          errorWidget: (context, url, error) => Icon(CupertinoIcons.exclamationmark_triangle_fill),
-                          progressIndicatorBuilder: (context, url, progress) => CupertinoActivityIndicator(),
-                        );
-                })));
+            child: CachedNetworkImage(
+              imageUrl: imageURL,
+              fit: BoxFit.cover,
+              errorWidget: (context, url, error) => Icon(CupertinoIcons.exclamationmark_triangle_fill),
+              progressIndicatorBuilder: (context, url, progress) => CupertinoActivityIndicator(),
+            )));
   }
 }

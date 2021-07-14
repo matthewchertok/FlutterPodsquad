@@ -40,15 +40,16 @@ class PersonOrPodListRow extends StatelessWidget {
                   ),
                   SizedBox(height: 10),
                   if (this.personOrPodBio.isNotEmpty)
-                    Container(
-                      color: accentColor,
+                    ClipRRect(child: Container(
+                      padding: EdgeInsets.all(4),
+                      color: accentColor.withOpacity(0.9),
                       child: Text(
                         this.personOrPodBio,
                         style: TextStyle(fontSize: 14, color: CupertinoColors.white),
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    )
+                    ), borderRadius: BorderRadius.circular(5),)
                 ],
               ),
             ),

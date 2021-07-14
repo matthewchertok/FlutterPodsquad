@@ -30,7 +30,8 @@ class _MessagingTabState extends State<MessagingTab> {
       return combinedList;
     else
       return combinedList
-          .where((element) => element.chatPartnerName.toLowerCase().contains(_searchTextController.text.toLowerCase()))
+          .where((element) => element.chatPartnerName.toLowerCase().contains(_searchTextController.text.trim().toLowerCase
+        ()))
           .toList();
   }
 

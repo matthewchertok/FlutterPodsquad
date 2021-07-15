@@ -8,8 +8,8 @@ import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/ViewPersonDetails.dart';
 import 'package:podsquad/ContentViews/ViewPodDetails.dart';
 import 'package:podsquad/ListRowViews/PersonOrPodListRow.dart';
+import 'package:podsquad/OtherSpecialViews/LikesFriendsBlocksDrawer.dart';
 import 'package:podsquad/OtherSpecialViews/SearchTextField.dart';
-import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 
 class MainListDisplayView extends StatefulWidget {
   const MainListDisplayView(
@@ -107,6 +107,13 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   @override
   void initState() {
     super.initState();
+
+    // show the search bar if the view mode is to search users or pods
+    setState(() {
+      if (viewMode == MainListDisplayViewModes.searchUsers || viewMode == MainListDisplayViewModes.searchPods)
+        _searchBarShowing = true;
+    });
+
     // Hide the search bar if the user swipes up, and show it if the user swipes down
     Future.delayed(Duration(milliseconds: 250), () {
       _customScrollViewController.addListener(() {
@@ -274,6 +281,29 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
     return data;
   }
 
+  /// Show a back button if I should be allowed to go back. If the view is people I met (in the main tab view), then
+  /// show the button to open the action sheet to view likes/friends/blocks
+  Widget backButton() {
+    if (viewMode != MainListDisplayViewModes.peopleIMet)
+      return CupertinoButton(
+          padding: EdgeInsets.zero,
+          child: Icon(
+            CupertinoIcons.chevron_back,
+          ),
+          onPressed: () {
+            Navigator.of(context, rootNavigator: true).pop();
+          });
+
+    else
+      return CupertinoButton(
+        child: Icon(CupertinoIcons.line_horizontal_3),
+        onPressed: () {
+          showLikesFriendsBlocksActionSheet(context: context);
+        },
+        padding: EdgeInsets.zero,
+      );
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -282,13 +312,17 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
+    return CupertinoPageScaffold(
+      child: CustomScrollView(
         controller: _customScrollViewController,
         physics: AlwaysScrollableScrollPhysics(),
         slivers: [
           CupertinoSliverNavigationBar(
+            padding: viewMode != MainListDisplayViewModes.peopleIMet
+                ? EdgeInsetsDirectional.zero
+                : EdgeInsetsDirectional.all(5),
             largeTitle: Text(navBarTitle(viewMode: viewMode)),
+            leading: backButton(),
             stretch: true,
           ),
 

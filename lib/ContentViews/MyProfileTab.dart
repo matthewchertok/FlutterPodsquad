@@ -13,6 +13,7 @@ import 'package:podsquad/BackendFunctions/ResizeAndUploadImage.dart';
 import 'package:podsquad/CommonlyUsedClasses/AlertDialogs.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
+import 'package:podsquad/OtherSpecialViews/LikesFriendsBlocksDrawer.dart';
 import 'package:podsquad/OtherSpecialViews/MultiImageUploader.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'package:image_picker/image_picker.dart';
@@ -311,14 +312,23 @@ class _MyProfileTabState extends State<MyProfileTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: Stack(
+    return CupertinoPageScaffold(
+        child: Stack(
       children: [
         // Contains the My Profile Tab widget with text fields, the navigation bar, and everything
         CustomScrollView(
           slivers: [
             CupertinoSliverNavigationBar(
-              largeTitle: Text("My Profile"), stretch: true,
+              padding: EdgeInsetsDirectional.all(5),
+              leading: CupertinoButton(
+                child: Icon(CupertinoIcons.line_horizontal_3),
+                onPressed: () {
+                  showLikesFriendsBlocksActionSheet(context: context);
+                },
+                padding: EdgeInsets.zero,
+              ),
+              largeTitle: Text("My Profile"),
+              stretch: true,
             ),
             SliverList(
               delegate: SliverChildListDelegate([
@@ -398,14 +408,15 @@ class _MyProfileTabState extends State<MyProfileTab> {
                           ),
                         ),
 
-                        AnimatedSwitcher(transitionBuilder: (child, animation) {
-                          final offsetAnimation =
-                          Tween<Offset>(begin: Offset(0, -0.1), end: Offset(0, 0)).animate(animation);
-                          return SlideTransition(
-                            position: offsetAnimation,
-                            child: child,
-                          );
-                        },
+                        AnimatedSwitcher(
+                            transitionBuilder: (child, animation) {
+                              final offsetAnimation =
+                                  Tween<Offset>(begin: Offset(0, -0.1), end: Offset(0, 0)).animate(animation);
+                              return SlideTransition(
+                                position: offsetAnimation,
+                                child: child,
+                              );
+                            },
                             duration: Duration(milliseconds: 250),
                             child: _showingMultiImageUploader ? MultiImageUploader() : Container())
                       ]),

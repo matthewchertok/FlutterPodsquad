@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:podsquad/BackendDataclasses/ChatMessageDataclasses.dart';
 import 'package:podsquad/ContentViews/MessagingView.dart';
 import 'package:podsquad/ListRowViews/LatestMessageRow.dart';
+import 'package:podsquad/OtherSpecialViews/LikesFriendsBlocksDrawer.dart';
 import 'package:podsquad/OtherSpecialViews/SearchTextField.dart';
 import 'package:podsquad/UIBackendClasses/MessagingTabFunctions.dart';
 
@@ -118,12 +119,18 @@ class _MessagingTabState extends State<MessagingTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
+    return CupertinoPageScaffold(
+      child: CustomScrollView(
         controller: _customScrollViewController,
         physics: AlwaysScrollableScrollPhysics(),
         slivers: [
-          CupertinoSliverNavigationBar(
+          CupertinoSliverNavigationBar(padding: EdgeInsetsDirectional.all(5), leading: CupertinoButton(
+            child: Icon(CupertinoIcons.line_horizontal_3),
+            onPressed: () {
+              showLikesFriendsBlocksActionSheet(context: context);
+            },
+            padding: EdgeInsets.zero,
+          ),
             largeTitle: Text("Messages"),
             stretch: true,
           ),

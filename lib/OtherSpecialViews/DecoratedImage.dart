@@ -1,8 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
-import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 
 /// Contains an image with decoration designed to hold a person's profile photo or thumbnail
 class DecoratedImage extends StatelessWidget {
@@ -11,13 +9,14 @@ class DecoratedImage extends StatelessWidget {
       required this.imageURL,
       required this.width,
       required this.height, this.shadowColor = accentColor,
-      this.shadowRadius = 3})
+      this.shadowRadius = 3, this.shadowOpacity = 0.5})
       : super(key: key);
   final String imageURL;
   final double width;
   final double height;
   final Color shadowColor;
   final int shadowRadius;
+  final double shadowOpacity;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +26,7 @@ class DecoratedImage extends StatelessWidget {
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15),
             border: Border.all(color: CupertinoColors.white, width: 3),
-            boxShadow: [BoxShadow(color: shadowColor, blurRadius: 3)]),
+            boxShadow: [BoxShadow(color: shadowColor.withOpacity(shadowOpacity), blurRadius: 3)]),
         child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: CachedNetworkImage(

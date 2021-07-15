@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:podsquad/BackendFunctions/NearbyScanner.dart';
-import 'package:podsquad/OtherSpecialViews/LikesFriendsBlocksDrawer.dart';
+import 'package:podsquad/BackendFunctions/ShowLikesFriendsBlocksActionSheet.dart';
 
 class ScannerView extends StatefulWidget {
   const ScannerView({Key? key}) : super(key: key);

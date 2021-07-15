@@ -8,7 +8,7 @@ import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/ViewPersonDetails.dart';
 import 'package:podsquad/ContentViews/ViewPodDetails.dart';
 import 'package:podsquad/ListRowViews/PersonOrPodListRow.dart';
-import 'package:podsquad/OtherSpecialViews/LikesFriendsBlocksDrawer.dart';
+import 'package:podsquad/BackendFunctions/ShowLikesFriendsBlocksActionSheet.dart';
 import 'package:podsquad/OtherSpecialViews/SearchTextField.dart';
 
 class MainListDisplayView extends StatefulWidget {

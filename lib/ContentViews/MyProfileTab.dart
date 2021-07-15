@@ -13,7 +13,7 @@ import 'package:podsquad/BackendFunctions/ResizeAndUploadImage.dart';
 import 'package:podsquad/CommonlyUsedClasses/AlertDialogs.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
-import 'package:podsquad/OtherSpecialViews/LikesFriendsBlocksDrawer.dart';
+import 'package:podsquad/BackendFunctions/ShowLikesFriendsBlocksActionSheet.dart';
 import 'package:podsquad/OtherSpecialViews/MultiImageUploader.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'package:image_picker/image_picker.dart';

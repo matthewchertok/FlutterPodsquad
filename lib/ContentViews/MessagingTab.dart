@@ -4,7 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:podsquad/BackendDataclasses/ChatMessageDataclasses.dart';
 import 'package:podsquad/ContentViews/MessagingView.dart';
 import 'package:podsquad/ListRowViews/LatestMessageRow.dart';
-import 'package:podsquad/OtherSpecialViews/LikesFriendsBlocksDrawer.dart';
+import 'package:podsquad/BackendFunctions/ShowLikesFriendsBlocksActionSheet.dart';
 import 'package:podsquad/OtherSpecialViews/SearchTextField.dart';
 import 'package:podsquad/UIBackendClasses/MessagingTabFunctions.dart';
 

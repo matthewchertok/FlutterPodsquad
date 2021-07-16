@@ -2,18 +2,17 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 
-/// Contains an image with decoration designed to hold a person's profile photo or thumbnail
+/// Contains an image with decoration designed to hold a person's profile photo or thumbnail. If width and height are
+/// left empty, the image can be wrapped in an Expanded widget to fill the container.
 class DecoratedImage extends StatelessWidget {
   const DecoratedImage(
       {Key? key,
-      required this.imageURL,
-      required this.width,
-      required this.height, this.shadowColor = accentColor,
+      required this.imageURL, this.width, this.height, this.shadowColor = accentColor,
       this.shadowRadius = 3, this.shadowOpacity = 0.5})
       : super(key: key);
   final String imageURL;
-  final double width;
-  final double height;
+  final double? width;
+  final double? height;
   final Color shadowColor;
   final int shadowRadius;
   final double shadowOpacity;

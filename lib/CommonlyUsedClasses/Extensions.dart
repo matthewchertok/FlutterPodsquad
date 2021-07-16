@@ -24,6 +24,9 @@ extension StringComparison on String {
   bool operator <=(Object otherString) => otherString is String && this.compareTo(otherString) == 1 ? false : true;
 
   bool operator >=(Object otherString) => otherString is String && this.compareTo(otherString) == -1 ? false : true;
+  
+  /// Return the first part of a string after a whitespace character. Useful in extracting someone's first name
+  String firstName() => this.split(" ").first;
 }
 
 extension ProfileDataListExtensions on List<ProfileData> {

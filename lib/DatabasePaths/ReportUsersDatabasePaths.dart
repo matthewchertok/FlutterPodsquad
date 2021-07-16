@@ -17,10 +17,10 @@ class ReportUserPaths {
 
     //first we must get the other person's data.
     final dataGetter = MyProfileTabBackendFunctions();
-    dataGetter.getPersonsProfileData(userID: otherPersonsUserID, onCompletion: () {
+    dataGetter.getPersonsProfileData(userID: otherPersonsUserID, onCompletion: (otherPersonsProfileData) {
       final myData = MyProfileTabBackendFunctions.shared.myDataToIncludeWhenLikingFriendingBlockingOrMeetingSomeone
           .toDatabaseFormat();
-      final theirData = dataGetter.profileData.toDatabaseFormat();
+      final theirData = otherPersonsProfileData.toDatabaseFormat();
       final Map<String, dynamic> reportDictionary = {"reporter": myData, "reportee": theirData, "time": DateTime.now
         ().millisecondsSinceEpoch*0.001}; // divide by 1000 since database stores time in seconds since epoch
 

@@ -7,10 +7,10 @@ class LikesDatabasePaths {
 
     // first we must get the other person's data
     final dataGetter = MyProfileTabBackendFunctions();
-    dataGetter.getPersonsProfileData(userID: otherPersonsUserID, onCompletion: () {
+    dataGetter.getPersonsProfileData(userID: otherPersonsUserID, onCompletion: (otherPersonsProfileData) {
       final myData = MyProfileTabBackendFunctions.shared.myDataToIncludeWhenLikingFriendingBlockingOrMeetingSomeone
           .toDatabaseFormat();
-      final theirData = dataGetter.profileData.toDatabaseFormat();
+      final theirData = otherPersonsProfileData.toDatabaseFormat();
       final Map<String, dynamic> likeDictionary = {"liker": myData, "likee": theirData, "time": DateTime.now()
           .millisecondsSinceEpoch*0.001}; // Divide by 1000 since the database stores time in seconds since epoch
 

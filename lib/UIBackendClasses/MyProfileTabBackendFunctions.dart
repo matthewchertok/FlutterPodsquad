@@ -161,7 +161,8 @@ class MyProfileTabBackendFunctions {
 
         final value = docSnapshot.get("profileData") as Map<String, dynamic>?;
         if (value != null) {
-          double? myBirthday = value["birthday"];
+          num? myBirthdayRaw = value["birthday"];
+          double? myBirthday = myBirthdayRaw?.toDouble();
           String? myName = value["name"];
           String? mySchool = value["school"];
           String? myPreferredPronouns = value["preferredPronouns"];
@@ -209,9 +210,8 @@ class MyProfileTabBackendFunctions {
             int? position = imageData["position"];
             String? caption = imageData["caption"];
             if (imageURLString != null && position != null) {
-              final identifiableImage = IdentifiableImage(imageURL: imageURLString, caption: caption, position: position,
-                  id:
-              imageID);
+              final identifiableImage =
+                  IdentifiableImage(imageURL: imageURLString, caption: caption, position: position, id: imageID);
 
               //Now let's add each image to my extra images list.
               imagesList.add(identifiableImage); // now add the most recent image to the list
@@ -234,48 +234,181 @@ class MyProfileTabBackendFunctions {
           });
           _myExtraImagesList = imageList; // update the set-only variable, which will then update
 
-          final surveyData = docSnapshot.get("matchSurvey");
-          final career = surveyData["career"] as int;
-          final goOutFreq = surveyData["goOutFreq"] as int;
-          final exerciseInterest = surveyData["exerciseInterest"] as int;
-          final dineOutInterest = surveyData["dineOutInterest"] as int;
-          final artInterest = surveyData["artInterest"] as int;
-          final gamingInterest = surveyData["gamingInterest"] as int;
-          final clubbingInterest = surveyData["clubbingInterest"] as int;
-          final readingInterest = surveyData["readingInterest"] as int;
-          final tvShowInterest = surveyData["tvShowInterest"] as int;
-          final musicInterest = surveyData["musicInterest"] as int;
-          final shoppingInterest = surveyData["shoppingInterest"] as int;
-          final impAttractive = surveyData["attractivenessImportance"] as double;
-          final rawImpAttractive = surveyData["attractivenessImportance_raw"] as int;
-          final impSincere = surveyData["sincerityImportance"] as double;
-          final rawImpSincere = surveyData["sincerityImportance_raw"] as int;
-          final impIntelligence = surveyData["intelligenceImportance"] as double;
-          final rawImpIntelligence = surveyData["intelligenceImportance_raw"] as int;
-          final impFun = surveyData["funImportance"] as double;
-          final rawImpFun = surveyData["funImportance_raw"] as int;
-          final impAmbition = surveyData["ambitionImportance"] as double;
-          final rawImpAmbition = surveyData["ambitionImportance_raw"] as int;
-          final impSharedInterests = surveyData["sharedInterestsImportance"] as double;
-          final rawImpSharedInterests = surveyData["sharedInterestsImportance_raw"] as int;
-          final myAttractiveness = surveyData["myAttractiveness"] as int;
-          final mySincerity = surveyData["mySincerity"] as int;
-          final myIntelligence = surveyData["myIntelligence"] as int;
-          final myFun = surveyData["myFun"] as int;
-          final myAmbition = surveyData["myAmbition"] as int;
+          final docData = docSnapshot.data() as Map?;
+          if (docData != null) {
+            final surveyData = docData["matchSurvey"] as Map?;
+            if (surveyData != null) {
+              final career = surveyData["career"] as int;
+              final goOutFreq = surveyData["goOutFreq"] as int;
+              final exerciseInterest = surveyData["exerciseInterest"] as int;
+              final dineOutInterest = surveyData["dineOutInterest"] as int;
+              final artInterest = surveyData["artInterest"] as int;
+              final gamingInterest = surveyData["gamingInterest"] as int;
+              final clubbingInterest = surveyData["clubbingInterest"] as int;
+              final readingInterest = surveyData["readingInterest"] as int;
+              final tvShowInterest = surveyData["tvShowInterest"] as int;
+              final musicInterest = surveyData["musicInterest"] as int;
+              final shoppingInterest = surveyData["shoppingInterest"] as int;
+              final impAttractive = surveyData["attractivenessImportance"] as double;
+              final rawImpAttractive = surveyData["attractivenessImportance_raw"] as int;
+              final impSincere = surveyData["sincerityImportance"] as double;
+              final rawImpSincere = surveyData["sincerityImportance_raw"] as int;
+              final impIntelligence = surveyData["intelligenceImportance"] as double;
+              final rawImpIntelligence = surveyData["intelligenceImportance_raw"] as int;
+              final impFun = surveyData["funImportance"] as double;
+              final rawImpFun = surveyData["funImportance_raw"] as int;
+              final impAmbition = surveyData["ambitionImportance"] as double;
+              final rawImpAmbition = surveyData["ambitionImportance_raw"] as int;
+              final impSharedInterests = surveyData["sharedInterestsImportance"] as double;
+              final rawImpSharedInterests = surveyData["sharedInterestsImportance_raw"] as int;
+              final myAttractiveness = surveyData["myAttractiveness"] as int;
+              final mySincerity = surveyData["mySincerity"] as int;
+              final myIntelligence = surveyData["myIntelligence"] as int;
+              final myFun = surveyData["myFun"] as int;
+              final myAmbition = surveyData["myAmbition"] as int;
 
-          //Round the values to the nearest hundredth place before feeding into the ML model, since the training data
-          // was rounded to the nearest hundredth.
-          final roundedImpAttractive = impAttractive.roundToDecimalPlace(2);
-          final roundedImpSincere = impSincere.roundToDecimalPlace(2);
-          final roundedImpIntelligence = impIntelligence.roundToDecimalPlace(2);
-          final roundedImpFun = impFun.roundToDecimalPlace(2);
-          final roundedImpAmbition = impAmbition.roundToDecimalPlace(2);
-          final roundedImpSharedInterests = impSharedInterests.roundToDecimalPlace(2);
-          if (myBirthday != null) {
-            final myAge = TimeAndDateFunctions.getAgeFromBirthday(birthday: myBirthday);
-            this.myMatchSurveyData.value = MatchSurveyData(
-                age: myAge,
+              //Round the values to the nearest hundredth place before feeding into the ML model, since the training data
+              // was rounded to the nearest hundredth.
+              final roundedImpAttractive = impAttractive.roundToDecimalPlace(2);
+              final roundedImpSincere = impSincere.roundToDecimalPlace(2);
+              final roundedImpIntelligence = impIntelligence.roundToDecimalPlace(2);
+              final roundedImpFun = impFun.roundToDecimalPlace(2);
+              final roundedImpAmbition = impAmbition.roundToDecimalPlace(2);
+              final roundedImpSharedInterests = impSharedInterests.roundToDecimalPlace(2);
+              if (myBirthday != null) {
+                final myAge = TimeAndDateFunctions.getAgeFromBirthday(birthday: myBirthday);
+                this.myMatchSurveyData.value = MatchSurveyData(
+                    age: myAge,
+                    career: career,
+                    goOutFreq: goOutFreq,
+                    exerciseInterest: exerciseInterest,
+                    dineOutInterest: dineOutInterest,
+                    artInterest: artInterest,
+                    gamingInterest: gamingInterest,
+                    clubbingInterest: clubbingInterest,
+                    readingInterest: readingInterest,
+                    tvShowsInterest: tvShowInterest,
+                    musicInterest: musicInterest,
+                    shoppingInterest: shoppingInterest,
+                    importanceOfAttraction: roundedImpAttractive,
+                    rawImportanceOfAttractiveness: rawImpAttractive,
+                    importanceOfSincerity: roundedImpSincere,
+                    rawImportanceOfSincerity: rawImpSincere,
+                    importanceOfIntelligence: roundedImpIntelligence,
+                    rawImportanceOfIntelligence: rawImpIntelligence,
+                    importanceOfFun: roundedImpFun,
+                    rawImportanceOfFun: rawImpFun,
+                    importanceOfAmbition: roundedImpAmbition,
+                    rawImportanceOfAmbition: rawImpAmbition,
+                    importanceOfSharedInterests: roundedImpSharedInterests,
+                    rawImportanceOfSharedInterests: rawImpSharedInterests,
+                    attractiveness: myAttractiveness,
+                    sincerity: mySincerity,
+                    intelligence: myIntelligence,
+                    fun: myFun,
+                    ambition: myAmbition);
+              }
+            }
+          }
+        }
+      }
+    });
+
+    //Add the listener to my list of listeners so that it can be removed later if needed.
+    listenerRegistrations.add(profileDataDocumentListener);
+  }
+
+  ///This listener serves only one purpose: use Firestore's realtime capabilities to fetch profile data from the
+  ///database (or cache if available, which is much faster and is the reason why I'm using a realtime listener instead
+  ///of a single getDocument() call. Once the listener gets the data, immediately remove it to reduce the number of
+  ///realtime connections. This has the advantage of using a realtime listener to access cached data, leading to
+  ///significantly faster loading times and reduced reads.
+  StreamSubscription? _dataListenerForSomoneElsesProfile;
+
+  ///Never call this on the .shared instance of the class. Get any user's profile data and match survey answers. This
+  /// function is useful to download a user's data when navigating to view their profile. onCompletion must take a
+  /// ProfileData object as the input.
+  void getPersonsProfileData({required String userID, required Function(ProfileData) onCompletion}) {
+    _dataListenerForSomoneElsesProfile =
+        ProfileDatabasePaths(userID: userID).userDataRef.snapshots().listen((docSnapshot) {
+      if (docSnapshot.exists) {
+        // get their profile data
+        final personProfileData = docSnapshot.get("profileData") as Map<String, dynamic>;
+        final personBirthdayRaw = personProfileData["birthday"] as num? ?? 0;
+        final personBirthday = personBirthdayRaw.toDouble();
+        final personName = personProfileData["name"] as String? ?? "Name N/A";
+        final personSchool = personProfileData["school"] as String? ?? "School N/A";
+        final personPreferredPronouns = personProfileData["preferredPronouns"] as String? ?? UsefulValues.nonbinaryPronouns;
+        final personPreferredRelationshipType = personProfileData["lookingFor"] as String? ?? UsefulValues.lookingForFriends;
+        var personBio = personProfileData["bio"] as String? ?? "";
+        final personPodScoreInDatabaseRaw = personProfileData["podScore"] as num; //podScore might be a double in the
+        // database if I change the formula later
+        final personPodScore = personPodScoreInDatabaseRaw.toInt(); // convert to an integer to make it nicer for
+        // display
+
+        if (personBio.isEmpty) personBio = "Bio";
+
+        final personThumbnailURL = personProfileData["photoThumbnailURL"] as String? ?? "photoThumbnailURL";
+        final personFullPhotoURL = personProfileData["fullPhotoURL"] as String? ?? "fullPhotoURL";
+
+        var profileData = ProfileData(
+            userID: userID,
+            name: personName,
+            preferredPronoun: personPreferredPronouns,
+            preferredRelationshipType: personPreferredRelationshipType,
+            birthday: personBirthday,
+            school: personSchool,
+            bio: personBio,
+            podScore: personPodScore,
+            thumbnailURL: personThumbnailURL,
+            fullPhotoURL: personFullPhotoURL);
+
+        // get their match survey data
+        final docData = docSnapshot.data() as Map?;
+        if (docData != null) {
+          final surveyData = docData["matchSurvey"] as Map?;
+          if (surveyData != null) {
+            final career = surveyData["career"] as int;
+            final goOutFreq = surveyData["goOutFreq"] as int;
+            final exerciseInterest = surveyData["exerciseInterest"] as int;
+            final dineOutInterest = surveyData["dineOutInterest"] as int;
+            final artInterest = surveyData["artInterest"] as int;
+            final gamingInterest = surveyData["gamingInterest"] as int;
+            final clubbingInterest = surveyData["clubbingInterest"] as int;
+            final readingInterest = surveyData["readingInterest"] as int;
+            final tvShowInterest = surveyData["tvShowInterest"] as int;
+            final musicInterest = surveyData["musicInterest"] as int;
+            final shoppingInterest = surveyData["shoppingInterest"] as int;
+            final impAttractive = surveyData["attractivenessImportance"] as double;
+            final rawImpAttractive = surveyData["attractivenessImportance_raw"] as int;
+            final impSincere = surveyData["sincerityImportance"] as double;
+            final rawImpSincere = surveyData["sincerityImportance_raw"] as int;
+            final impIntelligence = surveyData["intelligenceImportance"] as double;
+            final rawImpIntelligence = surveyData["intelligenceImportance_raw"] as int;
+            final impFun = surveyData["funImportance"] as double;
+            final rawImpFun = surveyData["funImportance_raw"] as int;
+            final impAmbition = surveyData["ambitionImportance"] as double;
+            final rawImpAmbition = surveyData["ambitionImportance_raw"] as int;
+            final impSharedInterests = surveyData["sharedInterestsImportance"] as double;
+            final rawImpSharedInterests = surveyData["sharedInterestsImportance_raw"] as int;
+            final myAttractiveness = surveyData["myAttractiveness"] as int;
+            final mySincerity = surveyData["mySincerity"] as int;
+            final myIntelligence = surveyData["myIntelligence"] as int;
+            final myFun = surveyData["myFun"] as int;
+            final myAmbition = surveyData["myAmbition"] as int;
+
+            //Round the values to the nearest hundredth place before feeding into the ML model, since the training data
+            // was rounded to the nearest hundredth.
+            final roundedImpAttractive = impAttractive.roundToDecimalPlace(2);
+            final roundedImpSincere = impSincere.roundToDecimalPlace(2);
+            final roundedImpIntelligence = impIntelligence.roundToDecimalPlace(2);
+            final roundedImpFun = impFun.roundToDecimalPlace(2);
+            final roundedImpAmbition = impAmbition.roundToDecimalPlace(2);
+            final roundedImpSharedInterests = impSharedInterests.roundToDecimalPlace(2);
+
+            final personAge = TimeAndDateFunctions.getAgeFromBirthday(birthday: personBirthday);
+            final matchSurveyData = MatchSurveyData(
+                age: personAge,
                 career: career,
                 goOutFreq: goOutFreq,
                 exerciseInterest: exerciseInterest,
@@ -304,147 +437,13 @@ class MyProfileTabBackendFunctions {
                 intelligence: myIntelligence,
                 fun: myFun,
                 ambition: myAmbition);
+
+            // add the matchSurveyData object to the profileData object
+            profileData.matchSurveyData = matchSurveyData;
           }
         }
-      }
-      return;
-    });
-
-    //Add the listener to my list of listeners so that it can be removed later if needed.
-    listenerRegistrations.add(profileDataDocumentListener);
-  }
-
-  ///Store the profile data for any user. Only access this inside the getProfileData completion handler, never
-  ///anywhere else. NEVER ACCESS THIS ON THE .shared INSTANCE (it will be empty)!
-  var profileData = ProfileData(
-      userID: "userID",
-      name: "name",
-      preferredPronoun: "preferredPronoun",
-      preferredRelationshipType: "preferredRelationshipType",
-      birthday: 0,
-      school: "school",
-      bio: "bio",
-      podScore: 0,
-      thumbnailURL: "thumbnailURL",
-      fullPhotoURL: "fullPhotoURL");
-
-  ///This listener serves only one purpose: use Firestore's realtime capabilities to fetch profile data from the
-  ///database (or cache if available, which is much faster and is the reason why I'm using a realtime listener instead
-  ///of a single getDocument() call. Once the listener gets the data, immediately remove it to reduce the number of
-  ///realtime connections. This has the advantage of using a realtime listener to access cached data, leading to
-  ///significantly faster loading times and reduced reads.
-  StreamSubscription? _dataListenerForSomoneElsesProfile;
-
-  ///Never call this on the .shared instance of the class. Get any user's profile data and match survey answers. This
-  /// function is useful to download a user's data when navigating to view their profile. Access the profileData
-  /// property of the myProfileTabBackendFunctions object inside the function completion handler.
-  void getPersonsProfileData({required String userID, required Function onCompletion}) {
-    _dataListenerForSomoneElsesProfile =
-        ProfileDatabasePaths(userID: userID).userDataRef.snapshots().listen((docSnapshot) {
-      if (docSnapshot.exists) {
-        // get their profile data
-        final personProfileData = docSnapshot.get("profileData") as Map<String, dynamic>;
-        final personBirthday = personProfileData["birthday"] as double;
-        final personName = personProfileData["name"] as String;
-        final personSchool = personProfileData["school"] as String;
-        final personPreferredPronouns = personProfileData["preferredPronouns"] as String;
-        final personPreferredRelationshipType = personProfileData["lookingFor"] as String;
-        var personBio = personProfileData["bio"] as String;
-        final personPodScoreInDatabase = personProfileData["podScore"] as double; //podScore might be a double in the
-        // database if I change the formula later
-        final personPodScore = personPodScoreInDatabase.toInt(); // convert to an integer to make it nicer for display
-
-        if (personBio.isEmpty) personBio = "Bio";
-
-        final personThumbnailURL = personProfileData["photoThumbnailURL"] as String;
-        final personFullPhotoURL = personProfileData["fullPhotoURL"] as String;
-
-        this.profileData = ProfileData(
-            userID: userID,
-            name: personName,
-            preferredPronoun: personPreferredPronouns,
-            preferredRelationshipType: personPreferredRelationshipType,
-            birthday: personBirthday,
-            school: personSchool,
-            bio: personBio,
-            podScore: personPodScore,
-            thumbnailURL: personThumbnailURL,
-            fullPhotoURL: personFullPhotoURL);
-
-        // get their match survey data
-        final surveyData = docSnapshot.get("matchSurvey") as Map<String, dynamic>;
-        final career = surveyData["career"] as int;
-        final goOutFreq = surveyData["goOutFreq"] as int;
-        final exerciseInterest = surveyData["exerciseInterest"] as int;
-        final dineOutInterest = surveyData["dineOutInterest"] as int;
-        final artInterest = surveyData["artInterest"] as int;
-        final gamingInterest = surveyData["gamingInterest"] as int;
-        final clubbingInterest = surveyData["clubbingInterest"] as int;
-        final readingInterest = surveyData["readingInterest"] as int;
-        final tvShowInterest = surveyData["tvShowInterest"] as int;
-        final musicInterest = surveyData["musicInterest"] as int;
-        final shoppingInterest = surveyData["shoppingInterest"] as int;
-        final impAttractive = surveyData["attractivenessImportance"] as double;
-        final rawImpAttractive = surveyData["attractivenessImportance_raw"] as int;
-        final impSincere = surveyData["sincerityImportance"] as double;
-        final rawImpSincere = surveyData["sincerityImportance_raw"] as int;
-        final impIntelligence = surveyData["intelligenceImportance"] as double;
-        final rawImpIntelligence = surveyData["intelligenceImportance_raw"] as int;
-        final impFun = surveyData["funImportance"] as double;
-        final rawImpFun = surveyData["funImportance_raw"] as int;
-        final impAmbition = surveyData["ambitionImportance"] as double;
-        final rawImpAmbition = surveyData["ambitionImportance_raw"] as int;
-        final impSharedInterests = surveyData["sharedInterestsImportance"] as double;
-        final rawImpSharedInterests = surveyData["sharedInterestsImportance_raw"] as int;
-        final myAttractiveness = surveyData["myAttractiveness"] as int;
-        final mySincerity = surveyData["mySincerity"] as int;
-        final myIntelligence = surveyData["myIntelligence"] as int;
-        final myFun = surveyData["myFun"] as int;
-        final myAmbition = surveyData["myAmbition"] as int;
-
-        //Round the values to the nearest hundredth place before feeding into the ML model, since the training data
-        // was rounded to the nearest hundredth.
-        final roundedImpAttractive = impAttractive.roundToDecimalPlace(2);
-        final roundedImpSincere = impSincere.roundToDecimalPlace(2);
-        final roundedImpIntelligence = impIntelligence.roundToDecimalPlace(2);
-        final roundedImpFun = impFun.roundToDecimalPlace(2);
-        final roundedImpAmbition = impAmbition.roundToDecimalPlace(2);
-        final roundedImpSharedInterests = impSharedInterests.roundToDecimalPlace(2);
-
-        final personAge = TimeAndDateFunctions.getAgeFromBirthday(birthday: personBirthday);
-        this.profileData.matchSurveyData = MatchSurveyData(
-            age: personAge,
-            career: career,
-            goOutFreq: goOutFreq,
-            exerciseInterest: exerciseInterest,
-            dineOutInterest: dineOutInterest,
-            artInterest: artInterest,
-            gamingInterest: gamingInterest,
-            clubbingInterest: clubbingInterest,
-            readingInterest: readingInterest,
-            tvShowsInterest: tvShowInterest,
-            musicInterest: musicInterest,
-            shoppingInterest: shoppingInterest,
-            importanceOfAttraction: roundedImpAttractive,
-            rawImportanceOfAttractiveness: rawImpAttractive,
-            importanceOfSincerity: roundedImpSincere,
-            rawImportanceOfSincerity: rawImpSincere,
-            importanceOfIntelligence: roundedImpIntelligence,
-            rawImportanceOfIntelligence: rawImpIntelligence,
-            importanceOfFun: roundedImpFun,
-            rawImportanceOfFun: rawImpFun,
-            importanceOfAmbition: roundedImpAmbition,
-            rawImportanceOfAmbition: rawImpAmbition,
-            importanceOfSharedInterests: roundedImpSharedInterests,
-            rawImportanceOfSharedInterests: rawImpSharedInterests,
-            attractiveness: myAttractiveness,
-            sincerity: mySincerity,
-            intelligence: myIntelligence,
-            fun: myFun,
-            ambition: myAmbition);
-
         // Call the completion handler if everything succeeds so I can access the profile data and match survey data
-        onCompletion();
+        onCompletion(profileData);
       }
 
       _dataListenerForSomoneElsesProfile?.cancel(); // cancel the listener once I'm done getting the data

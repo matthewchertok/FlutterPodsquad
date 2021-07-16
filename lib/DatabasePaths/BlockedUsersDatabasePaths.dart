@@ -16,10 +16,10 @@ class BlockedUsersDatabasePaths {
     final dataGetter = MyProfileTabBackendFunctions();
     dataGetter.getPersonsProfileData(
         userID: otherPersonsUserID,
-        onCompletion: () {
+        onCompletion: (otherPersonsProfileData) {
           final myData = MyProfileTabBackendFunctions.shared.myDataToIncludeWhenLikingFriendingBlockingOrMeetingSomeone
               .toDatabaseFormat();
-          final theirData = dataGetter.profileData.toDatabaseFormat();
+          final theirData = otherPersonsProfileData.toDatabaseFormat();
           final Map<String, dynamic> blockDictionary = {
             "blocker": myData,
             "blockee": theirData,

@@ -24,7 +24,7 @@ class _ScannerViewState extends State<ScannerView> {
             headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
               return [
                 CupertinoSliverNavigationBar(padding: EdgeInsetsDirectional.all(5),
-                  largeTitle: Text("Discover Nearby"),
+                  largeTitle: Text("Discover Nearby"), stretch: true,
                   leading: CupertinoButton(
                     child: Icon(CupertinoIcons.line_horizontal_3),
                     onPressed: () {

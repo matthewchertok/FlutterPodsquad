@@ -158,7 +158,7 @@ class _MessagingViewState extends State<MessagingView> {
       }
     });
 
-    if (shouldScrollToBottom) _scrollChatLogToBottom(overScrollBy: 10);
+    if (shouldScrollToBottom) _scrollChatLogToBottom(overScrollBy: 0);
   }
 
   /// Show an alert asking the user to confirm that they want to delete a message from the conversation
@@ -384,7 +384,7 @@ class _MessagingViewState extends State<MessagingView> {
     dmMessageDictionary["senderName"] = MyProfileTabBackendFunctions.shared.myProfileData.value.name;
     dmMessageDictionary["recipientName"] = chatPartnerOrPodName;
     dmMessageDictionary["senderThumbnailURL"] = MyProfileTabBackendFunctions.shared.myProfileData.value.thumbnailURL;
-    dmMessageDictionary["recipientThumbnailURL"] = message.recipientThumbnailURL;
+    dmMessageDictionary["recipientThumbnailURL"] = chatPartnerThumbnailURL;
 
     if (message.audioURL != null) {
       dmMessageDictionary["audioURL"] = message.audioURL;
@@ -707,7 +707,7 @@ class _MessagingViewState extends State<MessagingView> {
     // best solution would be to just reverse the chat log, but then I wouldn't be able to use the swipe to refresh
     // indicator. Additionally, an advantage of not reversing the chat log is that I get a nice scroll animation when
     // a new message is added.
-    _scrollChatLogToBottom(overScrollBy: 200);
+    _scrollChatLogToBottom(overScrollBy: 0);
     _checkIfIAmBlocked();
 
     // Update in real time when the chat log changes (for direct messages)
@@ -873,22 +873,23 @@ class _MessagingViewState extends State<MessagingView> {
                                 actions: [
                                   if (message.senderId != myFirebaseUserId)
                                     // delete the message
-                                    CupertinoButton(
-                                      child: Icon(CupertinoIcons.trash, color: CupertinoColors.destructiveRed),
-                                      onPressed: () {
+                                    IconSlideAction(
+                                      caption: "Delete",
+                                      color: CupertinoColors.destructiveRed,
+                                      icon: CupertinoIcons.trash,
+                                      onTap: () {
                                         _deleteMessage(message: message);
                                       },
-                                      padding: EdgeInsets.zero,
                                     ),
 
                                   // copy the message
                                   if (message.senderId != myFirebaseUserId)
-                                    CupertinoButton(
-                                      child: Icon(CupertinoIcons.doc_on_clipboard),
-                                      onPressed: () {
+                                    IconSlideAction(
+                                      icon: CupertinoIcons.doc_on_clipboard,
+                                      onTap: () {
                                         Clipboard.setData(ClipboardData(text: message.text));
                                       },
-                                      padding: EdgeInsets.zero,
+                                      caption: "Copy",
                                     ),
 
                                   // the message time stamp
@@ -916,22 +917,22 @@ class _MessagingViewState extends State<MessagingView> {
 
                                   // copy the message
                                   if (message.senderId == myFirebaseUserId)
-                                    CupertinoButton(
-                                      child: Icon(CupertinoIcons.doc_on_clipboard),
-                                      onPressed: () {
+                                    IconSlideAction(
+                                      icon: CupertinoIcons.doc_on_clipboard,
+                                      onTap: () {
                                         Clipboard.setData(ClipboardData(text: message.text));
                                       },
-                                      padding: EdgeInsets.zero,
+                                      caption: "Copy",
                                     ),
 
                                   if (message.senderId == myFirebaseUserId)
                                     // delete the message
-                                    CupertinoButton(
-                                      child: Icon(CupertinoIcons.trash, color: CupertinoColors.destructiveRed),
-                                      onPressed: () {
+                                    IconSlideAction(
+                                      icon: CupertinoIcons.trash,
+                                      onTap: () {
                                         _deleteMessage(message: message);
                                       },
-                                      padding: EdgeInsets.zero,
+                                      caption: "Delete", color: CupertinoColors.destructiveRed,
                                     ),
                                 ],
                               ),

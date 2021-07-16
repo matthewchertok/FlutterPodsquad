@@ -232,24 +232,24 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
     final String thumbnailURL = profileData["photoThumbnailURL"];
     final String fullPhotoURL = profileData["fullPhotoURL"];
     final String name = profileData["name"];
-    final String preferredPronoun = profileData["preferredPronouns"];
-    final String preferredRelationshipType = profileData["lookingFor"];
+    final String? preferredPronoun = profileData["preferredPronouns"];
+    final String? preferredRelationshipType = profileData["lookingFor"];
     final num birthdayRaw = profileData["birthday"];
     final birthday = birthdayRaw.toDouble();
     final String school = profileData["school"];
-    final String bio = profileData["bio"];
-    final num podScoreRaw = profileData["podScore"] as num;
-    final int podScore = podScoreRaw.toInt();
+    final String? bio = profileData["bio"];
+    final num? podScoreRaw = profileData["podScore"] as num;
+    final int? podScore = podScoreRaw?.toInt();
 
     final personData = ProfileData(
         userID: userID,
         name: name,
-        preferredPronoun: preferredPronoun,
-        preferredRelationshipType: preferredRelationshipType,
+        preferredPronoun: preferredPronoun ?? UsefulValues.nonbinaryPronouns,
+        preferredRelationshipType: preferredRelationshipType ?? UsefulValues.lookingForFriends,
         birthday: birthday,
         school: school,
-        bio: bio,
-        podScore: podScore,
+        bio: bio ?? "",
+        podScore: podScore ?? 0,
         thumbnailURL: thumbnailURL,
         fullPhotoURL: fullPhotoURL);
     return personData;

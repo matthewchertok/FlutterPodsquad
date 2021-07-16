@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/ViewFullImage.dart';
+import 'package:podsquad/ContentViews/ViewPersonDetails.dart';
 import 'package:podsquad/OtherSpecialViews/AudioPlayer.dart';
 import 'package:podsquad/OtherSpecialViews/DecoratedImage.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
@@ -112,7 +113,7 @@ class SentMessageRow extends StatelessWidget {
               children: [
                 if (isPodMode)
                   Text(
-                    myName ?? "",
+                    myName,
                     style: TextStyle(color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
                   ),
 
@@ -168,7 +169,21 @@ class SentMessageRow extends StatelessWidget {
                   )
               ],
             ),
-            DecoratedImage(imageURL: myThumbnailURL, width: 60, height: 60, shadowColor: accentColor.withOpacity(0.6),)
+
+            // My profile thumbnail. Tap to navigate to my profile
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+                child: DecoratedImage(
+                  imageURL: myThumbnailURL,
+                  width: 60,
+                  height: 60,
+                  shadowColor: accentColor.withOpacity(0.6),
+                ),
+                onPressed: () {
+                  Navigator.of(context, rootNavigator: true)
+                      .push(CupertinoPageRoute(builder: (context) => ViewPersonDetails(personID: myFirebaseUserId,
+                      messagingEnabled: false,)));
+                })
 
             // On the right is my profile photo
           ],
@@ -213,9 +228,22 @@ class ReceivedMessageRow extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // on the left is the other person's profile image
-            DecoratedImage(imageURL: messageSenderThumbnailURL, width: 60, height: 60, shadowColor: 
-            receivedMessageBubbleColor.withOpacity(0.6),),
+            // On the left is the other person's profile image. Tap it to navigate to their profile.
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+                child: DecoratedImage(
+                  imageURL: messageSenderThumbnailURL,
+                  width: 60,
+                  height: 60,
+                  shadowColor: receivedMessageBubbleColor.withOpacity(0.6),
+                ),
+                onPressed: () {
+                  Navigator.of(context, rootNavigator: true)
+                      .push(CupertinoPageRoute(builder: (context) => ViewPersonDetails(personID: chatPartnerOrPodID,
+                    messagingEnabled: false, // ensure that the user can't dig themselves infinitely deep in the
+                    // stack by navigating to MessagingView, then ViewPersonDetails, then back to MessagingView, etc.
+                  )));
+                }),
             // On the left will be a column containing the message text, with the image and audio below, if there is any
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,

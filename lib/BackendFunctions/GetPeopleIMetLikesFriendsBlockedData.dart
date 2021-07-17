@@ -174,15 +174,17 @@ class GetPeopleIMetLikesFriendsBlockedData {
   }
 
   void _extractDataForPod({required Map<String, dynamic> value, required Function onPodDataReady}) {
-    final podID = value["podID"];
-    final podName = value["name"];
-    final podCreatorID = value["podCreatorID"];
-    final anyoneCanJoin = value["anyoneCanJoin"];
-    final dateCreated = value["dateCreated"];
-    final description = value["description"];
-    final fullPhotoURL = value["fullPhotoURL"];
-    final thumbnailURL = value["thumbnailURL"];
-    final podScore = value["podScore"];
+    final podID = value["podID"] as String;
+    final podName = value["name"] as String;
+    final podCreatorID = value["podCreatorID"] as String;
+    final anyoneCanJoin = value["anyoneCanJoin"] as bool;
+    final dateCreatedRaw = value["dateCreated"] as num;
+    final dateCreated = dateCreatedRaw.toDouble();
+    final description = value["description"] as String;
+    final fullPhotoURL = value["fullPhotoURL"] as String;
+    final thumbnailURL = value["thumbnailURL"] as String;
+    final podScoreRaw = value["podScore"] as num;
+    final podScore = podScoreRaw.toInt();
 
     this.podData = PodData(
         name: podName,

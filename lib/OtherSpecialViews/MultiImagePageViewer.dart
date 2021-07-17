@@ -1,21 +1,24 @@
 import 'package:flutter/cupertino.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:podsquad/BackendDataclasses/IdentifiableImage.dart';
+import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 
 class MultiImagePageViewer extends StatefulWidget {
-  const MultiImagePageViewer({Key? key, required this.imagesList, this.personName}) : super(key: key);
+  const MultiImagePageViewer({Key? key, required this.imagesList, required this.personId, this.personName}) : super(key: key);
   final List<IdentifiableImage> imagesList;
+  final String personId;
   final String? personName;
 
   @override
   _MultiImagePageViewerState createState() =>
-      _MultiImagePageViewerState(imagesList: imagesList, personName: personName);
+      _MultiImagePageViewerState(imagesList: imagesList, personId: personId, personName: personName);
 }
 
 class _MultiImagePageViewerState extends State<MultiImagePageViewer> {
-  _MultiImagePageViewerState({required this.imagesList, this.personName});
+  _MultiImagePageViewerState({required this.imagesList, required this.personId, this.personName});
 
   final List<IdentifiableImage> imagesList;
+  final String personId;
   final String? personName;
 
   final _controller = PageController();
@@ -38,7 +41,9 @@ class _MultiImagePageViewerState extends State<MultiImagePageViewer> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
-          middle: Text(personName != null ? "${personName ?? "User"}'s Photos" : "View Images"),
+          middle: Text(personName != null ? (personId == myFirebaseUserId ? "My Photos": "${personName ?? "User"}'s "
+              "Photos") : "View"
+              " Images"),
         ),
         child: PageView(
           controller: _controller,

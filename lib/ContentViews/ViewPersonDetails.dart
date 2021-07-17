@@ -1,11 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:podsquad/BackendDataclasses/MainListDisplayViewModes.dart';
 import 'package:podsquad/BackendDataclasses/PodData.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/BackendFunctions/PronounFormatter.dart';
 import 'package:podsquad/BackendFunctions/ReportedPeopleBackendFunctions.dart';
 import 'package:podsquad/BackendFunctions/TimeAndDateFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
+import 'package:podsquad/ContentViews/MainListDisplayView.dart';
 import 'package:podsquad/ContentViews/MessagingView.dart';
 import 'package:podsquad/ContentViews/ViewFullImage.dart';
 import 'package:podsquad/DatabasePaths/BlockedUsersDatabasePaths.dart';
@@ -69,8 +71,18 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
   }
 
   /// Get the person's pod memberships
-  void _getPodMemberships(){
-    
+  void _getPodMemberships() {
+    // If I'm looking at my own profile, there is no need to download anything extra: just read in my pod memberships
+    if (personID == myFirebaseUserId) {
+      this._personsPodMemberships = ShowMyPodsBackendFunctions.shared.sortedListOfPods.value;
+      ShowMyPodsBackendFunctions.shared.sortedListOfPods.addListener(() {
+        final myPods = ShowMyPodsBackendFunctions.shared.sortedListOfPods.value;
+        // No need to sort here since MainListDisplay view will sort the list alphabetically
+        setState(() {
+          this._personsPodMemberships = myPods;
+        });
+      });
+    }
   }
 
   /// Convert the user's preferred relationship type into a user-friendly string
@@ -91,6 +103,7 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
   void initState() {
     super.initState();
     this._getProfileData();
+    this._getPodMemberships();
 
     // Determine if I already liked/friended/blocked/reported the user
     this.didLikeUser = SentLikesBackendFunctions.shared.sortedListOfPeople.value.memberIDs().contains(personID);
@@ -137,6 +150,7 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
     SentFriendsBackendFunctions.shared.sortedListOfPeople.removeListener(() {});
     SentBlocksBackendFunctions.shared.sortedListOfPeople.removeListener(() {});
     ReportedPeopleBackendFunctions.shared.peopleIReportedList.removeListener(() {});
+    ShowMyPodsBackendFunctions.shared.sortedListOfPods.removeListener(() {});
   }
 
   @override
@@ -591,7 +605,7 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                           builder: (context) => ViewFullImage(
                               urlForImageToView: personData.fullPhotoURL,
                               imageID: "doesn't matter",
-                              navigationBarTitle: personData.name,
+                              navigationBarTitle: personID == myFirebaseUserId ? "My Profile Image" : personData.name,
                               canWriteCaption: false)));
                     },
                     onPanUpdate: (swipe) {
@@ -600,7 +614,8 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                         Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                             builder: (context) => MultiImagePageViewer(
                                 imagesList: personData.extraImagesList ?? [],
-                              personName: personData.name)));
+                                personId: personData.userID,
+                                personName: personData.name)));
                     },
                   ),
                   SizedBox(
@@ -640,7 +655,12 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                                           CupertinoActionSheetAction(
                                               onPressed: () {
                                                 dismissAlert(context: context);
-                                                // TODO: Navigate to view the person's pods
+                                                Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                                                    builder: (context) => MainListDisplayView(
+                                                          viewMode: MainListDisplayViewModes.podMemberships,
+                                                          podMemberships: this._personsPodMemberships,
+                                                          personName: personData.name,
+                                                        )));
                                               },
                                               child: Text(personData.userID == myFirebaseUserId
                                                   ? "My Pods"

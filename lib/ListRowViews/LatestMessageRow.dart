@@ -38,7 +38,7 @@ class LatestMessageRow extends StatelessWidget {
     // If the year is the same, show month, day, and time. Otherwise, show month, day, and year.
     final timeStampText = messageTimeStamp.year == currentYear
         ? "${messageTimeStamp.month.toHumanReadableMonth()} "
-            "${messageTimeStamp.day} "
+            "${messageTimeStamp.day}\n"
             "$hoursMinutes"
         : "${messageTimeStamp.month.toHumanReadableMonth()} ${messageTimeStamp.day} ${messageTimeStamp.year}";
     return Text(timeStampText, style: TextStyle(fontSize: fontSize),);

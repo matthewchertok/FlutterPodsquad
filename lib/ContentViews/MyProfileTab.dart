@@ -1,24 +1,25 @@
+import 'dart:io';
 import 'dart:ui';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:podsquad/BackendDataHolders/UserAuth.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/BackendFunctions/NearbyScanner.dart';
 import 'package:podsquad/BackendFunctions/PushNotificationStatus.dart';
 import 'package:podsquad/BackendFunctions/ResizeAndUploadImage.dart';
-import 'package:podsquad/CommonlyUsedClasses/AlertDialogs.dart';
-import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
-import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 import 'package:podsquad/BackendFunctions/ShowLikesFriendsBlocksActionSheet.dart';
+import 'package:podsquad/CommonlyUsedClasses/AlertDialogs.dart';
+import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
+import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
+import 'package:podsquad/ContentViews/ViewPersonDetails.dart';
+import 'package:podsquad/OtherSpecialViews/DecoratedImage.dart';
 import 'package:podsquad/OtherSpecialViews/MultiImageUploader.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
-import 'package:image_cropper/image_cropper.dart';
 
 class MyProfileTab extends StatefulWidget {
   const MyProfileTab({Key? key}) : super(key: key);
@@ -341,30 +342,24 @@ class _MyProfileTabState extends State<MyProfileTab> {
                       // Profile Image
                       Padding(
                           padding: EdgeInsets.all(20),
-                          child: Center(
-                              child: Container(
-                                  width: 125.scaledForScreenSize(context: context),
-                                  height: 125.scaledForScreenSize(context: context),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(15),
-                                      border: Border.all(color: CupertinoColors.white, width: 3),
-                                      boxShadow: [BoxShadow(color: accentColor.withOpacity(0.5), blurRadius: 3)]),
-                                  child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: ValueListenableBuilder(
-                                          valueListenable: MyProfileTabBackendFunctions.shared.myProfileData,
-                                          builder: (context, ProfileData profileData, widget) {
-                                            return profileData.thumbnailURL.isEmpty
-                                                ? Icon(CupertinoIcons.person)
-                                                : CachedNetworkImage(
-                                                    imageUrl: profileData.thumbnailURL,
-                                                    fit: BoxFit.cover,
-                                                    errorWidget: (context, url, error) =>
-                                                        Icon(CupertinoIcons.exclamationmark_triangle_fill),
-                                                    progressIndicatorBuilder: (context, url, progress) =>
-                                                        CupertinoActivityIndicator(),
-                                                  );
-                                          }))))),
+                          child: ValueListenableBuilder(
+                              valueListenable: MyProfileTabBackendFunctions.shared.myProfileData,
+                              builder: (context, ProfileData profileData, widget) {
+                                return profileData.thumbnailURL.isEmpty
+                                    ? Icon(CupertinoIcons.person)
+                                    : GestureDetector(
+                                        child: DecoratedImage(
+                                          imageURL: profileData.thumbnailURL,
+                                          width: 125.scaledForScreenSize(context: context),
+                                          height: 125.scaledForScreenSize(context: context),
+                                        ),
+                                        onTap: () {
+                                          // Navigate to view my profile
+                                          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                                              builder: (context) => ViewPersonDetails(personID: myFirebaseUserId)));
+                                        },
+                                      );
+                              })),
                       // Profile image and photo section
                       CupertinoFormSection(children: [
                         // Take photo button
@@ -410,12 +405,15 @@ class _MyProfileTabState extends State<MyProfileTab> {
 
                         AnimatedSwitcher(
                             transitionBuilder: (child, animation) {
-                            //  final offsetAnimation = Tween<Offset>(begin: Offset(0, -0.1), end: Offset(0, 0))
+                              //  final offsetAnimation = Tween<Offset>(begin: Offset(0, -0.1), end: Offset(0, 0))
                               //  .animate(animation);
 
                               // Use a slide animation to reveal the images, and a size animation to hide them. This
                               // creates the neatest effect.
-                              return SizeTransition(sizeFactor: animation, child: child,);
+                              return SizeTransition(
+                                sizeFactor: animation,
+                                child: child,
+                              );
                             },
                             duration: Duration(milliseconds: 250),
                             child: _showingMultiImageUploader ? MultiImageUploader() : Container())

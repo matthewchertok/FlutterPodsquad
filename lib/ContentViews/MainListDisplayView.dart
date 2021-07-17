@@ -13,29 +13,57 @@ import 'package:podsquad/OtherSpecialViews/SearchTextField.dart';
 
 class MainListDisplayView extends StatefulWidget {
   const MainListDisplayView(
-      {Key? key, required this.viewMode, this.showingSentDataNotReceivedData = true, this.podName = "null"})
+      {Key? key,
+      required this.viewMode,
+      this.showingSentDataNotReceivedData = true,
+      this.podName, this.personName,
+      this.podMembers,
+      this.podMemberships})
       : super(key: key);
   final String viewMode;
-  final bool? showingSentDataNotReceivedData;
+  final bool showingSentDataNotReceivedData;
+
+  /// Used only if displaying a pod's members.
   final String? podName;
+
+  /// Used only if displaying a person's pod memberships.
+  final String? personName;
+
+  /// Only needed if viewMode is equal to MainListDisplayViewModes.podMembers. Contains the members of a pod
+  final List<ProfileData>? podMembers;
+
+  /// Only needed if viewMode is equal to MainListDisplayViewModes.podMemberships. Contains a user's pod memberships.
+  final List<PodData>? podMemberships;
 
   @override
   _MainListDisplayViewState createState() => _MainListDisplayViewState(
       viewMode: this.viewMode,
       showingSentDataNotReceivedData: this.showingSentDataNotReceivedData,
-      podName: this.podName);
+      podName: this.podName, personName: this.personName, podMembers: podMembers, podMemberships: podMemberships);
 }
 
 class _MainListDisplayViewState extends State<MainListDisplayView> {
-  final viewMode;
-  final showingSentDataNotReceivedData;
-  final podName;
+  final String viewMode;
+  final bool showingSentDataNotReceivedData;
+  final String? podName;
+  final String? personName;
+
+  /// Only relevant if the view mode is podMembers. Shows the members of a pod.
+  final List<ProfileData>? podMembers;
+
+  /// Only relevant if the view mode is podMemberships. Shows a persons' pod memberships.
+  final List<PodData>? podMemberships;
+
   final _searchTextController = TextEditingController();
   final _customScrollViewController = ScrollController();
 
   _MainListDisplayViewState(
-      {required this.viewMode, required this.showingSentDataNotReceivedData, required this.podName}) {
-    this.isPodMode = viewMode == MainListDisplayViewModes.searchPods || viewMode == MainListDisplayViewModes.myPods;
+      {required this.viewMode,
+      required this.showingSentDataNotReceivedData, this.podName, this.personName,
+      this.podMembers,
+      this.podMemberships}) {
+    this.isPodMode = viewMode == MainListDisplayViewModes.searchPods || viewMode == MainListDisplayViewModes.myPods
+        || viewMode == MainListDisplayViewModes.podMemberships;
   }
 
   /// Stores a list of people to display. Use this property if displaying people
@@ -75,6 +103,9 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         {
           return "$podName Members";
         }
+      case MainListDisplayViewModes.podMemberships: {
+        return "${personName ?? "User"}'s Pods";
+      }
 
       case MainListDisplayViewModes.searchUsers:
         {
@@ -135,13 +166,31 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
       });
     });
 
-    /// Determine when I'm searching for a person or pod
+    // Determine when I'm searching for a person or pod
     _searchTextController.addListener(() {
       final text = _searchTextController.text;
       setState(() {
         this.isSearching = text.trim().isNotEmpty;
       });
     });
+
+    // If the viewMode is podMembers, populate the list with the passed-in value (sorted alphabetically)
+    if (viewMode == MainListDisplayViewModes.podMembers) {
+      if (podMembers != null) {
+        var sortedPodMembers = podMembers ?? [];
+        sortedPodMembers.sort((a, b) => a.name.compareTo(b.name));
+        this._displayedListOfPeople = sortedPodMembers;
+      }
+    }
+
+    // If the viewMode is podMemberships, populate the list with the passed-in value (sorted alphabetically)
+    if (viewMode == MainListDisplayViewModes.podMemberships){
+      if (podMemberships != null){
+        var sortedPodMemberships = podMemberships ?? [];
+        sortedPodMemberships.sort((a, b) => a.name.compareTo(b.name));
+        this._displayedListOfPods = sortedPodMemberships;
+      }
+    }
   }
 
   /// Search for a user or pod by name, depending on the view mode
@@ -433,10 +482,10 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                   )),
 
                 if (isPodMode && this._displayedListOfPods.isEmpty)
-                  Text(
+                  SafeArea(child: Text(
                     isSearching ? "No results found" : "No pods to display",
                     style: TextStyle(color: CupertinoColors.inactiveGray),
-                  ),
+                  )),
               ],
             ),
           ]))

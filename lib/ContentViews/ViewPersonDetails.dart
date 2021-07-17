@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:podsquad/BackendDataclasses/MainListDisplayViewModes.dart';
@@ -13,6 +16,7 @@ import 'package:podsquad/ContentViews/ViewFullImage.dart';
 import 'package:podsquad/DatabasePaths/BlockedUsersDatabasePaths.dart';
 import 'package:podsquad/DatabasePaths/FriendsDatabasePaths.dart';
 import 'package:podsquad/DatabasePaths/LikesDatabasePaths.dart';
+import 'package:podsquad/DatabasePaths/PodsDatabasePaths.dart';
 import 'package:podsquad/DatabasePaths/ReportUsersDatabasePaths.dart';
 import 'package:podsquad/OtherSpecialViews/DecoratedImage.dart';
 import 'package:podsquad/OtherSpecialViews/MultiImagePageViewer.dart';
@@ -45,6 +49,9 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
 
   /// A list of every pod that the user is in
   List<PodData> _personsPodMemberships = [];
+
+  /// A list of all stream subscriptions (so they can be cancelled)
+  List<StreamSubscription> _streamSubsList = [];
 
   /// This will store the user's profile data. It gets updated inside initState.
   ProfileData personData = ProfileData(
@@ -82,7 +89,35 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
           this._personsPodMemberships = myPods;
         });
       });
+    } else {
+      final listener = firestoreDatabase
+          .collectionGroup("members")
+          .where("userID", isEqualTo: personID)
+          .snapshots()
+          .listen((snapshot) {
+        snapshot.docChanges.forEach((diff) {
+          final podID = diff.doc.reference.parent.parent?.id;
+          if (podID != null) {
+            if (diff.type == DocumentChangeType.added) {
+              _getDataForPod(podID: podID);
+            } else if (diff.type == DocumentChangeType.removed) {
+              this._personsPodMemberships.removeWhere((pod) => pod.podID == podID);
+            }
+          }
+        });
+      });
+      _streamSubsList.add(listener);
     }
+  }
+
+  /// Downloads data for a specified pod and adds it to the list of pods the user is in
+  void _getDataForPod({required String podID}) {
+    /// Use a stream subscription (not single get() call) to enable reading form the cache to improve offline
+    /// performance and reduce reads.
+    final listener = PodsDatabasePaths(podID: podID).podDataStream(onCompletion: (PodData podData) {
+      this._personsPodMemberships.add(podData);
+    });
+    _streamSubsList.add(listener);
   }
 
   /// Convert the user's preferred relationship type into a user-friendly string
@@ -151,6 +186,9 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
     SentBlocksBackendFunctions.shared.sortedListOfPeople.removeListener(() {});
     ReportedPeopleBackendFunctions.shared.peopleIReportedList.removeListener(() {});
     ShowMyPodsBackendFunctions.shared.sortedListOfPods.removeListener(() {});
+    _streamSubsList.forEach((stream) {
+      stream.cancel();
+    });
   }
 
   @override

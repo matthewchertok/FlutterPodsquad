@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:podsquad/BackendDataHolders/PodMembersDictionary.dart';
@@ -59,7 +61,6 @@ class PodsDatabasePaths {
       if (onSuccess != null) onSuccess();
     });
   }
-
 
   ///Blocks a user with ID equal to userID by setting "blocked" equal to true.
   void _addUserIDToBlockedMembers({Function? onSuccess}) {
@@ -155,7 +156,7 @@ class PodsDatabasePaths {
   ///PodsDatabasePaths object on which this method is called.
   void removeMemberFromPod({Function? onCompletion}) {
     podDocument.collection("members").doc(this.userID).delete().then((value) {
-      if(onCompletion!=null) onCompletion();
+      if (onCompletion != null) onCompletion();
     });
   }
 
@@ -375,40 +376,30 @@ class PodsDatabasePaths {
     });
   }
 
-  ///Access this inside the completion handler of getPodData on an instance of PodsDatabasePaths in order to access a
-  /// pod's data. Never access this outside the completion block of getPodData.
-  var podData = PodData(
-      name: "name",
-      dateCreated: 0,
-      description: "description",
-      anyoneCanJoin: false,
-      podID: "podID",
-      podCreatorID: "podCreatorID",
-      thumbnailURL: "thumbnailURL",
-      fullPhotoURL: "fullPhotoURL",
-      podScore: 0);
-
-  ///Gets all required profile data for a pod. Inside the completion handler, access the .podData property of the
-  ///PodsDatabasePaths object.
-  void getPodData({Function? onCompletion}) {
+  ///Gets all required profile data for a pod (single event snapshot).
+  void getPodData({required Function(PodData) onCompletion}) {
     podDocument.get().then((docSnapshot) {
       final profileInfo = docSnapshot.get("profileData") as Map<String, dynamic>;
       final name = profileInfo["name"] as String;
-      final dateCreated = profileInfo["dateCreated"] as double;
+      final dateCreatedRaw = profileInfo["dateCreated"] as num;
+      final dateCreated = dateCreatedRaw.toDouble();
       final description = profileInfo["description"] as String;
       final anyoneCanJoin = profileInfo["anyoneCanJoin"] as bool;
       final podID = profileInfo["podID"] as String;
       final podCreatorID = profileInfo["podCreatorID"] as String;
       final thumbnailURL = profileInfo["thumbnailURL"] as String;
       final fullPhotoURL = profileInfo["fullPhotoURL"] as String;
-      final podScore = profileInfo["podScore"] as int; // pod score for pods is stored as an integer, not a double
+      final podScoreRaw = profileInfo["podScore"] as num? ?? 0; // pod score for pods is stored as an integer, not a
+      // double
+      final podScore = podScoreRaw.toInt();
 
       ///Check how many times the pod was reported
-      final reportInfo = docSnapshot.get("reportedBy") as List<String>;
+      final docData = docSnapshot.data() as Map;
+      final reportInfo = docData["reportedBy"] as List<String>? ?? [];
       this.reportCount = reportInfo.length;
 
       ///Update the podData object
-      this.podData = PodData(
+      final podData = PodData(
           name: name,
           dateCreated: dateCreated,
           description: description,
@@ -419,7 +410,45 @@ class PodsDatabasePaths {
           fullPhotoURL: fullPhotoURL,
           podScore: podScore);
 
-      if(onCompletion != null) onCompletion();
+      onCompletion(podData);
+    });
+  }
+
+  /// Gets all the required profile data for a pod (continuous listener)
+  StreamSubscription podDataStream({required Function(PodData) onCompletion}){
+    return podDocument.snapshots().listen((docSnapshot) {
+      final profileInfo = docSnapshot.get("profileData") as Map<String, dynamic>;
+      final name = profileInfo["name"] as String;
+      final dateCreatedRaw = profileInfo["dateCreated"] as num;
+      final dateCreated = dateCreatedRaw.toDouble();
+      final description = profileInfo["description"] as String;
+      final anyoneCanJoin = profileInfo["anyoneCanJoin"] as bool;
+      final podID = profileInfo["podID"] as String;
+      final podCreatorID = profileInfo["podCreatorID"] as String;
+      final thumbnailURL = profileInfo["thumbnailURL"] as String;
+      final fullPhotoURL = profileInfo["fullPhotoURL"] as String;
+      final podScoreRaw = profileInfo["podScore"] as num? ?? 0; // pod score for pods is stored as an integer, not a
+      // double
+      final podScore = podScoreRaw.toInt();
+
+      ///Check how many times the pod was reported
+      final docData = docSnapshot.data() as Map;
+      final reportInfo = docData["reportedBy"] as List<String>? ?? [];
+      this.reportCount = reportInfo.length;
+
+      ///Update the podData object
+      final podData = PodData(
+          name: name,
+          dateCreated: dateCreated,
+          description: description,
+          anyoneCanJoin: anyoneCanJoin,
+          podID: podID,
+          podCreatorID: podCreatorID,
+          thumbnailURL: thumbnailURL,
+          fullPhotoURL: fullPhotoURL,
+          podScore: podScore);
+
+      onCompletion(podData);
     });
   }
 }

@@ -74,12 +74,13 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   List<ProfileData> _listOfPeople = [];
 
   /// The actually-displayed list of people. Includes code to filter the list of people to include only the
-  /// results matching the search text.
+  /// results where a part of the name or bio matches the search text.
   List<ProfileData> get _displayedListOfPeople {
     if (_searchTextController.text.trim().isEmpty) return _listOfPeople;
     else {
       final searchText = _searchTextController.text.trim();
-      final filteredList = _listOfPeople.where((person) => person.name.toLowerCase().contains(searchText.toLowerCase())).toList();
+      final filteredList = _listOfPeople.where((person) => person.name.toLowerCase().contains(searchText.toLowerCase
+        ()) || person.bio.toLowerCase().contains(searchText.toLowerCase())).toList();
       return filteredList;
     }
   }
@@ -88,12 +89,13 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   List<PodData> _listOfPods = [];
 
   /// The actually-displayed list of pods. Includes code to filter the list of pods to include only the results
-  /// matching the search text.
+  /// where a part of the name or bio matches the search text.
   List<PodData> get _displayedListOfPods {
     if (_searchTextController.text.trim().isEmpty) return _listOfPods;
     else {
       final searchText = _searchTextController.text.trim();
-      final filteredList = _listOfPods.where((pod) => pod.name.toLowerCase().contains(searchText.toLowerCase())).toList();
+      final filteredList = _listOfPods.where((pod) => pod.name.toLowerCase().contains(searchText.toLowerCase()) ||
+          pod.description.toLowerCase().contains(searchText.toLowerCase())).toList();
       return filteredList;
     }
   }
@@ -500,14 +502,14 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                           ),
                         )),
 
-                if (!isPodMode && this._listOfPeople.isEmpty)
+                if (!isPodMode && this._displayedListOfPeople.isEmpty)
                   SafeArea(
                       child: Text(
                     isSearching ? "No results found" : "Nobody to display",
                     style: TextStyle(color: CupertinoColors.inactiveGray),
                   )),
 
-                if (isPodMode && this._listOfPods.isEmpty)
+                if (isPodMode && this._displayedListOfPods.isEmpty)
                   SafeArea(child: Text(
                     isSearching ? "No results found" : "No pods to display",
                     style: TextStyle(color: CupertinoColors.inactiveGray),

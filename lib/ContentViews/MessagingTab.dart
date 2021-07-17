@@ -20,7 +20,9 @@ class _MessagingTabState extends State<MessagingTab> {
   final _searchTextController = TextEditingController();
 
   /// The list of messaging conversation previews to show in the messaging tab. Don't set this directly; instead set
-  /// displayedMessagesDict.
+  /// displayedMessagesDict. Responds to changes in search text to return only results where a part of the chat partner
+  /// name or
+  /// message text matches the search text.
   List<ChatMessage> get _displayedMessagesList {
     final List<ChatMessage> combinedList = _podMessagesList + _directMessagesList;
 
@@ -32,7 +34,8 @@ class _MessagingTabState extends State<MessagingTab> {
     else
       return combinedList
           .where((element) =>
-              element.chatPartnerName.toLowerCase().contains(_searchTextController.text.trim().toLowerCase()))
+              element.chatPartnerName.toLowerCase().contains(_searchTextController.text.trim().toLowerCase()) ||
+                  element.text.toLowerCase().contains(_searchTextController.text.trim().toLowerCase()))
           .toList();
   }
 

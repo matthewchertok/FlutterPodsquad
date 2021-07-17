@@ -31,8 +31,8 @@ class _MessagingTabState extends State<MessagingTab> {
       return combinedList;
     else
       return combinedList
-          .where((element) => element.chatPartnerName.toLowerCase().contains(_searchTextController.text.trim().toLowerCase
-        ()))
+          .where((element) =>
+              element.chatPartnerName.toLowerCase().contains(_searchTextController.text.trim().toLowerCase()))
           .toList();
   }
 
@@ -124,31 +124,41 @@ class _MessagingTabState extends State<MessagingTab> {
         controller: _customScrollViewController,
         physics: AlwaysScrollableScrollPhysics(),
         slivers: [
-          CupertinoSliverNavigationBar(padding: EdgeInsetsDirectional.all(5), leading: CupertinoButton(
-            child: Icon(CupertinoIcons.line_horizontal_3),
-            onPressed: () {
-              showLikesFriendsBlocksActionSheet(context: context);
-            },
-            padding: EdgeInsets.zero,
-          ),
+          CupertinoSliverNavigationBar(
+            padding: EdgeInsetsDirectional.all(5),
+            leading: CupertinoButton(
+              child: Icon(CupertinoIcons.line_horizontal_3),
+              onPressed: () {
+                showLikesFriendsBlocksActionSheet(context: context);
+              },
+              padding: EdgeInsets.zero,
+            ),
             largeTitle: Text("Messages"),
             stretch: true,
           ),
-
-          // collapsible search bar
-          if (_searchBarShowing)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.only(bottom: 10),
-                child: SearchTextField(controller: _searchTextController,),
-              ),
-            ),
-
           SliverList(
               delegate: SliverChildListDelegate(
             [
               Column(
                 children: [
+                  // collapsible search bar                   ,
+                  AnimatedSwitcher(
+                      transitionBuilder: (child, animation) {
+                        return SizeTransition(
+                          sizeFactor: animation,
+                          child: child,
+                        );
+                      },
+                      duration: Duration(milliseconds: 250),
+                      child: _searchBarShowing
+                          ? Padding(
+                              padding: EdgeInsets.only(bottom: 10),
+                              child: SearchTextField(
+                                controller: _searchTextController,
+                              ),
+                            )
+                          : Container()),
+
                   for (var message in _displayedMessagesList)
                     GestureDetector(
                       onTap: () {

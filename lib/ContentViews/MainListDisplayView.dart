@@ -293,7 +293,6 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
           onPressed: () {
             Navigator.of(context, rootNavigator: true).pop();
           });
-
     else
       return CupertinoButton(
         child: Icon(CupertinoIcons.line_horizontal_3),
@@ -325,43 +324,49 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
             leading: backButton(),
             stretch: true,
           ),
-
-          // collapsible search bar THe reason I must use CupertinoTextField instead of CupertinoSearchTextField (the
-          // themed search bar) is that CupertinoSearchTextField does not have a text auto-capitalization property,
-          // meaning that by default, letters are always lower-cased. This might cause confusion for users, as they
-          // would have to manually capitalize their searches every time. It's much easier for them if the text field
-          // auto-capitalizes for them, which is why I'm using a regular CupertinoTextField for now.
-          if (_searchBarShowing)
-            SliverToBoxAdapter(
-              child: Padding(
-                  padding: EdgeInsets.only(bottom: 10),
-                  child: SearchTextField(
-                    controller: _searchTextController,
-                    onSubmitted: (searchText) {
-                      if (viewMode == MainListDisplayViewModes.searchUsers ||
-                          viewMode == MainListDisplayViewModes.searchPods)
-                        this.searchForUserOrPodByName(matching: searchText);
-                    },
-                    onClearButtonPressed: () {
-                      // clear the search results if the "x" is tapped
-                      if (viewMode == MainListDisplayViewModes.searchUsers)
-                        setState(() {
-                          _displayedListOfPeople.clear();
-                        });
-                      if (viewMode == MainListDisplayViewModes.searchPods)
-                        setState(() {
-                          _displayedListOfPods.clear();
-                        });
-                    },
-                  )),
-            ),
-
-          // person or pod list
           SliverList(
               delegate: SliverChildListDelegate([
             // will contain content
             Column(
               children: [
+                // Collapsible search bar. The reason I must use CupertinoTextField instead of
+                // CupertinoSearchTextField (the
+                // themed search bar) is that CupertinoSearchTextField does not have a text auto-capitalization property,
+                // meaning that by default, letters are always lower-cased. This might cause confusion for users, as they
+                // would have to manually capitalize their searches every time. It's much easier for them if the text field
+                // auto-capitalizes for them, which is why I'm using a regular CupertinoTextField for now.
+                AnimatedSwitcher(
+                    transitionBuilder: (child, animation) {
+                      return SizeTransition(
+                        sizeFactor: animation,
+                        child: child,
+                      );
+                    },
+                    duration: Duration(milliseconds: 250),
+                    child: _searchBarShowing
+                        ? Padding(
+                            padding: EdgeInsets.only(bottom: 10),
+                            child: SearchTextField(
+                              controller: _searchTextController,
+                              onSubmitted: (searchText) {
+                                if (viewMode == MainListDisplayViewModes.searchUsers ||
+                                    viewMode == MainListDisplayViewModes.searchPods)
+                                  this.searchForUserOrPodByName(matching: searchText);
+                              },
+                              onClearButtonPressed: () {
+                                // clear the search results if the "x" is tapped
+                                if (viewMode == MainListDisplayViewModes.searchUsers)
+                                  setState(() {
+                                    _displayedListOfPeople.clear();
+                                  });
+                                if (viewMode == MainListDisplayViewModes.searchPods)
+                                  setState(() {
+                                    _displayedListOfPods.clear();
+                                  });
+                              },
+                            ))
+                        : Container()),
+
                 // show a list of people
                 if (!isPodMode)
                   for (var person in _displayedListOfPeople)

@@ -152,8 +152,8 @@ class GetPeopleIMetLikesFriendsBlockedData {
       {required Map<String, dynamic> value, required double timestamp, required Function onProfileDataReady}) {
     final userID = value["userID"] as String;
     final name = value["name"] as String;
-    final birthday = value["birthday"] as double;
-    final bio = value["bio"] as String;
+    final birthday = value["birthday"] as num;
+    final bio = value["bio"] as String?;
     final thumbnailURL = value["thumbnailURL"] as String;
 
     // Preferred pronouns, preferred relationship type, school, podScore, and fullPhotoURL will be unknown here since
@@ -164,9 +164,9 @@ class GetPeopleIMetLikesFriendsBlockedData {
         name: name,
         preferredPronoun: UsefulValues.nonbinaryPronouns,
         preferredRelationshipType: UsefulValues.lookingForFriends,
-        birthday: birthday,
+        birthday: birthday.toDouble(),
         school: "school",
-        bio: bio,
+        bio: bio ?? "",
         podScore: 0,
         thumbnailURL: thumbnailURL,
         fullPhotoURL: "fullPhotoURL");

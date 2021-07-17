@@ -164,7 +164,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
 
   /// Pick an image from the gallery
   void _pickImage({required ImageSource source}) async {
-    final pickedImage = await _imagePicker.getImage(source: source);
+    final pickedImage = await _imagePicker.pickImage(source: source);
     if (pickedImage == null) return;
     await _cropImage(sourcePath: pickedImage.path);
 
@@ -410,12 +410,12 @@ class _MyProfileTabState extends State<MyProfileTab> {
 
                         AnimatedSwitcher(
                             transitionBuilder: (child, animation) {
-                              final offsetAnimation =
-                                  Tween<Offset>(begin: Offset(0, -0.1), end: Offset(0, 0)).animate(animation);
-                              return SlideTransition(
-                                position: offsetAnimation,
-                                child: child,
-                              );
+                            //  final offsetAnimation = Tween<Offset>(begin: Offset(0, -0.1), end: Offset(0, 0))
+                              //  .animate(animation);
+
+                              // Use a slide animation to reveal the images, and a size animation to hide them. This
+                              // creates the neatest effect.
+                              return SizeTransition(sizeFactor: animation, child: child,);
                             },
                             duration: Duration(milliseconds: 250),
                             child: _showingMultiImageUploader ? MultiImageUploader() : Container())

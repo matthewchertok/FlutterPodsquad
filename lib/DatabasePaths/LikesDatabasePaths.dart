@@ -23,6 +23,8 @@ class LikesDatabasePaths {
         firestoreDatabase.collection("friends").doc(documentID).delete();
 
         if(onCompletion != null) onCompletion(); // call the completion handler if there is one
+      }).catchError((error){
+        print("An error occurred while sending a like: $error");
       });
     });
   }

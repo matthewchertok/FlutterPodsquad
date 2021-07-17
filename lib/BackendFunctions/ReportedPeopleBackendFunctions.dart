@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:podsquad/DatabasePaths/ReportUsersDatabasePaths.dart';
 
 /// Backend functions to keep track of people I reported. This data is not displayed anywhere, but might be more
@@ -9,10 +10,10 @@ class ReportedPeopleBackendFunctions {
   static final shared = ReportedPeopleBackendFunctions();
 
   /// Contains the IDs for all people I reported
-  List<String> peopleIReportedList = [];
+  ValueNotifier<List<String>> peopleIReportedList = ValueNotifier([]);
 
   ///Contains the IDs for all people who reported me
-  List<String> peopleWhoReportedMeList = [];
+  ValueNotifier<List<String>> peopleWhoReportedMeList = ValueNotifier([]);
 
   ///Track all stream subscriptions so I can remove them if needed
   List<StreamSubscription> _listenerRegistrations = [];
@@ -23,8 +24,8 @@ class ReportedPeopleBackendFunctions {
       subscription.cancel();
     });
     _listenerRegistrations.clear();
-    peopleIReportedList.clear();
-    peopleWhoReportedMeList.clear();
+    peopleIReportedList.value.clear();
+    peopleWhoReportedMeList.value.clear();
   }
 
   ///Retrieve a list of all people I reported and all people who reported me.
@@ -35,12 +36,19 @@ class ReportedPeopleBackendFunctions {
         final reporteeID = reporteeInfo["userID"] as String;
 
         // update the list when I report someone
-        if (diff.type == DocumentChangeType.added) if (!peopleIReportedList.contains(reporteeID))
-          peopleIReportedList.add(reporteeID);
+        if (diff.type == DocumentChangeType.added) {
+          if (!peopleIReportedList.value.contains(reporteeID)) {
+            peopleIReportedList.value.add(reporteeID);
+            peopleIReportedList.notifyListeners(); // as a general rule, if there's no assignment operator, then I
+            // must call notifyListeners() to update the view.
+          }
+        }
 
         // update the list when I un-report someone
-        else
-          peopleIReportedList.removeWhere((personID) => personID == reporteeID);
+        else {
+          peopleIReportedList.value.removeWhere((personID) => personID == reporteeID);
+          peopleIReportedList.notifyListeners();
+        }
       });
     });
     _listenerRegistrations.add(peopleIReportedListener);
@@ -51,12 +59,18 @@ class ReportedPeopleBackendFunctions {
         final reporterID = reporterInfo["userID"] as String;
 
         // update the list when someone reports me
-        if (diff.type == DocumentChangeType.added) if (!peopleWhoReportedMeList.contains(reporterID))
-          peopleWhoReportedMeList.add(reporterID);
+        if (diff.type == DocumentChangeType.added) {
+          if (!peopleWhoReportedMeList.value.contains(reporterID)) {
+            peopleWhoReportedMeList.value.add(reporterID);
+            peopleWhoReportedMeList.notifyListeners();
+          }
+        }
 
         // update the list when someone un-reports me
-        else
-          peopleWhoReportedMeList.removeWhere((personID) => personID == reporterID);
+        else {
+          peopleWhoReportedMeList.value.removeWhere((personID) => personID == reporterID);
+          peopleWhoReportedMeList.notifyListeners();
+        }
       });
     });
     _listenerRegistrations.add(peopleWhoReportedMeListener);

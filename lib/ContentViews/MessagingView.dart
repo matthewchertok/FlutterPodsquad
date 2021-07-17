@@ -465,7 +465,7 @@ class _MessagingViewState extends State<MessagingView> {
 
   /// Pick an image from the gallery
   void _pickImage({required ImageSource source}) async {
-    final pickedImage = await _imagePicker.getImage(source: source);
+    final pickedImage = await _imagePicker.pickImage(source: source);
     if (pickedImage == null) return;
     await _cropImage(sourcePath: pickedImage.path);
   }

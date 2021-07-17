@@ -86,7 +86,7 @@ abstract class MainListDisplayBackend {
 
     // For all other cases, sort the list in descending order based on the time I met the person.
     else {
-      listOfPeople.sort((b, a) => a.timeIMetThePerson!.compareTo(b.timeIMetThePerson!));
+      listOfPeople.sort((b, a) => (a.timeIMetThePerson?? 0).compareTo(b.timeIMetThePerson ?? 0));
       sortedListOfPeople.value = listOfPeople;
     }
   }

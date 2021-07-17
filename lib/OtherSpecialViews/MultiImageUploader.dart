@@ -83,7 +83,7 @@ class _MultiImageUploaderState extends State<MultiImageUploader> {
   /// Pick an image and upload it
   /// Pick an image from the gallery
   void _pickImage({required ImageSource source}) async {
-    final pickedImage = await _imagePicker.getImage(source: source);
+    final pickedImage = await _imagePicker.pickImage(source: source);
     if (pickedImage == null) return;
     await _cropImage(sourcePath: pickedImage.path);
     final imagePosition =
@@ -124,11 +124,11 @@ class _MultiImageUploaderState extends State<MultiImageUploader> {
                       // The delete image button, which should be above the image and to the right
                       Container(
                         width: 140,
-                        height: 25,
+                        height: 35,
                         child: Row(
                           children: [
                             Spacer(),
-                            CupertinoButton(
+                            CupertinoButton(padding: EdgeInsets.all(10),
                                 child: Icon(CupertinoIcons.xmark_circle_fill),
                                 onPressed: () {
                                   final alert = CupertinoAlertDialog(
@@ -162,12 +162,12 @@ class _MultiImageUploaderState extends State<MultiImageUploader> {
                       ),
                       // The image and swap arrow
                       Padding(
-                          padding: EdgeInsets.fromLTRB(0, 0, 20, 10),
+                          padding: EdgeInsets.fromLTRB(0, 0, 10, 10),
                           child: Center(
                             child: Column(
                               children: [
                                 // navigate to view the image
-                                CupertinoButton(
+                                CupertinoButton(padding: EdgeInsets.zero,
                                     child: Container(
                                       width: 80,
                                       height: null,

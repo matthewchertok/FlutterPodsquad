@@ -15,7 +15,7 @@ class MainListDisplayView extends StatefulWidget {
   const MainListDisplayView(
       {Key? key,
       required this.viewMode,
-      this.showingSentDataNotReceivedData = true,
+      this.showingSentDataNotReceivedData = true, this.personId,
       this.podName, this.personName,
       this.podMembers,
       this.podMemberships})
@@ -29,6 +29,9 @@ class MainListDisplayView extends StatefulWidget {
   /// Used only if displaying a person's pod memberships.
   final String? personName;
 
+  /// Used only if displaying a person's pod memberships (to determine if I'm looking at my own pods
+  final String? personId;
+
   /// Only needed if viewMode is equal to MainListDisplayViewModes.podMembers. Contains the members of a pod
   final List<ProfileData>? podMembers;
 
@@ -38,7 +41,7 @@ class MainListDisplayView extends StatefulWidget {
   @override
   _MainListDisplayViewState createState() => _MainListDisplayViewState(
       viewMode: this.viewMode,
-      showingSentDataNotReceivedData: this.showingSentDataNotReceivedData,
+      showingSentDataNotReceivedData: this.showingSentDataNotReceivedData, personId: personId,
       podName: this.podName, personName: this.personName, podMembers: podMembers, podMemberships: podMemberships);
 }
 
@@ -47,6 +50,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   final bool showingSentDataNotReceivedData;
   final String? podName;
   final String? personName;
+  final String? personId;
 
   /// Only relevant if the view mode is podMembers. Shows the members of a pod.
   final List<ProfileData>? podMembers;
@@ -59,7 +63,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
 
   _MainListDisplayViewState(
       {required this.viewMode,
-      required this.showingSentDataNotReceivedData, this.podName, this.personName,
+      required this.showingSentDataNotReceivedData, this.personId, this.podName, this.personName,
       this.podMembers,
       this.podMemberships}) {
     this.isPodMode = viewMode == MainListDisplayViewModes.searchPods || viewMode == MainListDisplayViewModes.myPods
@@ -67,10 +71,32 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   }
 
   /// Stores a list of people to display. Use this property if displaying people
-  List<ProfileData> _displayedListOfPeople = [];
+  List<ProfileData> _listOfPeople = [];
+
+  /// The actually-displayed list of people. Includes code to filter the list of people to include only the
+  /// results matching the search text.
+  List<ProfileData> get _displayedListOfPeople {
+    if (_searchTextController.text.trim().isEmpty) return _listOfPeople;
+    else {
+      final searchText = _searchTextController.text.trim();
+      final filteredList = _listOfPeople.where((person) => person.name.toLowerCase().contains(searchText.toLowerCase())).toList();
+      return filteredList;
+    }
+  }
 
   /// Stores a list of pods to display. Use this property if displaying pods
-  List<PodData> _displayedListOfPods = [];
+  List<PodData> _listOfPods = [];
+
+  /// The actually-displayed list of pods. Includes code to filter the list of pods to include only the results
+  /// matching the search text.
+  List<PodData> get _displayedListOfPods {
+    if (_searchTextController.text.trim().isEmpty) return _listOfPods;
+    else {
+      final searchText = _searchTextController.text.trim();
+      final filteredList = _listOfPods.where((pod) => pod.name.toLowerCase().contains(searchText.toLowerCase())).toList();
+      return filteredList;
+    }
+  }
 
   /// This will be immediately initialized and changed if needed. Set to true if displaying pods.
   var isPodMode = false;
@@ -104,7 +130,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
           return "$podName Members";
         }
       case MainListDisplayViewModes.podMemberships: {
-        return "${personName ?? "User"}'s Pods";
+        return personId == myFirebaseUserId ? "My Pods" : "${personName ?? "User"}'s Pods";
       }
 
       case MainListDisplayViewModes.searchUsers:
@@ -179,7 +205,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
       if (podMembers != null) {
         var sortedPodMembers = podMembers ?? [];
         sortedPodMembers.sort((a, b) => a.name.compareTo(b.name));
-        this._displayedListOfPeople = sortedPodMembers;
+        this._listOfPeople = sortedPodMembers;
       }
     }
 
@@ -188,7 +214,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
       if (podMemberships != null){
         var sortedPodMemberships = podMemberships ?? [];
         sortedPodMemberships.sort((a, b) => a.name.compareTo(b.name));
-        this._displayedListOfPods = sortedPodMemberships;
+        this._listOfPods = sortedPodMemberships;
       }
     }
   }
@@ -235,9 +261,9 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
       );
       showCupertinoDialog(context: context, builder: (context) => alert);
       if (isPodMode)
-        this._displayedListOfPods = [];
+        this._listOfPods = [];
       else
-        this._displayedListOfPeople = [];
+        this._listOfPeople = [];
       return; // no need to continue if no results are found
     }
 
@@ -270,9 +296,9 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
     // finally, update the displayed list
     setState(() {
       if (isPodMode)
-        _displayedListOfPods = listOfPodResults;
+        _listOfPods = listOfPodResults;
       else
-        _displayedListOfPeople = listOfPeopleResults;
+        _listOfPeople = listOfPeopleResults;
     });
   }
 
@@ -406,11 +432,11 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                                 // clear the search results if the "x" is tapped
                                 if (viewMode == MainListDisplayViewModes.searchUsers)
                                   setState(() {
-                                    _displayedListOfPeople.clear();
+                                    _listOfPeople.clear();
                                   });
                                 if (viewMode == MainListDisplayViewModes.searchPods)
                                   setState(() {
-                                    _displayedListOfPods.clear();
+                                    _listOfPods.clear();
                                   });
                               },
                             ))
@@ -423,14 +449,14 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                       onTap: () {
                         setState(() {
                           // highlight the row
-                          this._selectedIndex = this._displayedListOfPeople.indexWhere((element) => element == person);
+                          this._selectedIndex = this._listOfPeople.indexWhere((element) => element == person);
                         });
                         // navigate to view the person's details
                         Navigator.of(context, rootNavigator: true)
                             .push(CupertinoPageRoute(builder: (context) => ViewPersonDetails(personID: person.userID)));
                       },
                       child: Card(
-                        color: _selectedIndex == _displayedListOfPeople.indexWhere((element) => element == person)
+                        color: _selectedIndex == _listOfPeople.indexWhere((element) => element == person)
                             ? Colors.white60
                             : CupertinoColors.systemBackground,
                         child: Padding(
@@ -453,7 +479,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                         onTap: () {
                           setState(() {
                             // highlight the row
-                            this._selectedIndex = this._displayedListOfPods.indexWhere((element) => element == pod);
+                            this._selectedIndex = this._listOfPods.indexWhere((element) => element == pod);
                           });
 
                           // navigate to view pod details
@@ -461,7 +487,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                               .push(CupertinoPageRoute(builder: (context) => ViewPodDetails(podID: pod.podID)));
                         },
                         child: Card(
-                          color: _selectedIndex == _displayedListOfPods.indexWhere((element) => element == pod)
+                          color: _selectedIndex == _listOfPods.indexWhere((element) => element == pod)
                               ? Colors.white60
                               : CupertinoColors.systemBackground,
                           child: Padding(
@@ -474,14 +500,14 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                           ),
                         )),
 
-                if (!isPodMode && this._displayedListOfPeople.isEmpty)
+                if (!isPodMode && this._listOfPeople.isEmpty)
                   SafeArea(
                       child: Text(
                     isSearching ? "No results found" : "Nobody to display",
                     style: TextStyle(color: CupertinoColors.inactiveGray),
                   )),
 
-                if (isPodMode && this._displayedListOfPods.isEmpty)
+                if (isPodMode && this._listOfPods.isEmpty)
                   SafeArea(child: Text(
                     isSearching ? "No results found" : "No pods to display",
                     style: TextStyle(color: CupertinoColors.inactiveGray),

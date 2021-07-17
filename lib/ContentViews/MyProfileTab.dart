@@ -347,13 +347,13 @@ class _MyProfileTabState extends State<MyProfileTab> {
                               builder: (context, ProfileData profileData, widget) {
                                 return profileData.thumbnailURL.isEmpty
                                     ? Icon(CupertinoIcons.person)
-                                    : GestureDetector(
+                                    : CupertinoButton(padding: EdgeInsets.zero,
                                         child: DecoratedImage(
                                           imageURL: profileData.thumbnailURL,
                                           width: 125.scaledForScreenSize(context: context),
                                           height: 125.scaledForScreenSize(context: context),
                                         ),
-                                        onTap: () {
+                                        onPressed: () {
                                           // Navigate to view my profile
                                           Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                                               builder: (context) => ViewPersonDetails(personID: myFirebaseUserId)));

@@ -1,24 +1,28 @@
 import 'package:flutter/cupertino.dart';
 
 class SearchTextField extends StatefulWidget {
-  const SearchTextField({Key? key, required this.controller, this.placeholder = "Search", this.onSubmitted, this
+  const SearchTextField({Key? key, required this.controller, this.placeholder = "Search", this.onSubmitted, this.onTextChanged,
+    this
       .onClearButtonPressed}) : super
       (key: key);
   final TextEditingController controller;
   final String placeholder;
   final Function(String)? onSubmitted;
+  final Function(String)? onTextChanged;
   final Function? onClearButtonPressed;
 
   @override
   _SearchTextFieldState createState() => _SearchTextFieldState(controller: controller, placeholder: placeholder, onSubmitted:
-  onSubmitted, onClearButtonPressed: onClearButtonPressed);
+  onSubmitted, onTextChanged: onTextChanged, onClearButtonPressed: onClearButtonPressed);
 }
 
 class _SearchTextFieldState extends State<SearchTextField> {
-  _SearchTextFieldState({required this.controller, required this.placeholder, this.onSubmitted, this.onClearButtonPressed});
+  _SearchTextFieldState({required this.controller, required this.placeholder, this.onSubmitted, this.onTextChanged, this
+      .onClearButtonPressed});
   final TextEditingController controller;
   final String placeholder;
   final Function(String)? onSubmitted;
+  final Function(String)? onTextChanged;
   final Function? onClearButtonPressed;
 
   @override
@@ -38,7 +42,7 @@ class _SearchTextFieldState extends State<SearchTextField> {
           color: CupertinoColors.systemGrey,
         ),
       ),
-      onSubmitted: onSubmitted,
+      onSubmitted: onSubmitted, onChanged: onTextChanged,
       suffix: CupertinoButton(
         padding: EdgeInsets.only(left: 10),
         child: Icon(

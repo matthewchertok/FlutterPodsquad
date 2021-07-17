@@ -659,6 +659,7 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                                                     builder: (context) => MainListDisplayView(
                                                           viewMode: MainListDisplayViewModes.podMemberships,
                                                           podMemberships: this._personsPodMemberships,
+                                                          personId: personData.userID,
                                                           personName: personData.name,
                                                         )));
                                               },

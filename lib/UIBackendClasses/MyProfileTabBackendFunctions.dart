@@ -220,6 +220,8 @@ class MyProfileTabBackendFunctions {
           _myExtraImagesList =
               imagesList; // changing this set-only variable will automatically sort all images by position and
           // update mySortedExtraImagesList accordingly
+          myProfileData.value.extraImagesList = imagesList; // this isn't currently being used, but I'm adding it
+          // just for consistency
 
           //remove any images that no longer exist in the database
           final imageIDsInDatabase = myImagesDict.keys;
@@ -363,7 +365,7 @@ class MyProfileTabBackendFunctions {
             thumbnailURL: personThumbnailURL,
             fullPhotoURL: personFullPhotoURL);
 
-        // get their match survey data
+        // get their match survey data and extra images, if available
         final docData = docSnapshot.data() as Map?;
         if (docData != null) {
           final surveyData = docData["matchSurvey"] as Map?;
@@ -441,7 +443,23 @@ class MyProfileTabBackendFunctions {
             // add the matchSurveyData object to the profileData object
             profileData.matchSurveyData = matchSurveyData;
           }
+
+          // get their extra images
+          final extraImagesMap = docData["extraImages"] as Map?;
+          if (extraImagesMap != null){
+            List<IdentifiableImage> extraImagesList = [];
+            extraImagesMap.forEach((imageID, imageData) {
+              final position = imageData["position"] as int;
+              final imageURL = imageData["imageURL"] as String;
+              final caption = imageData["caption"] as String?;
+              final identifiableImage = IdentifiableImage(imageURL: imageURL, position: position, caption: caption);
+              extraImagesList.add(identifiableImage);
+            });
+            profileData.extraImagesList = extraImagesList;
+          }
         }
+
+
         // Call the completion handler if everything succeeds so I can access the profile data and match survey data
         onCompletion(profileData);
       }

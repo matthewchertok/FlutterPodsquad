@@ -1,3 +1,4 @@
+import 'package:podsquad/BackendDataclasses/IdentifiableImage.dart';
 import 'package:podsquad/BackendDataclasses/MatchSurveyData.dart';
 import 'package:podsquad/BackendFunctions/TimeAndDateFunctions.dart';
 
@@ -28,6 +29,7 @@ class ProfileData {
   String fullPhotoURL;
   String userID;
   double? timeIMetThePerson;
+  List<IdentifiableImage>? extraImagesList;
 
   MatchSurveyData? matchSurveyData;
 
@@ -43,7 +45,7 @@ class ProfileData {
       required this.thumbnailURL,
       required this.fullPhotoURL,
       this.timeIMetThePerson,
-      this.matchSurveyData});
+      this.matchSurveyData, this.extraImagesList});
 
   ///Convert the object into a dictionary that can be set to Firestore. Format is {"bio: "...", "birthday: 123, name: "...", thumbnailURL: "...", userID: "..."}
   Map<String, dynamic> toDatabaseFormat() {

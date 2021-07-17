@@ -1,16 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:podsquad/BackendDataclasses/PodData.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/BackendFunctions/PronounFormatter.dart';
 import 'package:podsquad/BackendFunctions/ReportedPeopleBackendFunctions.dart';
 import 'package:podsquad/BackendFunctions/TimeAndDateFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/MessagingView.dart';
+import 'package:podsquad/ContentViews/ViewFullImage.dart';
 import 'package:podsquad/DatabasePaths/BlockedUsersDatabasePaths.dart';
 import 'package:podsquad/DatabasePaths/FriendsDatabasePaths.dart';
 import 'package:podsquad/DatabasePaths/LikesDatabasePaths.dart';
 import 'package:podsquad/DatabasePaths/ReportUsersDatabasePaths.dart';
 import 'package:podsquad/OtherSpecialViews/DecoratedImage.dart';
+import 'package:podsquad/OtherSpecialViews/MultiImagePageViewer.dart';
 import 'package:podsquad/UIBackendClasses/MainListDisplayBackend.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
@@ -25,6 +28,8 @@ class ViewPersonDetails extends StatefulWidget {
       _ViewPersonDetailsState(personID: this.personID, messagingEnabled: this.messagingEnabled);
 }
 
+//TODO: Get the person's pod memberships and display them; also enable adding a person to a pod
+
 class _ViewPersonDetailsState extends State<ViewPersonDetails> {
   _ViewPersonDetailsState({required this.personID, required this.messagingEnabled});
 
@@ -35,6 +40,9 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
   bool didFriendUser = false;
   bool didBlockUser = false;
   bool didReportUser = false;
+
+  /// A list of every pod that the user is in
+  List<PodData> _personsPodMemberships = [];
 
   /// This will store the user's profile data. It gets updated inside initState.
   ProfileData personData = ProfileData(
@@ -58,6 +66,11 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
             this.personData = profileData;
           });
         });
+  }
+
+  /// Get the person's pod memberships
+  void _getPodMemberships(){
+    
   }
 
   /// Convert the user's preferred relationship type into a user-friendly string
@@ -562,11 +575,34 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-
+                  // Swipe left on the profile photo to view the person's extra images. Tap it to view the person's
+                  // profile image.
                   // Not a typo. The image should be a square with both dimensions equal to the screen width. This
                   // ensures that the image will fill the proper space even when loading.
-                  DecoratedImage(imageURL: personData.fullPhotoURL, width: MediaQuery.of(context).size.width, height:
-                  MediaQuery.of(context).size.width,),
+                  GestureDetector(
+                    child: DecoratedImage(
+                      imageURL: personData.fullPhotoURL,
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.width,
+                    ),
+                    onTap: () {
+                      // tap to view the person's full profile image
+                      Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                          builder: (context) => ViewFullImage(
+                              urlForImageToView: personData.fullPhotoURL,
+                              imageID: "doesn't matter",
+                              navigationBarTitle: personData.name,
+                              canWriteCaption: false)));
+                    },
+                    onPanUpdate: (swipe) {
+                      // swipe left to view the person's extra images
+                      if (swipe.delta.dx < 0)
+                        Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                            builder: (context) => MultiImagePageViewer(
+                                imagesList: personData.extraImagesList ?? [],
+                              personName: personData.name)));
+                    },
+                  ),
                   SizedBox(
                     height: 10,
                   ),

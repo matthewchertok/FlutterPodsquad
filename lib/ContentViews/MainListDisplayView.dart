@@ -169,6 +169,9 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         {
           return "$podName Members";
         }
+      case MainListDisplayViewModes.podBlockedUsers: {
+        return "Blocked from $podName";
+      }
       case MainListDisplayViewModes.podMemberships:
         {
           return personId == myFirebaseUserId ? "My Pods" : "${personName ?? "User"}'s Pods";
@@ -382,7 +385,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
     });
 
     // If the viewMode is podMembers, populate the list with the passed-in value (sorted alphabetically)
-    if (viewMode == MainListDisplayViewModes.podMembers) {
+    if (viewMode == MainListDisplayViewModes.podMembers || viewMode == MainListDisplayViewModes.podBlockedUsers) {
       if (podMembers != null) {
         var sortedPodMembers = podMembers ?? [];
         sortedPodMembers.sort((a, b) => a.name.compareTo(b.name));

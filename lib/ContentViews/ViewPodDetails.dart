@@ -7,6 +7,7 @@ import 'package:podsquad/BackendDataclasses/MainListDisplayViewModes.dart';
 import 'package:podsquad/BackendDataclasses/PodData.dart';
 import 'package:podsquad/BackendDataclasses/PodMemberInfoDict.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
+import 'package:podsquad/ContentViews/CreateAPodView.dart';
 import 'package:podsquad/ContentViews/MainListDisplayView.dart';
 import 'package:podsquad/ContentViews/MessagingView.dart';
 import 'package:podsquad/ContentViews/ViewFullImage.dart';
@@ -121,38 +122,252 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
   }
 
   /// Show a confirmation alert and join a pod
-  void _joinPod(){
-    final confirmationAlert = CupertinoAlertDialog(title: Text("Join Pod"), content: Text("Are you sure you want to "
-        "join ${podData.name}?"), actions: [
+  void _joinPod() {
+    final confirmationAlert = CupertinoAlertDialog(
+      title: Text("Join Pod"),
+      content: Text("Are you sure you want to "
+          "join ${podData.name}?"),
+      actions: [
+        // cancel button
+        CupertinoButton(
+            child: Text("No"),
+            onPressed: () {
+              dismissAlert(context: context);
+            }),
+
+        // join button
+        CupertinoButton(
+            child: Text("Yes"),
+            onPressed: () {
+              dismissAlert(context: context);
+
+              // join the pod
+              final myProfile = MyProfileTabBackendFunctions.shared.myProfileData.value;
+              final joinedTimeInSeconds = DateTime.now().millisecondsSinceEpoch * 0.001;
+              final myJoinData = PodMemberInfoDict(
+                  userID: myProfile.userID,
+                  bio: myProfile.bio,
+                  birthday: myProfile.birthday,
+                  joinedAt: joinedTimeInSeconds,
+                  name: myProfile.name,
+                  thumbnailURL: myProfile.thumbnailURL);
+              PodsDatabasePaths(podID: podID).joinPod(
+                  personData: myJoinData,
+                  onSuccess: () {
+                    final successAlert = CupertinoAlertDialog(
+                      title: Text("You Joined ${podData.name}"),
+                      actions: [
+                        CupertinoButton(
+                            child: Text("OK"),
+                            onPressed: () {
+                              dismissAlert(context: context);
+                            })
+                      ],
+                    );
+                    showCupertinoDialog(context: context, builder: (context) => successAlert);
+                  });
+            })
+      ],
+    );
+    showCupertinoDialog(context: context, builder: (context) => confirmationAlert);
+  }
+
+  /// Show a confirmation alert to leave a pod
+  void _leavePod() {
+    final alertContent = _podMembersList.length > 1 ? "Are you sure you want to leave ${podData.name}" : "You are the"
+        " last member of ${podData.name}. Leaving will delete the pod.";
+    final leavePodAlert = CupertinoAlertDialog(title: Text("Leave Pod"), content: Text(alertContent), actions: [
+
+      // cancel button
+      CupertinoButton(child: Text("No"), onPressed: (){
+        dismissAlert(context: context);
+      }),
+
+      // leave button
+      CupertinoButton(child: Text("Yes", style: TextStyle(color: _podMembersList.length > 1 ? CupertinoColors
+          .systemBlue : CupertinoColors.destructiveRed),),
+          onPressed:
+          (){
+        dismissAlert(context: context);
+        final myName = MyProfileTabBackendFunctions.shared.myProfileData.value.name;
+
+        // If I'm not the last person, then send a message in the chat saying that I left
+        PodsDatabasePaths(podID: podID, userID: myFirebaseUserId).leavePod(podName: podData.name, personName: myName,
+            shouldTextPodMembers: _podMembersList.length > 1, onSuccess: (){
+          final successAlert = CupertinoAlertDialog(title: Text(_podMembersList.length > 0 ? "You left ${podData
+              .name}" : "You were the last person to leave ${podData.name}, causing it to be deleted"), actions: [
+                CupertinoButton(child: Text("OK"), onPressed: (){
+                  dismissAlert(context: context);
+                })
+          ],);
+          showCupertinoDialog(context: context, builder: (context) => successAlert);
+            });
+      })
+    ],);
+    showCupertinoDialog(context: context, builder: (context) => leavePodAlert);
+  }
+
+  /// Show a confirmation alert to delete a pod
+  void _deletePod() {
+    final deletePodAlert = CupertinoAlertDialog(title: Text("Delete Pod"), content: Text("Are you sure you want to "
+        "delete ${podData.name}? You cannot undo this action."), actions: [
 
           // cancel button
       CupertinoButton(child: Text("No"), onPressed: (){
         dismissAlert(context: context);
       }),
 
-      // join button
-      CupertinoButton(child: Text("Yes"), onPressed: (){
+      // delete button
+      CupertinoButton(child: Text("Yes", style: TextStyle(color: CupertinoColors.destructiveRed)), onPressed: (){
         dismissAlert(context: context);
-
-        // join the pod
-        final myProfile = MyProfileTabBackendFunctions.shared.myProfileData.value;
-        final joinedTimeInSeconds = DateTime.now().millisecondsSinceEpoch*0.001;
-        final myJoinData = PodMemberInfoDict(userID: myProfile.userID, bio: myProfile.bio,
-            birthday: myProfile.birthday, joinedAt: joinedTimeInSeconds, name: myProfile.name,
-            thumbnailURL:
-            myProfile.thumbnailURL);
-        PodsDatabasePaths(podID: podID).joinPod(personData: myJoinData, onSuccess: (){
-            final successAlert = CupertinoAlertDialog(title: Text("You Joined ${podData.name}"), actions: [
-              CupertinoButton(child: Text("OK"), onPressed: (){
-                dismissAlert(context: context);
-              })
-            ],);
-            showCupertinoDialog(context: context, builder: (context) => successAlert);
+        PodsDatabasePaths(podID: podID).deletePod(podName: podData.name, onCompletion: (){
+          final deletedAlert = CupertinoAlertDialog(title: Text("${podData.name} Deleted"), actions: [
+            CupertinoButton(child: Text("OK"), onPressed: (){
+              dismissAlert(context: context);
+            })
+          ],);
+          showCupertinoDialog(context: context, builder: (context) => deletedAlert);
         });
       })
     ],);
-    showCupertinoDialog(context: context, builder: (context) => confirmationAlert);
+    showCupertinoDialog(context: context, builder: (context) => deletePodAlert);
   }
+
+  /// Create the trailing widget on the navigation bar with the option to view members, blocked users, leave pod,
+  /// edit pod (if I'm the creator), or delete pod (if I'm the creator)
+  CupertinoButton _navBarTrailingButton() => CupertinoButton(
+      child: Icon(CupertinoIcons.line_horizontal_3),
+      onPressed: () {
+        final sheet = CupertinoActionSheet(
+          title: Text("Pod Options"),
+          actions: [
+            // For convenience, also show a Join Pod option if I'm not a member. THe difference between the other
+            // button below the pod photo is that this button will show even if I'm blocked or if the pod doesn't
+            // allow anyone to join. This button will warn me why I can't join.
+            if (!_amMemberOfPod)
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    dismissAlert(context: context);
+
+                    // You Are Blocked alert
+                    if (_amBlockedFromPod) {
+                      final blockedAlert = CupertinoAlertDialog(
+                        title: Text("Unable To Join Pod"),
+                        content: Text("You are blocked from ${podData.name}."),
+                        actions: [
+                          CupertinoButton(
+                              child: Text("OK"),
+                              onPressed: () {
+                                dismissAlert(context: context);
+                              })
+                        ],
+                      );
+                      showCupertinoDialog(context: context, builder: (context) => blockedAlert);
+                    }
+
+                    // Only Members Can Add Members alert
+                    else if (!podData.anyoneCanJoin) {
+                      final permissionAlert = CupertinoAlertDialog(title: Text("Unable To Join Pod"), content: Text
+                        ("${podData.name} is a closed group, meaning that only current members can add new members. "
+                          "Try messaging someone in ${podData.name} and ask to be added."), actions: [
+                            CupertinoButton(child: Text("OK"), onPressed: (){
+                              dismissAlert(context: context);
+                            })
+                      ],);
+                      showCupertinoDialog(context: context, builder: (context) => permissionAlert);
+                    }
+
+                    // If I'm not blocked and the pod allows anyone to join, then join the pod
+                    else {
+                      _joinPod();
+                    }
+                  },
+                  child: Text("Join Pod")),
+
+            // Navigate to view the members (redundant capability in case users don't realize they can see the members by
+            // tapping on the member count (anyone can see the pod members to help them decide if they want to join)
+            CupertinoActionSheetAction(
+                onPressed: () {
+                  dismissAlert(context: context);
+                  Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                      builder: (context) => MainListDisplayView(
+                          viewMode: MainListDisplayViewModes.podMembers,
+                          podMembers: _podMembersList,
+                          podName: podData.name)));
+                },
+                child: Text("Pod Members")),
+
+            // Navigate to view the blocked users (only show this option if I'm a member, for privacy reasons)
+            if (_amMemberOfPod)
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    dismissAlert(context: context);
+                    Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                        builder: (context) => MainListDisplayView(
+                              viewMode: MainListDisplayViewModes.podBlockedUsers,
+                              podMembers: _podBlockedUsersList,
+                              podName: podData.name,
+                            )));
+                  },
+                  child: Text("Blocked Users")),
+
+            // Edit the pod, if I'm the creator and a member
+            if (_amMemberOfPod && podData.podCreatorID == myFirebaseUserId)
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    dismissAlert(context: context);
+                    Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                        builder: (context) => CreateAPodView(
+                              isCreatingNewPod: false,
+                              podID: podID,
+                            )));
+                  },
+                  child: Text("Edit Pod")),
+
+            // Leave the pod, if I'm a member
+            if (_amMemberOfPod)
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    dismissAlert(context: context);
+                    _leavePod();
+                  },
+                  child: Text("Leave Pod")),
+
+            // Delete the pod, if I'm the creator and a member
+            if (_amMemberOfPod && podData.podCreatorID == myFirebaseUserId)
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    dismissAlert(context: context);
+                    _deletePod();
+                  },
+                  child: Text(
+                    "Delete Pod",
+                    style: TextStyle(color: CupertinoColors.destructiveRed),
+                  )),
+
+            // Help button
+            CupertinoActionSheetAction(
+                onPressed: () {
+                  dismissAlert(context: context);
+                  //TODO: create the Help sheet
+                },
+                child: Text("Help")),
+
+            // Cancel button
+            CupertinoActionSheetAction(
+              onPressed: () {
+                dismissAlert(context: context);
+              },
+              child: Text("Cancel"),
+              isDefaultAction: true,
+            )
+
+            // If I'm the pod creator
+          ],
+        );
+        showCupertinoModalPopup(context: context, builder: (context) => sheet);
+      },
+      padding: EdgeInsets.zero);
 
   @override
   void initState() {
@@ -173,8 +388,8 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
-          middle: Text(podData.name),
+        navigationBar: CupertinoNavigationBar(padding: EdgeInsetsDirectional.all(5),
+          middle: Text(podData.name), trailing: _navBarTrailingButton(),
         ),
         child: SafeArea(
           child: SingleChildScrollView(
@@ -215,38 +430,55 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Pod name, members, and chat button
-                        Row(crossAxisAlignment: CrossAxisAlignment.start,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // pod name with number of members below it
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                CupertinoButton(alignment: Alignment.topCenter, minSize: 35,
-                                    child: Text(podData.name,
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18, color: isDarkMode ? CupertinoColors.white : CupertinoColors
-                                                .black)),
-                                    onPressed: (){
-                                      final podScoreSheet = CupertinoActionSheet(title: Text(podData.name), message:
-                                      Text("Team Podscore: ${podData.podScore}"), actions: [
-                                        CupertinoActionSheetAction(onPressed: (){
-                                          dismissAlert(context: context);
-                                        }, child: Text("OK"))
-                                      ],);
-                                      showCupertinoModalPopup(context: context, builder: (context) => podScoreSheet);
-                                    }, padding: EdgeInsets.zero,),
-
+                                CupertinoButton(
+                                  alignment: Alignment.topCenter,
+                                  minSize: 35,
+                                  child: Text(podData.name,
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: isDarkMode ? CupertinoColors.white : CupertinoColors.black)),
+                                  onPressed: () {
+                                    final podScoreSheet = CupertinoActionSheet(
+                                      title: Text(podData.name),
+                                      message: Text("Team Podscore: ${podData.podScore}"),
+                                      actions: [
+                                        CupertinoActionSheetAction(
+                                            onPressed: () {
+                                              dismissAlert(context: context);
+                                            },
+                                            child: Text("OK"))
+                                      ],
+                                    );
+                                    showCupertinoModalPopup(context: context, builder: (context) => podScoreSheet);
+                                  },
+                                  padding: EdgeInsets.zero,
+                                ),
 
                                 // Tap on the number of members to navigate to view the members
-                                CupertinoButton(alignment: Alignment.topCenter, child: Text(
-                                  _numberOfMembers == 1 ? "$_numberOfMembers member" : "$_numberOfMembers members",
-                                  style: TextStyle(fontSize: 15, color: isDarkMode ? CupertinoColors.white :
-                                  CupertinoColors.black)), onPressed: (){
-                                  Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder:
-                                  (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.podMembers,
-                                    podMembers: _podMembersList, podName: podData.name)));
-                                }, padding: EdgeInsets.zero, minSize: 35,
+                                CupertinoButton(
+                                  alignment: Alignment.topCenter,
+                                  child: Text(
+                                      _numberOfMembers == 1 ? "$_numberOfMembers member" : "$_numberOfMembers members",
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          color: isDarkMode ? CupertinoColors.white : CupertinoColors.black)),
+                                  onPressed: () {
+                                    Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                                        builder: (context) => MainListDisplayView(
+                                            viewMode: MainListDisplayViewModes.podMembers,
+                                            podMembers: _podMembersList,
+                                            podName: podData.name)));
+                                  },
+                                  padding: EdgeInsets.zero,
+                                  minSize: 35,
                                 ),
                               ],
                             ),
@@ -254,37 +486,43 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
 
                             // If I'm a member and the navigation stack permits it, then show the Chat button
                             if (showChatButton && _amMemberOfPod)
-                            CupertinoButton(padding: EdgeInsets.zero, alignment: Alignment.topCenter,
-                                child: Row(
-                                  children: [
-                                    Text("Chat"),
-                                    SizedBox(
-                                      width: 5,
-                                    ),
-                                    Icon(CupertinoIcons.paperplane)
-                                  ],
-                                ),
-                                onPressed: () {
-                                  Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
-                                      builder: (context) => MessagingView(
-                                          chatPartnerOrPodID: podData.podID,
-                                          chatPartnerOrPodName: podData.name,
-                                          isPodMode: true)));
-                                }),
+                              CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  alignment: Alignment.topCenter,
+                                  child: Row(
+                                    children: [
+                                      Text("Chat"),
+                                      SizedBox(
+                                        width: 5,
+                                      ),
+                                      Icon(CupertinoIcons.paperplane)
+                                    ],
+                                  ),
+                                  onPressed: () {
+                                    Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                                        builder: (context) => MessagingView(
+                                            chatPartnerOrPodID: podData.podID,
+                                            chatPartnerOrPodName: podData.name,
+                                            isPodMode: true)));
+                                  }),
 
                             // If the pod allows anyone to join and I'm not a member (and am also not blocked), show the
                             // Join button
                             if (!_amMemberOfPod && !_amBlockedFromPod && podData.anyoneCanJoin)
-                              CupertinoButton(child: Row(
-                                children: [
-                                  Icon(CupertinoIcons.plus),
-                                  SizedBox(
-                                    width: 5,
-                                  ),
-                                  Text("Join"),
-                                ],
-                              ), onPressed: _joinPod, padding: EdgeInsets.zero, alignment:
-                              Alignment.topCenter,),
+                              CupertinoButton(
+                                child: Row(
+                                  children: [
+                                    Icon(CupertinoIcons.plus),
+                                    SizedBox(
+                                      width: 5,
+                                    ),
+                                    Text("Join"),
+                                  ],
+                                ),
+                                onPressed: _joinPod,
+                                padding: EdgeInsets.zero,
+                                alignment: Alignment.topCenter,
+                              ),
                           ],
                         ),
 

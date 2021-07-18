@@ -22,7 +22,7 @@ class _CreateAPodViewState extends State<CreateAPodView> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(child: CustomScrollView(slivers: [
       CupertinoSliverNavigationBar(largeTitle: Text(isCreatingNewPod ? "Create Pod" : "Edit Pod"),),
-      
+
     ],));
   }
 }

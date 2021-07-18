@@ -7,6 +7,7 @@ import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/DatabasePaths/PodsDatabasePaths.dart';
 import 'package:podsquad/UIBackendClasses/MessagingTabFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
+import 'package:uuid/uuid.dart';
 
 ///Downloads and saves messages in the backend so they can be pulled into MessagingView
 class MessagesDictionary {
@@ -277,7 +278,6 @@ class MessagesDictionary {
                   directMessagesDict.value[chatPartnerID]!.add(chatMessage);
                   directMessagesDict.notifyListeners(); // it's required here because otherwise Dart doesn't know to
                   // update listeners.
-                  print("BIDEN: just added a DM with text ${chatMessage.text}");
                 }
               }
             }
@@ -326,7 +326,7 @@ class MessagesDictionary {
 
         // track the oldest document we downloaded so that future queries know to stop there and not re-fetch
         // documents we already got
-        endBeforeDictionary[chatPartnerID] = snapshot.docs.first;
+        if (snapshot.docs.length > 0) endBeforeDictionary[chatPartnerID] = snapshot.docs.first;
 
         snapshot.docChanges.forEach((diff) {
           if (diff.type == DocumentChangeType.added) {
@@ -379,8 +379,8 @@ class MessagesDictionary {
             directMessagesDict.notifyListeners();
           }
         });
-        print("Loaded in ${snapshot.docs.length} new messages! The total conversation is ${directMessagesDict
-            .value[chatPartnerID]?.length ?? 0} messages long!");
+        print(
+            "Loaded in ${snapshot.docs.length} new messages! The total conversation is ${directMessagesDict.value[chatPartnerID]?.length ?? 0} messages long!");
       });
 
       // give a unique registration to the listener so that it can be tracked and removed if needed
@@ -458,6 +458,7 @@ class MessagesDictionary {
     _listenerRegistrationsDict["podInactiveListener"] = inactivePodsListener;
   }
 
+//TODO: Figure out why pod messages aren't loading into MessagingView
   ///First, get the last message in the conversation. Then add a listener to listen for new messages starting with
   ///that message. If a conversation is empty, simply add a listener to handle all messages in the conversation.
   void _listenForPodMessageAddedChangedRemoved({required String podID, required Function onCompletion}) {
@@ -496,7 +497,6 @@ class MessagesDictionary {
       // Depending on whether the conversation exists, either subscribe to the entire conversation (if it doesn't
       // exist yet), or start subscribing to the newest message.
       final query = timeCutoff == null ? collectionRef : collectionRef.startAt([timeCutoff]);
-
       //Now, start an unlimited listener beginning with the last document that will handle it when new messages are
       // added or deleted.
       // ignore: cancel_subscriptions
@@ -516,15 +516,30 @@ class MessagesDictionary {
             final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
             final text = diff.doc.get("text") as String;
 
-            final podMessage = ChatMessage(id: id, recipientId: "", recipientName: "", senderId: senderId,
-                senderName: senderName, timeStamp: systemTime, text: text, senderThumbnailURL: senderThumbnailURL,
-              recipientThumbnailURL: "", imageURL: imageURL, audioURL: audioURL, imagePath: imagePath, audioPath:
-                audioPath, podID: podID);
+            final podMessage = ChatMessage(
+                id: id,
+                recipientId: "",
+                recipientName: "",
+                senderId: senderId,
+                senderName: senderName,
+                timeStamp: systemTime,
+                text: text,
+                senderThumbnailURL: senderThumbnailURL,
+                recipientThumbnailURL: "",
+                imageURL: imageURL,
+                audioURL: audioURL,
+                imagePath: imagePath,
+                audioPath: audioPath,
+                podID: podID);
 
             //Add the message to the associated chat partner ID in the dictionary
             if (podMessage.text.trim().isNotEmpty) {
+              if (podMessageDict.value[podID] == null) podMessageDict.value[podID] = []; // initialize a list
               if (podMessageDict.value[podID] != null) {
-                if (!podMessageDict.value[podID]!.contains(podMessage)) podMessageDict.value[podID]?.add(podMessage);
+                if (!podMessageDict.value[podID]!.contains(podMessage)) {
+                  podMessageDict.value[podID]?.add(podMessage);
+                  podMessageDict.notifyListeners();
+                }
               }
             }
           } else if (diff.type == DocumentChangeType.modified) {
@@ -533,9 +548,11 @@ class MessagesDictionary {
             final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
             podMessageDict.value[podID]?.changeSenderNameAndOrThumbnailURL(
                 forMessageWithID: messageID, toNewName: senderName, toNewThumbnailURL: senderThumbnailURL);
+            podMessageDict.notifyListeners();
           } else if (diff.type == DocumentChangeType.removed) {
             final messageID = diff.doc.get("id") as String;
             podMessageDict.value[podID]?.removeWhere((message) => message.id == messageID);
+            podMessageDict.notifyListeners();
           }
         });
       });
@@ -575,7 +592,7 @@ class MessagesDictionary {
 
         // track the oldest document we downloaded so that future queries know to stop there and not re-fetch
         // documents we already got
-        endBeforeDictionary[podID] = snapshot.docs.first;
+        if (snapshot.docs.length > 0) endBeforeDictionary[podID] = snapshot.docs.first;
 
         snapshot.docChanges.forEach((diff) {
           final messageID = diff.doc.get("id") as String;
@@ -583,23 +600,42 @@ class MessagesDictionary {
           final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
 
           if (diff.type == DocumentChangeType.added) {
-            final systemTime = diff.doc.get("systemTime") as double;
-            final imageURL = diff.doc.get("imageURL") as String;
-            final imagePath = diff.doc.get("imagePath") as String;
-            final audioURL = diff.doc.get("audioURL") as String;
-            final audioPath = diff.doc.get("audioPath") as String;
-            final senderId = diff.doc.get("senderId") as String;
-            final text = diff.doc.get("text") as String;
+            final data = diff.doc.data();
+            if (data != null) {
+              final systemTimeRaw = diff.doc.get("systemTime") as num;
+              final systemTime = systemTimeRaw.toDouble();
+              final imageURL = data["imageURL"] as String?;
+              final imagePath = data["imagePath"] as String?;
+              final audioURL = data["audioURL"] as String?;
+              final audioPath = data["audioPath"] as String?;
+              final senderId = diff.doc.get("senderId") as String;
+              final text = diff.doc.get("text") as String;
 
-            final podMessage = ChatMessage(id: messageID, recipientId: "", recipientName: "", senderId: senderId,
-                senderName: senderName, timeStamp: systemTime, text: text, senderThumbnailURL: senderThumbnailURL,
-                recipientThumbnailURL: "", imageURL: imageURL, audioURL: audioURL, imagePath: imagePath, audioPath:
-                audioPath, podID: podID);
+              final podMessage = ChatMessage(
+                  id: messageID,
+                  recipientId: "",
+                  recipientName: "",
+                  senderId: senderId,
+                  senderName: senderName,
+                  timeStamp: systemTime,
+                  text: text,
+                  senderThumbnailURL: senderThumbnailURL,
+                  recipientThumbnailURL: "",
+                  imageURL: imageURL,
+                  audioURL: audioURL,
+                  imagePath: imagePath,
+                  audioPath: audioPath,
+                  podID: podID);
 
-            //Add the message to the associated chat partner ID in the dictionary
-            if (podMessage.text.trim().isNotEmpty) {
-              if (podMessageDict.value[podID] != null) {
-                if (!podMessageDict.value[podID]!.contains(podMessage)) podMessageDict.value[podID]?.add(podMessage);
+              //Add the message to the associated chat partner ID in the dictionary
+              if (podMessage.text.trim().isNotEmpty) {
+                if (podMessageDict.value[podID] == null) podMessageDict.value[podID] = []; // initialize a list
+                if (podMessageDict.value[podID] != null) {
+                  if (!podMessageDict.value[podID]!.contains(podMessage)) {
+                    podMessageDict.value[podID]?.add(podMessage);
+                    podMessageDict.notifyListeners();
+                  }
+                }
               }
             }
           }
@@ -608,17 +644,15 @@ class MessagesDictionary {
           else if (diff.type == DocumentChangeType.modified) {
             podMessageDict.value[podID]?.changeSenderNameAndOrThumbnailURL(
                 forMessageWithID: messageID, toNewName: senderName, toNewThumbnailURL: senderThumbnailURL);
+            podMessageDict.notifyListeners();
           } else if (diff.type == DocumentChangeType.removed)
             podMessageDict.value[podID]?.removeWhere((message) => message.id == messageID);
+          podMessageDict.notifyListeners();
         });
       });
 
-      // give a unique registration to the listener so that it can be tracked and removed if needed
-      final random = Random();
-
       ///random.nextInt(1000) will return a random integer between 0 and 999 (inclusive)
-      final randomListenerID =
-          random.nextInt(1000) + random.nextInt(1000) + random.nextInt(1000) + random.nextInt(1000);
+      final randomListenerID = Uuid().v1();
       _listenerRegistrationsDict[podID + "$randomListenerID"] = olderPodMessagesListener;
     }
   }

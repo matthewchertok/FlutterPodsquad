@@ -28,7 +28,6 @@ class MessagingTabFunctions {
   /// IMPORTANT: The sorted latest messages list, which is displayed in the messaging tab.
   ValueNotifier<List<ChatMessage>> sortedLatestMessageList = ValueNotifier([]);
 
-
   ///Determines when to display "No messages found"
   ValueNotifier<bool> isShowingNoMessages = ValueNotifier(false);
 
@@ -120,10 +119,9 @@ class MessagingTabFunctions {
     if (isPodMode) {
       // filter for messages where the pod name contains the search text
       final messagesMatchingSearchText = _latestMessageList
-          .where((message) =>
-          (message.podName ??
-              "search "
-                  "term doesn't match")
+          .where((message) => (message.podName ??
+                  "search "
+                      "term doesn't match")
               .toLowerCase()
               .contains(searchText.toLowerCase()))
           .toList();
@@ -162,7 +160,8 @@ class MessagingTabFunctions {
               final podProfileData = document.get("profileData") as Map<String, dynamic>;
               final podID = podProfileData["podID"] as String;
               final podName = podProfileData["name"] as String;
-              _getLatestPodMessage(podID: podID, podName: podName);
+              final podThumbnailURL = podProfileData["thumbnailURL"] as String;
+              _getLatestPodMessage(podID: podID, podName: podName, podThumbnailURL: podThumbnailURL);
               _updatePodNameIfItChanges(podID: podID);
             });
             _latestMessageListenersDict[podID + "documentListener"] = podDocumentForMembershipAddedListener; // track
@@ -192,7 +191,7 @@ class MessagingTabFunctions {
   }
 
   ///Gets the latest message in all my pod conversations and observe changes as well. Only use this for pod mode.
-  void _getLatestPodMessage({required String podID, required String podName}) {
+  void _getLatestPodMessage({required String podID, required String podName, required String podThumbnailURL}) {
     //continuously update the latest message for each pod conversation by observing the last message in the conversation
     _latestMessageListenersDict[podID]?.cancel(); // remove the preexisting listener to be safe
     // ignore: cancel_subscriptions
@@ -210,17 +209,19 @@ class MessagingTabFunctions {
       // now make sure there are messages in the conversation
       if (snapshot.docs.length > 0) {
         snapshot.docs.forEach((messageDoc) {
+          final messageData = messageDoc.data();
           final messageID = messageDoc.get("id") as String;
-          final imageURL = messageDoc.get("imageURL") as String;
-          final audioURL = messageDoc.get("audioURL") as String;
-          final imagePath = messageDoc.get("imagePath") as String;
-          final audioPath = messageDoc.get("audioPath") as String;
+          final imageURL = messageData["imageURL"] as String? ?? "";
+          final audioURL = messageData["audioURL"] as String? ?? "";
+          final imagePath = messageData["imagePath"] as String? ?? "";
+          final audioPath = messageData["audioPath"] as String? ?? "";
           final senderID = messageDoc.get("senderId") as String;
           final senderName = messageDoc.get("senderName") as String;
           final senderThumbnailURL = messageDoc.get("senderThumbnailURL") as String;
-          final systemTime = messageDoc.get("systemTime") as double;
+          final systemTimeRaw = messageDoc.get("systemTime") as num;
+          final systemTime = systemTimeRaw.toDouble();
           final text = messageDoc.get("text") as String;
-          final readBy = messageDoc.get("readBy") as List<String>;
+          final readBy = messageData["readBy"] as List<dynamic>? ?? [];
 
           final message = ChatMessage(
               id: messageID,
@@ -234,11 +235,12 @@ class MessagingTabFunctions {
               podName: podName,
               senderThumbnailURL: senderThumbnailURL,
               recipientThumbnailURL: "null",
+              podThumbnailURL: podThumbnailURL,
               imageURL: imageURL,
               audioURL: audioURL,
               imagePath: imagePath,
               audioPath: audioPath,
-              readBy: readBy);
+              readBy: List<String>.from(readBy));
 
           latestMessagesDict[podID] = message; // update the latest message that gets displayed for the pod
           _refreshLatestMessagesList(newDict: latestMessagesDict);
@@ -290,8 +292,8 @@ class MessagingTabFunctions {
         if (diff.type == DocumentChangeType.added) {
           // find out who the chat partner is in the list of either [myId, theirId] or [theirId, myId]
           final participantIDs = diff.doc.get("participants") as List<dynamic>;
-          final String chatPartnerID = participantIDs.first == myFirebaseUserId ? participantIDs.last : participantIDs
-              .first;
+          final String chatPartnerID =
+              participantIDs.first == myFirebaseUserId ? participantIDs.last : participantIDs.first;
 
           // the path where the messages in the conversation are stored
           final collectionRef = diff.doc.reference.collection("messages");

@@ -113,7 +113,8 @@ class _MultiImagePageViewerState extends State<MultiImagePageViewer> {
                 )),
             if (imagesList.isEmpty)
               Center(
-                child: Text("${personName ?? "This user"} doesn't have any pictures yet!"),
+                child: Text("${personName ?? "This user"} doesn't have any pictures yet!", style: TextStyle(color:
+                CupertinoColors.inactiveGray),),
               )
           ],
         ));

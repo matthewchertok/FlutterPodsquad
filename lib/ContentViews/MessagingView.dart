@@ -151,7 +151,8 @@ class _MessagingViewState extends State<MessagingView> {
                 messageText: difference.text,
                 senderId: difference.senderId,
                 senderThumbnailURL: difference.senderThumbnailURL,
-                timeStamp: difference.timeStamp));
+                timeStamp: difference.timeStamp, isPodMode: isPodMode, chatPartnerOrPodName: difference
+                .chatPartnerName, chatPartnerOrPodID: difference.chatPartnerId,));
         displayedChatLog.removeWhere((element) => element == difference);
         Slidable.of(context)?.dismiss(); // dismiss Slidable objects; otherwise I'll run into the issue of opening
         // another message's slidable after the current message is deleted.
@@ -867,6 +868,7 @@ class _MessagingViewState extends State<MessagingView> {
                                   messageAudioURL: message.audioURL,
                                   chatPartnerOrPodID: message.chatPartnerId,
                                   chatPartnerOrPodName: message.chatPartnerName,
+                                  isPodMode: isPodMode,
                                 ),
 
                                 // Actions appear on the left. Use them for received messages
@@ -932,7 +934,8 @@ class _MessagingViewState extends State<MessagingView> {
                                       onTap: () {
                                         _deleteMessage(message: message);
                                       },
-                                      caption: "Delete", color: CupertinoColors.destructiveRed,
+                                      caption: "Delete",
+                                      color: CupertinoColors.destructiveRed,
                                     ),
                                 ],
                               ),
@@ -1026,17 +1029,27 @@ class _MessagingViewState extends State<MessagingView> {
                   // If the message has an image or audio, it may take a few seconds to send. In that case, show a toast informing
                   // the user that the message is sending, so that they don't think the app froze.
                   if ((imageFile != null || isRecordingAudio) && _sendingInProgress)
-                    Stack(alignment: Alignment.center, children: [
-                      BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
-                          child: Container(color: CupertinoColors.white.withOpacity(0.5))),
-                     Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          CupertinoActivityIndicator(radius: 15),
-                          SizedBox(height: 10,),
-                          Text("Sending Message...", style: TextStyle(color: CupertinoColors.inactiveGray),)
-                        ],),
-
-                    ],)
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+                            child: Container(color: CupertinoColors.white.withOpacity(0.5))),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CupertinoActivityIndicator(radius: 15),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            Text(
+                              "Sending Message...",
+                              style: TextStyle(color: CupertinoColors.inactiveGray),
+                            )
+                          ],
+                        ),
+                      ],
+                    )
                 ],
               ),
             ),

@@ -27,34 +27,41 @@ class ChatMessage {
   ///Pass in the message sender's profile thumbnail URL when downloading a message from the database
   String senderThumbnailURL;
 
-  ///Pass in the recipient's thumbnail URL when downloading a message from the database
+  ///Pass in the recipient's thumbnail URL when downloading a direct message from the database
   String recipientThumbnailURL;
+
+  /// Pass in the pod thumbnail URL when downlaoding a pod message from the database
+  String? podThumbnailURL;
 
   ///Automatically determines the chat partner thumbnail URL given a sender ID and recipient ID. If the message is a
   ///pod message and has no recipient, then the chatPartnerThumbnailURL will be the sender's thumbnail URL.
   String get chatPartnerThumbnailURL {
-    if(recipientThumbnailURL.isNotEmpty)
-      return senderId == myFirebaseUserId ? recipientThumbnailURL : senderThumbnailURL;
-    else return senderThumbnailURL;
+    if (recipientThumbnailURL.isNotEmpty) {
+      if (podID == null) return senderId == myFirebaseUserId ? recipientThumbnailURL : senderThumbnailURL;
+      else return podThumbnailURL ?? senderThumbnailURL; // if it's a pod message, return the pod thumbnail URL
+    } else
+      return senderThumbnailURL;
   }
 
   ///Automatically determines the chat partner ID given a sender ID and recipient ID. If the message is a pod message
   /// and has no recipient ID, return the pod ID. If the recipient ID is blank and the pod ID is null, return the
   /// String "null".
   String get chatPartnerId {
-    if(recipientId.isNotEmpty) return senderId == myFirebaseUserId ? recipientId : senderId;
-    else return podID ?? "null";
+    if (recipientId.isNotEmpty)
+      return senderId == myFirebaseUserId ? recipientId : senderId;
+    else
+      return senderId; // if this is a pod message (no recipientId), then display the sender ID
   }
-
 
   ///Automatically determines the chat partner name given a sender name and recipient name. If the message is a pod
   ///message and has no recipient name, return the pod name. If the recipient name is blank and the pod name is null,
   /// return the String "null".
   String get chatPartnerName {
-    if(recipientName.isNotEmpty) return senderId == myFirebaseUserId ? recipientName : senderName;
-    else return podName ?? "null";
+    if (recipientName.isNotEmpty)
+      return senderId == myFirebaseUserId ? recipientName : senderName;
+    else
+      return senderName; // if this is a pod message (no recipientId), then display the sender name
   }
-
 
   ///Pass in a list of people who read the message so I can determine whether to make the font bold
   List<String>? readBy;
@@ -75,29 +82,22 @@ class ChatMessage {
       this.podName,
       required this.senderThumbnailURL,
       required this.recipientThumbnailURL,
+      this.podThumbnailURL,
       this.readBy});
 
   ///Marks a message as read in the database
-  void markMessageRead(ChatMessage message, List<String> listOfReadMessageIds,
-      String conversationID) {
+  void markMessageRead(ChatMessage message, List<String> listOfReadMessageIds, String conversationID) {
     String messageID = message.id;
     if (!listOfReadMessageIds.contains(messageID)) {
-      bool isPodMessage = conversationID.length >
-          20; //pod IDs are 20 characters long, but DM conversation IDs are 40 characters long
+      bool isPodMessage =
+          conversationID.length > 20; //pod IDs are 20 characters long, but DM conversation IDs are 40 characters long
 
       // Now actually update the message in the database
       if (isPodMessage) {
-        firestoreDatabase
-            .collection("pods")
-            .doc(conversationID)
-            .collection("messages")
-            .doc(messageID)
-            .update({
+        firestoreDatabase.collection("pods").doc(conversationID).collection("messages").doc(messageID).update({
           "readBy": FieldValue.arrayUnion([myFirebaseUserId]),
           // Indicate that I read the message
-          "readTime": {
-            myFirebaseUserId: DateTime.now().millisecondsSinceEpoch * 0.001
-          },
+          "readTime": {myFirebaseUserId: DateTime.now().millisecondsSinceEpoch * 0.001},
           // Indicate the time I read the message. Must divide by 1000 because
           // Swift (and the database) stores time in seconds since January 1, 1970.
           "readName": {myFirebaseUserId: MyProfileTabBackendFunctions.shared.myProfileData.value.name}
@@ -110,9 +110,7 @@ class ChatMessage {
             .doc(messageID)
             .update({
           "readBy": FieldValue.arrayUnion([myFirebaseUserId]),
-          "readTime": {
-            myFirebaseUserId: DateTime.now().millisecondsSinceEpoch * 0.001
-          },
+          "readTime": {myFirebaseUserId: DateTime.now().millisecondsSinceEpoch * 0.001},
           "readName": {myFirebaseUserId: MyProfileTabBackendFunctions.shared.myProfileData.value.name}
         });
       }

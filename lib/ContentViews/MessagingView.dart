@@ -283,7 +283,7 @@ class _MessagingViewState extends State<MessagingView> {
       return;
     }
 
-    final isDM = message.podID == null; // determine whether this is a direct message or pod message
+    final isDM = !isPodMode; // determine whether this is a direct message or pod message
 
     // A message has an image if the user has picked one
     final messageHasImage = imageFile != null;
@@ -339,7 +339,7 @@ class _MessagingViewState extends State<MessagingView> {
         imageURL: message.imageURL,
         imagePath: message.imagePath,
         audioURL: message.audioURL,
-        audioPath: message.audioPath);
+        audioPath: message.audioPath, podID: isPodMode ? chatPartnerOrPodID : null);
 
     // If we're sending a direct message, upload it to the right place and put in the right settings
     if (isDM) {
@@ -1128,7 +1128,8 @@ class _MessagingViewState extends State<MessagingView> {
                         timeStamp: timeStamp,
                         text: text,
                         senderThumbnailURL: myThumbnailURL,
-                        recipientThumbnailURL: chatPartnerThumbnailURL ?? "");
+                        recipientThumbnailURL: chatPartnerThumbnailURL ?? "", podID:  isPodMode ? chatPartnerOrPodID
+                        : null);
                     if (!_sendingInProgress) _sendMessage(messageToSend: messageToSend);
                   }),
             ),

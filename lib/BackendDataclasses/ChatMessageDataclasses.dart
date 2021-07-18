@@ -40,7 +40,7 @@ class ChatMessage {
       if (podID == null) return senderId == myFirebaseUserId ? recipientThumbnailURL : senderThumbnailURL;
       else return podThumbnailURL ?? senderThumbnailURL; // if it's a pod message, return the pod thumbnail URL
     } else
-      return senderThumbnailURL;
+      return podThumbnailURL ?? senderThumbnailURL; // if recipientThumbnail is empty, it must be a pod message
   }
 
   ///Automatically determines the chat partner ID given a sender ID and recipient ID. If the message is a pod message

@@ -76,7 +76,6 @@ class _AppState extends State<MyApp> {
               if (isLoggedIn) {
                 LatestPodMessagesDictionary.shared.getListOfIDsForPodsImIn();
                 LatestDirectMessagesDictionary.shared.loadLatestMessageForAllDirectMessageConversations();
-                LatestPodMessagesDictionary.shared.getListOfIDsForPodsImIn();
                 MessagesDictionary.shared.preLoadAllDirectMessageConversations();
                 MessagesDictionary.shared.preLoadAllPodMessageConversations();
                 SentBlocksBackendFunctions.shared.addDataToListView();

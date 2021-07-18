@@ -61,12 +61,9 @@ class _MessagingTabState extends State<MessagingTab> {
 
     // Listen for all my DM conversations and get the latest message preview
     LatestDirectMessagesDictionary.shared.sortedLatestMessageList.addListener(() {
-      print("JOE BIDEN");
       final messages = LatestDirectMessagesDictionary.shared.sortedLatestMessageList.value;
       setState(() {
         this._directMessagesList = messages;
-        print("BIDEN: so I just received this value: ${messages.first.text}, but I could only get this from it: "
-            "${_directMessagesList.first.text}");
       });
     });
 

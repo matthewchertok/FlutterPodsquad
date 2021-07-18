@@ -82,7 +82,6 @@ class MessagingTabFunctions {
 
     // Now update the sorted latest messages list
     if (_latestMessageList.isNotEmpty) {
-      print("BIDEN: sortedLatestMessageList is not empty!");
       //sorts from newest message to oldest message
       _latestMessageList.sort((b, a) => a.timeStamp.compareTo(b.timeStamp));
 /*
@@ -106,7 +105,6 @@ class MessagingTabFunctions {
       sortedLatestMessageList.value.clear(); // clearing the value forces a state reset (otherwise nothing will
       // change, because the message IDs stay the same so the message won't update)
       sortedLatestMessageList.value = _latestMessageList;
-      print("BIDEN: I have the following message: ${sortedLatestMessageList.value[0].text}");
     }
   }
 
@@ -225,8 +223,8 @@ class MessagingTabFunctions {
 
           final message = ChatMessage(
               id: messageID,
-              recipientId: "null",
-              recipientName: "null",
+              recipientId: "",
+              recipientName: "",
               senderId: senderID,
               senderName: senderName,
               timeStamp: systemTime,
@@ -234,7 +232,7 @@ class MessagingTabFunctions {
               podID: podID,
               podName: podName,
               senderThumbnailURL: senderThumbnailURL,
-              recipientThumbnailURL: "null",
+              recipientThumbnailURL: "",
               podThumbnailURL: podThumbnailURL,
               imageURL: imageURL,
               audioURL: audioURL,
@@ -244,6 +242,7 @@ class MessagingTabFunctions {
 
           latestMessagesDict[podID] = message; // update the latest message that gets displayed for the pod
           _refreshLatestMessagesList(newDict: latestMessagesDict);
+          print("LATEST MESSAGE IN POD CONVERSATION IS ${message.text}");
           // conversation in the Messaging tab
         });
       }

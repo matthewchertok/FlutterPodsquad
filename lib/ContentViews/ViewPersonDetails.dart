@@ -677,13 +677,15 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                               children: [
                                 // The name field should be a button that opens an action sheet that will show the user's podScore
                                 // and an option to view their pods
-                                CupertinoButton(
-                                    padding: EdgeInsets.zero,
+                                CupertinoButton(padding: EdgeInsets.zero, minSize: 35,
+                                    alignment: Alignment.topCenter,
                                     child: Text(
                                       personData.name,
                                       style: TextStyle(
-                                          fontSize: 18.scaledForScreenSize(context: context),
-                                          color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
+                                          fontSize: 18.scaledForScreenSize(context: context), color: isDarkMode ?
+                                      CupertinoColors.white : CupertinoColors.black, fontWeight:
+                                      FontWeight
+                                          .bold),
                                     ),
                                     onPressed: () {
                                       // show the action sheet with their podScore and button to view pods or add
@@ -730,9 +732,6 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                                       );
                                       showCupertinoModalPopup(context: context, builder: (context) => sheet);
                                     }),
-                                SizedBox(
-                                  height: 5,
-                                ),
 
                                 // The person's age
                                 Text(
@@ -766,7 +765,7 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  CupertinoButton(
+                                  CupertinoButton(alignment: Alignment.topCenter,
                                       padding: EdgeInsets.zero,
                                       child: Row(
                                         children: [

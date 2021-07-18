@@ -19,6 +19,7 @@ import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/ViewPersonDetails.dart';
 import 'package:podsquad/OtherSpecialViews/DecoratedImage.dart';
 import 'package:podsquad/OtherSpecialViews/MultiImageUploader.dart';
+import 'package:podsquad/OtherSpecialViews/PodModeButton.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 
 class MyProfileTab extends StatefulWidget {
@@ -327,7 +328,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                   showLikesFriendsBlocksActionSheet(context: context);
                 },
                 padding: EdgeInsets.zero,
-              ),
+              ), trailing: podModeButton(context: context),
               largeTitle: Text("My Profile"),
               stretch: true,
             ),

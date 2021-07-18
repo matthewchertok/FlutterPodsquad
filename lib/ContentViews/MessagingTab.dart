@@ -5,6 +5,7 @@ import 'package:podsquad/BackendDataclasses/ChatMessageDataclasses.dart';
 import 'package:podsquad/ContentViews/MessagingView.dart';
 import 'package:podsquad/ListRowViews/LatestMessageRow.dart';
 import 'package:podsquad/BackendFunctions/ShowLikesFriendsBlocksActionSheet.dart';
+import 'package:podsquad/OtherSpecialViews/PodModeButton.dart';
 import 'package:podsquad/OtherSpecialViews/SearchTextField.dart';
 import 'package:podsquad/UIBackendClasses/MessagingTabFunctions.dart';
 
@@ -132,7 +133,7 @@ class _MessagingTabState extends State<MessagingTab> {
                 showLikesFriendsBlocksActionSheet(context: context);
               },
               padding: EdgeInsets.zero,
-            ),
+            ), trailing: podModeButton(context: context),
             largeTitle: Text("Messages"),
             stretch: true,
           ),

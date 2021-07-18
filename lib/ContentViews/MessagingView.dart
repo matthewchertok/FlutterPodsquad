@@ -783,7 +783,9 @@ class _MessagingViewState extends State<MessagingView> {
         trailing: isPodMode? CupertinoButton(padding: EdgeInsets.zero, child: Icon(CupertinoIcons
             .arrow_turn_up_right), onPressed: (){
           // navigate to ViewPodDetails
-          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => ViewPodDetails(podID: chatPartnerOrPodID)));
+          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => ViewPodDetails
+            (podID: chatPartnerOrPodID, showChatButton: false,))); // if navigating from messaging, there is no need
+          // to show the Chat button, since that would allow the user to navigate into an infinite stack
         },) :
         CupertinoButton(
           padding: EdgeInsets.zero,

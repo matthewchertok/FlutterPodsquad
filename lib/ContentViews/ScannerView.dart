@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:podsquad/BackendFunctions/NearbyScanner.dart';
 import 'package:podsquad/BackendFunctions/ShowLikesFriendsBlocksActionSheet.dart';
+import 'package:podsquad/OtherSpecialViews/PodModeButton.dart';
 
 class ScannerView extends StatefulWidget {
   const ScannerView({Key? key}) : super(key: key);
@@ -31,7 +32,7 @@ class _ScannerViewState extends State<ScannerView> {
                       showLikesFriendsBlocksActionSheet(context: context);
                     },
                     padding: EdgeInsets.zero,
-                  ),
+                  ), trailing: podModeButton(context: context),
                 )
               ];
             },

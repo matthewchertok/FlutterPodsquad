@@ -293,7 +293,7 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
                       builder: (context) => MainListDisplayView(
                           viewMode: MainListDisplayViewModes.podMembers,
                           podMembers: _podMembersList,
-                          podName: podData.name)));
+                          podData: podData,)));
                 },
                 child: Text("Pod Members")),
 
@@ -306,7 +306,7 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
                         builder: (context) => MainListDisplayView(
                               viewMode: MainListDisplayViewModes.podBlockedUsers,
                               podMembers: _podBlockedUsersList,
-                              podName: podData.name,
+                              podData: podData,
                             )));
                   },
                   child: Text("Blocked Users")),
@@ -475,7 +475,7 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
                                         builder: (context) => MainListDisplayView(
                                             viewMode: MainListDisplayViewModes.podMembers,
                                             podMembers: _podMembersList,
-                                            podName: podData.name)));
+                                            podData: podData,)));
                                   },
                                   padding: EdgeInsets.zero,
                                   minSize: 35,

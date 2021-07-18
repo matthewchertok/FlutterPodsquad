@@ -713,6 +713,7 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                                           if (personID != myFirebaseUserId)
                                           CupertinoActionSheetAction(
                                               onPressed: () {
+                                                dismissAlert(context: context);
                                                 Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                                                     builder: (context) => MainListDisplayView(
                                                         viewMode: MainListDisplayViewModes.addPersonToPod,

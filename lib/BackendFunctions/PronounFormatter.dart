@@ -24,6 +24,18 @@ class PronounFormatter {
         else return shouldBeCapitalized ? "Theirs": "theirs";
     }
   }
+
+  /// Depending on the pronoun, create the string "is" or "are" as in "He is nice" or "They are nice".
+  static String isOrAre({required String pronoun, required bool shouldBeCapitalized}){
+    if (pronoun == UsefulValues.nonbinaryPronouns) {
+      if (shouldBeCapitalized) return "Are";
+      else return "are";
+    }
+    else {
+      if (shouldBeCapitalized) return "Is";
+      else return "is";
+    }
+  }
 }
 
 ///Makes it easy to specify which pronoun tense to use in a sentence.

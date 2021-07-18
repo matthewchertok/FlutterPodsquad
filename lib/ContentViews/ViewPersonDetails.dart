@@ -203,7 +203,7 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                   padding: EdgeInsets.zero,
                   child: Icon(CupertinoIcons.line_horizontal_3),
                   onPressed: () {
-                    // show the action sheet to like/friend/block/report/add to pod
+                    // show the action sheet to like/friend/block/report
                     final sheet = CupertinoActionSheet(
                       title: Text("Interact with ${personData.name.firstName()}!"),
                       actions: [
@@ -686,10 +686,12 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                                           color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
                                     ),
                                     onPressed: () {
-                                      // show the action sheet with their podScore and button to view pods
+                                      // show the action sheet with their podScore and button to view pods or add
+                                      // them to a pod
                                       final sheet = CupertinoActionSheet(
                                         message: Text("Podscore: ${personData.podScore}"),
                                         actions: [
+                                          // view their pods
                                           CupertinoActionSheetAction(
                                               onPressed: () {
                                                 dismissAlert(context: context);
@@ -704,6 +706,17 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                                               child: Text(personData.userID == myFirebaseUserId
                                                   ? "My Pods"
                                                   : "${personData.name.firstName()}'s Pods")),
+
+                                          // add them to a pod (as long as I'm not viewing my own profile)
+                                          if (personID != myFirebaseUserId)
+                                          CupertinoActionSheetAction(
+                                              onPressed: () {
+                                                Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                                                    builder: (context) => MainListDisplayView(
+                                                        viewMode: MainListDisplayViewModes.addPersonToPod,
+                                                        personData: personData)));
+                                              },
+                                              child: Text("Add ${personData.name.firstName()} to a pod")),
 
                                           // cancel button
                                           CupertinoActionSheetAction(

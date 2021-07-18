@@ -7,14 +7,17 @@ import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 class DecoratedImage extends StatelessWidget {
   const DecoratedImage(
       {Key? key,
-      required this.imageURL, this.width, this.height, this.shadowColor = accentColor,
+      required this.imageURL, this.width, this.height, this.shadowColor = accentColor, this.borderRadius = 15, this
+          .borderWidth = 3,
       this.shadowRadius = 3, this.shadowOpacity = 0.5})
       : super(key: key);
   final String imageURL;
   final double? width;
   final double? height;
+  final double borderRadius;
+  final double borderWidth;
   final Color shadowColor;
-  final int shadowRadius;
+  final double shadowRadius;
   final double shadowOpacity;
 
   @override
@@ -23,11 +26,11 @@ class DecoratedImage extends StatelessWidget {
         width: width,
         height: height,
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: CupertinoColors.white, width: 3),
-            boxShadow: [BoxShadow(color: shadowColor.withOpacity(shadowOpacity), blurRadius: 3)]),
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: Border.all(color: CupertinoColors.white, width: borderWidth),
+            boxShadow: [BoxShadow(color: shadowColor.withOpacity(shadowOpacity), blurRadius: shadowRadius)]),
         child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(borderRadius*2/3),
             child: CachedNetworkImage(
               imageUrl: imageURL,
               fit: BoxFit.cover,

@@ -56,9 +56,11 @@ class PodsDatabasePaths {
       firebaseStorage.ref().child("pods").child(podID).child("messaging-images").child(myFirebaseUserId);
 
   ///Adds a user with id equal to userID to /pods/podID/members
-  void _addMemberToPod({required PodMemberInfoDict personData, Function? onSuccess}) {
+  void _addMemberToPod({required PodMemberInfoDict personData, Function? onSuccess, Function(Error)? onError}) {
     podDocument.collection("members").doc(personData.userID).set(personData.toDatabaseFormat()).then((value) {
       if (onSuccess != null) onSuccess();
+    }).catchError((error){
+      if (onError != null) onError(error);
     });
   }
 
@@ -78,20 +80,20 @@ class PodsDatabasePaths {
 
   ///Join a pod. Make sure that when initializing a POdsDatabasePaths object to call this method on, you use the ID
   ///of the person who was just added to the pod as the userID parameter in the constructor.
-  void joinPod({required PodMemberInfoDict personData, Function? onSuccess}) {
+  void joinPod({required PodMemberInfoDict personData, Function? onSuccess, Function(Error)? onError}) {
     _addMemberToPod(
         personData: personData,
         onSuccess: () {
-          if (this.userID != myFirebaseUserId) {}
-
           //once the member is added to the pod, get their data and add the person to the observable pod members dictionary
           final value = personData.toDatabaseFormat();
           var profileData =
               ProfileDatabasePaths.extractProfileDataFromSnapshot(userID: this.userID, snapshotValue: value);
           final podMembers = PodMembersDictionary.sharedInstance.dictionary.value[this.podID];
           if (podMembers != null) {
-            if (!podMembers.contains(profileData))
+            if (!podMembers.contains(profileData)) {
               PodMembersDictionary.sharedInstance.dictionary.value[this.podID]?.add(profileData);
+              PodMembersDictionary.sharedInstance.updateTheOtherDictionaries();
+            }
           }
 
           //Send a push notification to inform someone they got added to a pod (don't send one to myself though)
@@ -107,7 +109,10 @@ class PodsDatabasePaths {
                   notificationType: NotificationTypes.podDetails);
             });
           }
-        });
+
+          this.sendJoinLeavePodMessage(action: _AddedRemovedBlockedUnblocked.added, personName: personData.name);
+          if (onSuccess != null) onSuccess();
+        }, onError: onError);
   }
 
   ///Make a person (or myself) leave a pod. Pass in the person's user ID into the constructor when creating a
@@ -182,6 +187,7 @@ class PodsDatabasePaths {
           // clear the local dictionary values for this pod to save a small amount of memory
           PodMembersDictionary.sharedInstance.dictionary.value[this.podID]?.clear();
           PodMembersDictionary.sharedInstance.blockedDictionary.value[this.podID]?.clear();
+          PodMembersDictionary.sharedInstance.updateTheOtherDictionaries();
           if (onCompletion != null) onCompletion();
         }
       }).catchError((error) {
@@ -299,6 +305,7 @@ class PodsDatabasePaths {
 
       // remove the person from the observable pod members dictionary
       PodMembersDictionary.sharedInstance.dictionary.value[this.podID]?.removePersonFromList(personUserID: this.userID);
+      PodMembersDictionary.sharedInstance.updateTheOtherDictionaries();
       if (onSuccess != null) onSuccess(); // call the completion handler
     });
   }
@@ -308,6 +315,7 @@ class PodsDatabasePaths {
       this.sendJoinLeavePodMessage(action: _AddedRemovedBlockedUnblocked.unblocked, personName: personName);
       PodMembersDictionary.sharedInstance.blockedDictionary.value[this.podID]
           ?.removePersonFromList(personUserID: this.userID);
+      PodMembersDictionary.sharedInstance.updateTheOtherDictionaries();
       if (onSuccess != null) onSuccess();
     });
   }

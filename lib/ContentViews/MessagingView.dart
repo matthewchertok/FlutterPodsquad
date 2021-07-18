@@ -15,6 +15,7 @@ import 'package:podsquad/BackendFunctions/ResizeAndUploadImage.dart';
 import 'package:podsquad/BackendFunctions/UploadAudio.dart';
 import 'package:podsquad/BackendFunctions/TimeAndDateFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
+import 'package:podsquad/ContentViews/ViewPodDetails.dart';
 import 'package:podsquad/DatabasePaths/BlockedUsersDatabasePaths.dart';
 import 'package:podsquad/DatabasePaths/PodsDatabasePaths.dart';
 import 'package:podsquad/ListRowViews/MessagingRow.dart';
@@ -777,9 +778,14 @@ class _MessagingViewState extends State<MessagingView> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: CupertinoNavigationBar(padding: EdgeInsetsDirectional.all(5),
         middle: Text("Message $chatPartnerOrPodName"),
-        trailing: CupertinoButton(
+        trailing: isPodMode? CupertinoButton(padding: EdgeInsets.zero, child: Icon(CupertinoIcons
+            .arrow_turn_up_right), onPressed: (){
+          // navigate to ViewPodDetails
+          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => ViewPodDetails(podID: chatPartnerOrPodID)));
+        },) :
+        CupertinoButton(
           padding: EdgeInsets.zero,
           child: Icon(CupertinoIcons.line_horizontal_3),
           onPressed: () {

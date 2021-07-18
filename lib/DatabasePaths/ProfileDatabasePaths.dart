@@ -48,15 +48,17 @@ class ProfileDatabasePaths {
   static ProfileData extractProfileDataFromSnapshot(
       {required String userID, required Map<String,
           dynamic> snapshotValue, double? timeIMetThePerson, DateTime? dateIMetThePerson}) {
-    String name = snapshotValue["name"];
-    String preferredPronoun = snapshotValue["preferredPronouns"];
-    String preferredRelationshipType = snapshotValue["lookingFor"];
-    double birthday = snapshotValue["birthday"];
-    String school = snapshotValue["school"];
-    String bio = snapshotValue["bio"];
-    String thumbnailURLString = snapshotValue["thumbnailURL"];
-    String fullPhotoURLString = snapshotValue["fullPhotoURL"];
-    int podScore = snapshotValue["podScore"];
+    String name = snapshotValue["name"] ?? "Name N/A";
+    String preferredPronoun = snapshotValue["preferredPronouns"] ?? UsefulValues.nonbinaryPronouns;
+    String preferredRelationshipType = snapshotValue["lookingFor"] ?? UsefulValues.lookingForFriends;
+    num? birthdayRaw = snapshotValue["birthday"];
+    double birthday = birthdayRaw?.toDouble() ?? 0;
+    String school = snapshotValue["school"] ?? "School N/A";
+    String bio = snapshotValue["bio"] ?? "";
+    String thumbnailURLString = snapshotValue["thumbnailURL"] ?? "";
+    String fullPhotoURLString = snapshotValue["fullPhotoURL"] ?? "";
+    num? podScoreRaw = snapshotValue["podScore"];
+    int podScore = podScoreRaw?.toInt() ?? 0;
 
     return ProfileData(userID: userID,
         name: name,

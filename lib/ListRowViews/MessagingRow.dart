@@ -179,7 +179,7 @@ class SentMessageRow extends StatelessWidget {
                     imageURL: myThumbnailURL,
                     width: 60,
                     height: 60,
-                    shadowColor: accentColor.withOpacity(0.6),
+                    shadowColor: accentColor.withOpacity(0.6), shadowRadius: 1,
                   ),
                   onPressed: () {
                     Navigator.of(context, rootNavigator: true)
@@ -247,7 +247,7 @@ class ReceivedMessageRow extends StatelessWidget {
                     imageURL: messageSenderThumbnailURL,
                     width: 60,
                     height: 60,
-                    shadowColor: receivedMessageBubbleColor.withOpacity(0.6),
+                    shadowColor: receivedMessageBubbleColor.withOpacity(0.6), shadowRadius: 1,
                   ),
                   onPressed: () {
                     Navigator.of(context, rootNavigator: true)

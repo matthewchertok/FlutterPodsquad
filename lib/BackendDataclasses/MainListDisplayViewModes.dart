@@ -11,5 +11,6 @@ class MainListDisplayViewModes {
   static const myPods = "myPods";
   static const searchUsers = "searchUsers";
   static const searchPods = "searchPods";
+  static const addPersonToPod = "addPersonToPod";
   static const customList = "customList";
 }

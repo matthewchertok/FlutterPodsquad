@@ -1,22 +1,32 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:podsquad/BackendDataHolders/PodMembersDictionary.dart';
 import 'package:podsquad/BackendDataclasses/MainListDisplayViewModes.dart';
 import 'package:podsquad/BackendDataclasses/PodData.dart';
+import 'package:podsquad/BackendDataclasses/PodMemberInfoDict.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';
+import 'package:podsquad/BackendFunctions/PodDataDownloaders.dart';
+import 'package:podsquad/BackendFunctions/PronounFormatter.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/ViewPersonDetails.dart';
 import 'package:podsquad/ContentViews/ViewPodDetails.dart';
+import 'package:podsquad/DatabasePaths/PodsDatabasePaths.dart';
 import 'package:podsquad/ListRowViews/PersonOrPodListRow.dart';
 import 'package:podsquad/BackendFunctions/ShowLikesFriendsBlocksActionSheet.dart';
 import 'package:podsquad/OtherSpecialViews/SearchTextField.dart';
+import 'package:podsquad/UIBackendClasses/MainListDisplayBackend.dart';
+import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 
 class MainListDisplayView extends StatefulWidget {
   const MainListDisplayView(
       {Key? key,
       required this.viewMode,
-      this.showingSentDataNotReceivedData = true, this.personId,
-      this.podName, this.personName,
+      this.showingSentDataNotReceivedData = true,
+      this.personData,
+      this.personId,
+      this.podName,
+      this.personName,
       this.podMembers,
       this.podMemberships})
       : super(key: key);
@@ -32,6 +42,9 @@ class MainListDisplayView extends StatefulWidget {
   /// Used only if displaying a person's pod memberships (to determine if I'm looking at my own pods
   final String? personId;
 
+  /// Used only if the viewMode is addPersonToPod
+  final ProfileData? personData;
+
   /// Only needed if viewMode is equal to MainListDisplayViewModes.podMembers. Contains the members of a pod
   final List<ProfileData>? podMembers;
 
@@ -41,8 +54,13 @@ class MainListDisplayView extends StatefulWidget {
   @override
   _MainListDisplayViewState createState() => _MainListDisplayViewState(
       viewMode: this.viewMode,
-      showingSentDataNotReceivedData: this.showingSentDataNotReceivedData, personId: personId,
-      podName: this.podName, personName: this.personName, podMembers: podMembers, podMemberships: podMemberships);
+      showingSentDataNotReceivedData: this.showingSentDataNotReceivedData,
+      personData: personData,
+      personId: personId,
+      podName: this.podName,
+      personName: this.personName,
+      podMembers: podMembers,
+      podMemberships: podMemberships);
 }
 
 class _MainListDisplayViewState extends State<MainListDisplayView> {
@@ -51,6 +69,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   final String? podName;
   final String? personName;
   final String? personId;
+  final ProfileData? personData;
 
   /// Only relevant if the view mode is podMembers. Shows the members of a pod.
   final List<ProfileData>? podMembers;
@@ -63,11 +82,17 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
 
   _MainListDisplayViewState(
       {required this.viewMode,
-      required this.showingSentDataNotReceivedData, this.personId, this.podName, this.personName,
+      required this.showingSentDataNotReceivedData,
+      this.personData,
+      this.personId,
+      this.podName,
+      this.personName,
       this.podMembers,
       this.podMemberships}) {
-    this.isPodMode = viewMode == MainListDisplayViewModes.searchPods || viewMode == MainListDisplayViewModes.myPods
-        || viewMode == MainListDisplayViewModes.podMemberships;
+    this.isPodMode = viewMode == MainListDisplayViewModes.searchPods ||
+        viewMode == MainListDisplayViewModes.myPods ||
+        viewMode == MainListDisplayViewModes.podMemberships ||
+        viewMode == MainListDisplayViewModes.addPersonToPod;
   }
 
   /// Stores a list of people to display. Use this property if displaying people
@@ -76,11 +101,15 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   /// The actually-displayed list of people. Includes code to filter the list of people to include only the
   /// results where a part of the name or bio matches the search text.
   List<ProfileData> get _displayedListOfPeople {
-    if (_searchTextController.text.trim().isEmpty) return _listOfPeople;
+    if (_searchTextController.text.trim().isEmpty)
+      return _listOfPeople;
     else {
       final searchText = _searchTextController.text.trim();
-      final filteredList = _listOfPeople.where((person) => person.name.toLowerCase().contains(searchText.toLowerCase
-        ()) || person.bio.toLowerCase().contains(searchText.toLowerCase())).toList();
+      final filteredList = _listOfPeople
+          .where((person) =>
+              person.name.toLowerCase().contains(searchText.toLowerCase()) ||
+              person.bio.toLowerCase().contains(searchText.toLowerCase()))
+          .toList();
       return filteredList;
     }
   }
@@ -91,11 +120,15 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   /// The actually-displayed list of pods. Includes code to filter the list of pods to include only the results
   /// where a part of the name or bio matches the search text.
   List<PodData> get _displayedListOfPods {
-    if (_searchTextController.text.trim().isEmpty) return _listOfPods;
+    if (_searchTextController.text.trim().isEmpty)
+      return _listOfPods;
     else {
       final searchText = _searchTextController.text.trim();
-      final filteredList = _listOfPods.where((pod) => pod.name.toLowerCase().contains(searchText.toLowerCase()) ||
-          pod.description.toLowerCase().contains(searchText.toLowerCase())).toList();
+      final filteredList = _listOfPods
+          .where((pod) =>
+              pod.name.toLowerCase().contains(searchText.toLowerCase()) ||
+              pod.description.toLowerCase().contains(searchText.toLowerCase()))
+          .toList();
       return filteredList;
     }
   }
@@ -131,9 +164,14 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         {
           return "$podName Members";
         }
-      case MainListDisplayViewModes.podMemberships: {
-        return personId == myFirebaseUserId ? "My Pods" : "${personName ?? "User"}'s Pods";
-      }
+      case MainListDisplayViewModes.podMemberships:
+        {
+          return personId == myFirebaseUserId ? "My Pods" : "${personName ?? "User"}'s Pods";
+        }
+      case MainListDisplayViewModes.addPersonToPod:
+        {
+          return "Add ${personData?.name.firstName() ?? "User"} To Pod";
+        }
 
       case MainListDisplayViewModes.searchUsers:
         {
@@ -162,6 +200,128 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
 
   /// Set to true if I'm searching for a user or pod by name and the list is loading
   var isLoadingList = false;
+
+  /// Assuming that the viewMode is addPersonToPod, then check if a person is already a member of a pod, and if not,
+  /// give me the option to add them to the pod
+  void _addPersonToPod({required ProfileData personData, required PodData podData}) async {
+    if (viewMode != MainListDisplayViewModes.addPersonToPod) return;
+    final isBlockedFromPod = await _checkIfPersonIsBlockedFromPod(podID: podData.podID, personID: personData.userID);
+    final isMemberOfPod = await _checkIfPersonIsInPod(podID: podData.podID, personID: personData.userID);
+
+    // if the person is blocked, show an alert saying why they can't be added
+    if (isBlockedFromPod) {
+      // unable to add [PERSON] to [POD]. They are blocked from [POD].
+      final blockedAlert = CupertinoAlertDialog(
+        title: Text("Unable to add $personName to $podName"),
+        content: Text(
+            "${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: true)} ${PronounFormatter.isOrAre(pronoun: personData.preferredPronoun, shouldBeCapitalized: false)} blocked "
+            "from $podName"),
+        actions: [
+          CupertinoButton(
+              child: Text("OK"),
+              onPressed: () {
+                this._selectedIndex = null; // clear the selected index to remove the list highlight
+                dismissAlert(context: context);
+              })
+        ],
+      );
+      showCupertinoDialog(context: context, builder: (context) => blockedAlert);
+    }
+
+    // if the person is in the pod, show an alert saying they're already in there.
+    else if (isMemberOfPod) {
+      final alreadyMemberAlert = CupertinoAlertDialog(
+        title: Text("Cannot add ${personData.name} to ${podData.name}"),
+        content: Text(
+            "${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense:
+            PronounTenses.HeSheThey, shouldBeCapitalized: true)} ${PronounFormatter.isOrAre(pronoun: personData
+                .preferredPronoun, shouldBeCapitalized: false)} already a member of ${podData.name}"),
+        actions: [
+          CupertinoButton(
+              child: Text("OK"),
+              onPressed: () {
+                this._selectedIndex = null; // clear the selected index to remove the list highlight
+                dismissAlert(context: context);
+              })
+        ],
+      );
+      showCupertinoDialog(context: context, builder: (context) => alreadyMemberAlert);
+    }
+
+    // if the person is neither blocked nor already a member, then add them
+    else {
+      final addMemberAlert = CupertinoAlertDialog(
+        title: Text("Add ${personData.name} to ${podData.name}?"),
+        content: Text("Are you sure you want to proceed?"),
+        actions: [
+          // Cancel button
+          CupertinoButton(
+            child: Text("No"),
+            onPressed: () {
+              this._selectedIndex = null; // clear the selected index to remove the list highlight
+              dismissAlert(context: context);
+            },
+          ),
+
+          // add them button
+          CupertinoButton(
+              child: Text("Yes"),
+              onPressed: () {
+                this._selectedIndex = null; // clear the selected index to remove the list highlight
+                dismissAlert(context: context);
+                final timeSinceEpochInSeconds = DateTime.now().millisecondsSinceEpoch * 0.001;
+                final infoDict = PodMemberInfoDict(
+                    userID: personData.userID,
+                    bio: personData.bio,
+                    birthday: personData.birthday,
+                    joinedAt: timeSinceEpochInSeconds,
+                    name: personData.name,
+                    thumbnailURL: personData.thumbnailURL);
+                PodsDatabasePaths(podID: podData.podID, userID: personData.userID).joinPod(
+                    personData: infoDict,
+                    onSuccess: () {
+                      final podMembers = PodMembersDictionary.sharedInstance.dictionary.value[podData.podID] ?? [];
+                      if (!podMembers.contains(personData)) {
+                        if (PodMembersDictionary.sharedInstance.dictionary.value[podData.podID] == null)
+                          PodMembersDictionary.sharedInstance.dictionary.value[podData.podID] =
+                              []; // initialize a list if necessary
+                        PodMembersDictionary.sharedInstance.dictionary.value[podData.podID]?.add(personData);
+                        PodMembersDictionary.sharedInstance.dictionary.notifyListeners();
+                        PodMembersDictionary.sharedInstance.updateTheOtherDictionaries();
+                      }
+
+                      final successAlert = CupertinoAlertDialog(title: Text("${personData.name} added to ${podData
+                          .name}"), actions: [
+                            CupertinoButton(child: Text("OK"), onPressed: (){
+                              // no need to clear the selected index here; it was already cleared when the Yes button
+                              // was tapped.
+                              dismissAlert(context: context);
+                            })
+                      ],);
+                      showCupertinoDialog(context: context, builder: (context) => successAlert);
+                    }, onError: (error){
+                      print("An error occurred while joining or adding someone to a pod :$error");
+                });
+              })
+        ],
+      );
+      showCupertinoDialog(context: context, builder: (context) => addMemberAlert);
+    }
+  }
+
+  /// Assuming that the viewMode is addPersonToPod, then check if a person is blocked from a pod
+  Future<bool> _checkIfPersonIsBlockedFromPod({required String podID, required String personID}) async {
+    final task = PodDataDownloaders.sharedInstance.getPodBlockedUsers(podID: podID);
+    final blockedUsers = await task;
+    return blockedUsers.contains(personID);
+  }
+
+  /// Assuming that the viewMode is addPersonToPod, then check if a person is a member of a pod
+  Future<bool> _checkIfPersonIsInPod({required String podID, required String personID}) async {
+    final task = PodDataDownloaders.sharedInstance.getPodMembers(podID: podID);
+    final members = await task;
+    return members.contains(personID);
+  }
 
   @override
   void initState() {
@@ -211,13 +371,28 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
       }
     }
 
-    // If the viewMode is podMemberships, populate the list with the passed-in value (sorted alphabetically)
-    if (viewMode == MainListDisplayViewModes.podMemberships){
-      if (podMemberships != null){
+    // If the viewMode is podMemberships (the pods that a person is in), populate the list with the passed-in value
+    // (sorted alphabetically)
+    if (viewMode == MainListDisplayViewModes.podMemberships) {
+      if (podMemberships != null) {
         var sortedPodMemberships = podMemberships ?? [];
         sortedPodMemberships.sort((a, b) => a.name.compareTo(b.name));
         this._listOfPods = sortedPodMemberships;
       }
+    }
+
+    // If the viewMode is addPersonToPod or yPods, display the list of pods I'm in
+    if (viewMode == MainListDisplayViewModes.myPods || viewMode == MainListDisplayViewModes.addPersonToPod) {
+      var myPods = ShowMyPodsBackendFunctions.shared.sortedListOfPods.value;
+      myPods.sort((a, b) => a.name.compareTo(b.name)); // sort alphabetically
+      this._listOfPods = myPods;
+
+      // also continuously listen in case I join or leave a pod
+      ShowMyPodsBackendFunctions.shared.sortedListOfPods.addListener(() {
+        var myPods = ShowMyPodsBackendFunctions.shared.sortedListOfPods.value;
+        myPods.sort((a, b) => a.name.compareTo(b.name)); // sort alphabetically
+        this._listOfPods = myPods;
+      });
     }
   }
 
@@ -384,6 +559,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   void dispose() {
     super.dispose();
     _customScrollViewController.removeListener(() {});
+    ShowMyPodsBackendFunctions.shared.sortedListOfPods.removeListener(() {});
   }
 
   @override
@@ -485,8 +661,17 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                           });
 
                           // navigate to view pod details
-                          Navigator.of(context, rootNavigator: true)
-                              .push(CupertinoPageRoute(builder: (context) => ViewPodDetails(podID: pod.podID)));
+                          if (viewMode != MainListDisplayViewModes.addPersonToPod)
+                            Navigator.of(context, rootNavigator: true)
+                                .push(CupertinoPageRoute(builder: (context) => ViewPodDetails(podID: pod.podID)));
+
+                          // show a dialog allowing me to add the person to a pod
+                          else {
+                            final personData = this.personData;
+                            if (personData != null) this._addPersonToPod(personData: personData, podData: pod);
+                          }
+
+                          // add the person to the pod
                         },
                         child: Card(
                           color: _selectedIndex == _listOfPods.indexWhere((element) => element == pod)
@@ -510,7 +695,8 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                   )),
 
                 if (isPodMode && this._displayedListOfPods.isEmpty)
-                  SafeArea(child: Text(
+                  SafeArea(
+                      child: Text(
                     isSearching ? "No results found" : "No pods to display",
                     style: TextStyle(color: CupertinoColors.inactiveGray),
                   )),

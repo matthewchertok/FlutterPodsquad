@@ -43,14 +43,16 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
   List<ProfileData> _podBlockedUsersList = [];
 
   PodData podData = PodData(
-      name: "Name N/A",
+      name: "",
       dateCreated: 0,
-      description: "Description N/A",
+      description: "",
       anyoneCanJoin: false,
-      podID: "podID",
-      podCreatorID: "podCreatorID",
-      thumbnailURL: "thumbnailURL",
-      fullPhotoURL: "fullPhotoURL",
+      podID: "",
+      podCreatorID: "",
+      thumbnailURL: "",
+      thumbnailPath: "",
+      fullPhotoURL: "",
+      fullPhotoPath: "",
       podScore: 0);
 
   /// Get the pod data
@@ -174,62 +176,99 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
 
   /// Show a confirmation alert to leave a pod
   void _leavePod() {
-    final alertContent = _podMembersList.length > 1 ? "Are you sure you want to leave ${podData.name}" : "You are the"
-        " last member of ${podData.name}. Leaving will delete the pod.";
-    final leavePodAlert = CupertinoAlertDialog(title: Text("Leave Pod"), content: Text(alertContent), actions: [
+    final alertContent = _podMembersList.length > 1
+        ? "Are you sure you want to leave ${podData.name}"
+        : "You are the"
+            " last member of ${podData.name}. Leaving will delete the pod.";
+    final leavePodAlert = CupertinoAlertDialog(
+      title: Text("Leave Pod"),
+      content: Text(alertContent),
+      actions: [
+        // cancel button
+        CupertinoButton(
+            child: Text("No"),
+            onPressed: () {
+              dismissAlert(context: context);
+            }),
 
-      // cancel button
-      CupertinoButton(child: Text("No"), onPressed: (){
-        dismissAlert(context: context);
-      }),
+        // leave button
+        CupertinoButton(
+            child: Text(
+              "Yes",
+              style: TextStyle(
+                  color: _podMembersList.length > 1 ? CupertinoColors.systemBlue : CupertinoColors.destructiveRed),
+            ),
+            onPressed: () {
+              dismissAlert(context: context);
+              final myName = MyProfileTabBackendFunctions.shared.myProfileData.value.name;
 
-      // leave button
-      CupertinoButton(child: Text("Yes", style: TextStyle(color: _podMembersList.length > 1 ? CupertinoColors
-          .systemBlue : CupertinoColors.destructiveRed),),
-          onPressed:
-          (){
-        dismissAlert(context: context);
-        final myName = MyProfileTabBackendFunctions.shared.myProfileData.value.name;
+              // If I'm not the last person, then send a message in the chat saying that I left
+              PodsDatabasePaths(podID: podID, userID: myFirebaseUserId).leavePod(
+                  podName: podData.name,
+                  personName: myName,
+                  shouldTextPodMembers: _podMembersList.length > 1,
+                  onSuccess: () {
+                    final successAlert = CupertinoAlertDialog(
+                      title: Text(_podMembersList.length > 0 ? "You left ${podData.name}" : "Pod Deleted"),
+                      content: _podMembersList.length > 0
+                          ? null
+                          : Text("You were the last person to leave ${podData.name}, causing it to be deleted"),
+                      actions: [
+                        CupertinoButton(
+                            child: Text("OK"),
+                            onPressed: () {
+                              dismissAlert(context: context);
 
-        // If I'm not the last person, then send a message in the chat saying that I left
-        PodsDatabasePaths(podID: podID, userID: myFirebaseUserId).leavePod(podName: podData.name, personName: myName,
-            shouldTextPodMembers: _podMembersList.length > 1, onSuccess: (){
-          final successAlert = CupertinoAlertDialog(title: Text(_podMembersList.length > 0 ? "You left ${podData
-              .name}" : "You were the last person to leave ${podData.name}, causing it to be deleted"), actions: [
-                CupertinoButton(child: Text("OK"), onPressed: (){
-                  dismissAlert(context: context);
-                })
-          ],);
-          showCupertinoDialog(context: context, builder: (context) => successAlert);
-            });
-      })
-    ],);
+                              // Go back if the pod is deleted, since it no longer exists.
+                              if (_podMembersList.length == 0) Navigator.of(context, rootNavigator: true).pop();
+                            })
+                      ],
+                    );
+                    showCupertinoDialog(context: context, builder: (context) => successAlert);
+                  });
+            })
+      ],
+    );
     showCupertinoDialog(context: context, builder: (context) => leavePodAlert);
   }
 
   /// Show a confirmation alert to delete a pod
   void _deletePod() {
-    final deletePodAlert = CupertinoAlertDialog(title: Text("Delete Pod"), content: Text("Are you sure you want to "
-        "delete ${podData.name}? You cannot undo this action."), actions: [
-
-          // cancel button
-      CupertinoButton(child: Text("No"), onPressed: (){
-        dismissAlert(context: context);
-      }),
-
-      // delete button
-      CupertinoButton(child: Text("Yes", style: TextStyle(color: CupertinoColors.destructiveRed)), onPressed: (){
-        dismissAlert(context: context);
-        PodsDatabasePaths(podID: podID).deletePod(podName: podData.name, onCompletion: (){
-          final deletedAlert = CupertinoAlertDialog(title: Text("${podData.name} Deleted"), actions: [
-            CupertinoButton(child: Text("OK"), onPressed: (){
+    final deletePodAlert = CupertinoAlertDialog(
+      title: Text("Delete Pod"),
+      content: Text("Are you sure you want to "
+          "delete ${podData.name}? You cannot undo this action."),
+      actions: [
+        // cancel button
+        CupertinoButton(
+            child: Text("No"),
+            onPressed: () {
               dismissAlert(context: context);
+            }),
+
+        // delete button
+        CupertinoButton(
+            child: Text("Yes", style: TextStyle(color: CupertinoColors.destructiveRed)),
+            onPressed: () {
+              dismissAlert(context: context);
+              PodsDatabasePaths(podID: podID).deletePod(
+                  podName: podData.name,
+                  onCompletion: () {
+                    final deletedAlert = CupertinoAlertDialog(
+                      title: Text("${podData.name} Deleted"),
+                      actions: [
+                        CupertinoButton(
+                            child: Text("OK"),
+                            onPressed: () {
+                              dismissAlert(context: context);
+                            })
+                      ],
+                    );
+                    showCupertinoDialog(context: context, builder: (context) => deletedAlert);
+                  });
             })
-          ],);
-          showCupertinoDialog(context: context, builder: (context) => deletedAlert);
-        });
-      })
-    ],);
+      ],
+    );
     showCupertinoDialog(context: context, builder: (context) => deletePodAlert);
   }
 
@@ -267,13 +306,19 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
 
                     // Only Members Can Add Members alert
                     else if (!podData.anyoneCanJoin) {
-                      final permissionAlert = CupertinoAlertDialog(title: Text("Unable To Join Pod"), content: Text
-                        ("${podData.name} is a closed group, meaning that only current members can add new members. "
-                          "Try messaging someone in ${podData.name} and ask to be added."), actions: [
-                            CupertinoButton(child: Text("OK"), onPressed: (){
-                              dismissAlert(context: context);
-                            })
-                      ],);
+                      final permissionAlert = CupertinoAlertDialog(
+                        title: Text("Unable To Join Pod"),
+                        content: Text(
+                            "${podData.name} is a closed group, meaning that only current members can add new members. "
+                            "Try messaging someone in ${podData.name} and ask to be added."),
+                        actions: [
+                          CupertinoButton(
+                              child: Text("OK"),
+                              onPressed: () {
+                                dismissAlert(context: context);
+                              })
+                        ],
+                      );
                       showCupertinoDialog(context: context, builder: (context) => permissionAlert);
                     }
 
@@ -291,9 +336,10 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
                   dismissAlert(context: context);
                   Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                       builder: (context) => MainListDisplayView(
-                          viewMode: MainListDisplayViewModes.podMembers,
-                          podMembers: _podMembersList,
-                          podData: podData,)));
+                            viewMode: MainListDisplayViewModes.podMembers,
+                            podMembers: _podMembersList,
+                            podData: podData,
+                          )));
                 },
                 child: Text("Pod Members")),
 
@@ -388,8 +434,10 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(padding: EdgeInsetsDirectional.all(5),
-          middle: Text(podData.name), trailing: _navBarTrailingButton(),
+        navigationBar: CupertinoNavigationBar(
+          padding: EdgeInsetsDirectional.all(5),
+          middle: Text(podData.name),
+          trailing: _navBarTrailingButton(),
         ),
         child: SafeArea(
           child: SingleChildScrollView(
@@ -473,9 +521,10 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
                                   onPressed: () {
                                     Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                                         builder: (context) => MainListDisplayView(
-                                            viewMode: MainListDisplayViewModes.podMembers,
-                                            podMembers: _podMembersList,
-                                            podData: podData,)));
+                                              viewMode: MainListDisplayViewModes.podMembers,
+                                              podMembers: _podMembersList,
+                                              podData: podData,
+                                            )));
                                   },
                                   padding: EdgeInsets.zero,
                                   minSize: 35,

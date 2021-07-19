@@ -9,6 +9,9 @@ import 'package:podsquad/BackendFunctions/PronounFormatter.dart';
 import 'package:podsquad/BackendFunctions/PushNotificationSender.dart';
 import 'package:podsquad/BackendDataclasses/PodMemberInfoDict.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
+import 'package:podsquad/UIBackendClasses/MainListDisplayBackend.dart';
+import 'package:podsquad/UIBackendClasses/MessagesDictionary.dart';
+import 'package:podsquad/UIBackendClasses/MessagingTabFunctions.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 import 'ProfileDatabasePaths.dart';
@@ -122,9 +125,10 @@ class PodsDatabasePaths {
     //first, we need to check if we're the last person left in the pod. If we are, delete the pod.
     podDocument.collection("members").get().then((membersSnapshot) {
       final memberCount = membersSnapshot.docs.length;
-      // if I"m the last person in the pod, delete it
-      if (memberCount == 1)
-        deletePod(podName: podName, onCompletion: onSuccess);
+      // if I'm the last person in the pod, delete it
+      if (memberCount == 1) {
+        this.deletePod(podName: podName, onCompletion: onSuccess);
+      }
       else {
         this.removeMemberFromPod(onCompletion: () {
           // if requested, send a message to the pod saying that I left
@@ -188,6 +192,24 @@ class PodsDatabasePaths {
           PodMembersDictionary.sharedInstance.dictionary.value[this.podID]?.clear();
           PodMembersDictionary.sharedInstance.blockedDictionary.value[this.podID]?.clear();
           PodMembersDictionary.sharedInstance.updateTheOtherDictionaries();
+
+          // also delete all messages, latest message previews, and pod memberships associated with the pod. I must
+          // do this manually because if the pod is deleted, its parent document will not longer exist, which will
+          // mess up the listeners that would otherwise handle this.
+
+          // Delete the latest message preview for the pod
+          LatestPodMessagesDictionary.shared.latestMessagesDict.remove(this.podID);
+          LatestPodMessagesDictionary.shared.refreshLatestMessagesList(newDict: LatestPodMessagesDictionary.shared
+              .latestMessagesDict);
+
+          // delete all messages in the pod
+          MessagesDictionary.shared.podMessageDict.value.remove(this.podID);
+          MessagesDictionary.shared.podMessageDict.notifyListeners();
+
+          // Delete the pod from the list of pods I'm in
+          ShowMyPodsBackendFunctions.shared.listOfPods.removeWhere((pod) => pod.podID == this.podID);
+          ShowMyPodsBackendFunctions.shared.sortListOfPods(); // updates any views that are listening
+
           if (onCompletion != null) onCompletion();
         }
       }).catchError((error) {
@@ -363,6 +385,7 @@ class PodsDatabasePaths {
         final personID = document.get("userID") as String;
         if (!this._podMembersIDsList.contains(personID)) this._podMembersIDsList.add(personID);
       }
+      if (onCompletion != null) onCompletion();
     });
   }
 
@@ -396,7 +419,9 @@ class PodsDatabasePaths {
       final podID = profileInfo["podID"] as String;
       final podCreatorID = profileInfo["podCreatorID"] as String;
       final thumbnailURL = profileInfo["thumbnailURL"] as String;
+      final thumbnailPath = profileInfo["thumbnailPath"] as String;
       final fullPhotoURL = profileInfo["fullPhotoURL"] as String;
+      final fullPhotoPath = profileInfo["fullPhotoPath"] as String;
       final podScoreRaw = profileInfo["podScore"] as num? ?? 0; // pod score for pods is stored as an integer, not a
       // double
       final podScore = podScoreRaw.toInt();
@@ -414,8 +439,8 @@ class PodsDatabasePaths {
           anyoneCanJoin: anyoneCanJoin,
           podID: podID,
           podCreatorID: podCreatorID,
-          thumbnailURL: thumbnailURL,
-          fullPhotoURL: fullPhotoURL,
+          thumbnailURL: thumbnailURL, thumbnailPath: thumbnailPath,
+          fullPhotoURL: fullPhotoURL, fullPhotoPath: fullPhotoPath,
           podScore: podScore);
 
       onCompletion(podData);
@@ -434,7 +459,9 @@ class PodsDatabasePaths {
       final podID = profileInfo["podID"] as String;
       final podCreatorID = profileInfo["podCreatorID"] as String;
       final thumbnailURL = profileInfo["thumbnailURL"] as String;
+      final thumbnailPath = profileInfo["thumbnailPath"] as String;
       final fullPhotoURL = profileInfo["fullPhotoURL"] as String;
+      final fullPhotoPath = profileInfo["fullPhotoPath"] as String;
       final podScoreRaw = profileInfo["podScore"] as num? ?? 0; // pod score for pods is stored as an integer, not a
       // double
       final podScore = podScoreRaw.toInt();
@@ -452,8 +479,8 @@ class PodsDatabasePaths {
           anyoneCanJoin: anyoneCanJoin,
           podID: podID,
           podCreatorID: podCreatorID,
-          thumbnailURL: thumbnailURL,
-          fullPhotoURL: fullPhotoURL,
+          thumbnailURL: thumbnailURL, thumbnailPath: thumbnailPath,
+          fullPhotoURL: fullPhotoURL, fullPhotoPath: fullPhotoPath,
           podScore: podScore);
 
       onCompletion(podData);

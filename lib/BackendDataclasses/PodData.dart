@@ -6,7 +6,9 @@ class PodData {
   String podID;
   String podCreatorID;
   String thumbnailURL;
+  String thumbnailPath;
   String fullPhotoURL;
+  String fullPhotoPath;
   int podScore;
 
   PodData(
@@ -16,8 +18,8 @@ class PodData {
       required this.anyoneCanJoin,
       required this.podID,
       required this.podCreatorID,
-      required this.thumbnailURL,
-      required this.fullPhotoURL,
+      required this.thumbnailURL, required this.thumbnailPath,
+      required this.fullPhotoURL, required this.fullPhotoPath,
       required this.podScore});
 
 

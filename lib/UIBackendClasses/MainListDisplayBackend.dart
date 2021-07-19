@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:podsquad/BackendDataHolders/PodMembersDictionary.dart';
 import 'package:podsquad/BackendDataclasses/MainListDisplayViewModes.dart';
 import 'package:podsquad/BackendDataclasses/PodData.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';
@@ -23,9 +22,6 @@ abstract class MainListDisplayBackend {
   // Class constructor
   MainListDisplayBackend({required this.viewMode, required this.showingSentDataNotReceivedData});
 
-  ///Continuously observe who is in the pod
-  ValueNotifier<PodMembersDictionary> _podMembersDict = ValueNotifier(PodMembersDictionary.sharedInstance);
-
   ///If viewing blocked members for a pod, change the image from locked to unlocked for a person if I tap it, then
   ///back to locked if I choose not to unblocked the person. Maps {userID: lock_image}.
   var _lockIconDictionary = Map<String?, Image>();
@@ -40,27 +36,24 @@ abstract class MainListDisplayBackend {
 
   //Important variable!
   ///The list of pods to be displayed in the specified view, if the view type is myPods.
-  ValueNotifier<List<PodData>> get sortedListOfPods {
-    // For a custom list, there is no need to sort it (although this case isn't used yet so don't worry about it)
-    if (this.viewMode == MainListDisplayViewModes.customList)
-      return listOfPods;
-
-    // When viewing the members of a pod or viewing the list of pods I'm in, sort the list alphabetically by name.
-    else {
-      listOfPods.value.sort((a, b) => a.name.compareTo(b.name));
-      return listOfPods;
-    }
-  }
+  ValueNotifier<List<PodData>> sortedListOfPods  = ValueNotifier([]);
 
   /// Use this essentially as a setter for sortedListOfPods. Update this value, and sortedListOfPods will
   /// automatically return the sorted results.
-  ValueNotifier<List<PodData>> listOfPods = ValueNotifier([]);
+  List<PodData> listOfPods = [];
 
-  ///Saves the list of people so that we can get the list back after searching it
-  List<ProfileData> _savedListOfPeople = [];
+  /// Use this to convert listOfPods into sortedListOfPods
+  void sortListOfPods(){
+    // For a custom list, there is no need to sort it (although this case isn't used yet so don't worry about it)
+    if (this.viewMode == MainListDisplayViewModes.customList)
+      sortedListOfPods.value = listOfPods;
 
-  ///Saves the list of pods so that we can get the list back after searching it
-  List<PodData> _savedListOfPods = [];
+    // When viewing the members of a pod or viewing the list of pods I'm in, sort the list alphabetically by name.
+    else {
+      listOfPods.sort((a, b) => a.name.compareTo(b.name));
+      sortedListOfPods.value = listOfPods;
+    }
+  }
 
   ///Shows "you haven't friended/blocked/liked anybody yet" when set to true
   ValueNotifier<bool> isShowingNobodyFound = ValueNotifier(false);
@@ -73,7 +66,7 @@ abstract class MainListDisplayBackend {
   List<StreamSubscription> _listenerRegistrations = [];
 
   /// Take listOfPeople and sort it in order to make sortedListOfPeople
-  void _sortListOfPeople(){
+  void _sortListOfPeople() {
     // For a custom list, there is no need to sort it (although this case isn't used yet so don't worry about it)
     if (this.viewMode == MainListDisplayViewModes.customList)
       sortedListOfPeople.value = listOfPeople;
@@ -86,7 +79,7 @@ abstract class MainListDisplayBackend {
 
     // For all other cases, sort the list in descending order based on the time I met the person.
     else {
-      listOfPeople.sort((b, a) => (a.timeIMetThePerson?? 0).compareTo(b.timeIMetThePerson ?? 0));
+      listOfPeople.sort((b, a) => (a.timeIMetThePerson ?? 0).compareTo(b.timeIMetThePerson ?? 0));
       sortedListOfPeople.value = listOfPeople;
     }
   }
@@ -100,14 +93,8 @@ abstract class MainListDisplayBackend {
 
     _lockIconDictionary.clear();
     listOfPeople.clear();
-    _savedListOfPeople.clear();
     isShowingNobodyFound.value = false;
     didGetData.value = false;
-  }
-
-  ///Ensure that when navigating away from a tab, the search results get cleared.
-  void resetSearch() {
-    sortedListOfPeople.value = _savedListOfPeople;
   }
 
   //TODO: start translating code from line 91 - addDataToListView()
@@ -122,7 +109,6 @@ abstract class MainListDisplayBackend {
   void _getDataBasedOnListType({required String viewMode}) {
     // clear the lists of people to avoid duplicates (to be safe)
     listOfPeople.clear();
-    _savedListOfPeople.clear();
     switch (viewMode) {
       case MainListDisplayViewModes.likes:
         {
@@ -190,7 +176,6 @@ abstract class MainListDisplayBackend {
             // add the person to the displayed list
             if (!listOfPeople.contains(getData.profileData)) {
               listOfPeople.add(getData.profileData);
-              _savedListOfPeople.add(getData.profileData);
               this._sortListOfPeople();
               sortedListOfPeople.notifyListeners(); // notify the views that data has changed
             }
@@ -198,10 +183,8 @@ abstract class MainListDisplayBackend {
           onChildChanged: () {
             // remove the old entry and replace it with the new one
             listOfPeople.removeWhere((person) => person.userID == getData.changedChildID);
-            _savedListOfPeople.removeWhere((person) => person.userID == getData.changedChildID);
             if (!listOfPeople.contains(getData.profileData)) {
               listOfPeople.add(getData.profileData);
-              _savedListOfPeople.add(getData.profileData);
               this._sortListOfPeople();
               sortedListOfPeople.notifyListeners(); // notify the views that data has changed
             }
@@ -209,7 +192,6 @@ abstract class MainListDisplayBackend {
           onChildRemoved: () {
             // remove the person from the list
             listOfPeople.removeWhere((person) => person.userID == getData.removedChildID);
-            _savedListOfPeople.removeWhere((person) => person.userID == getData.removedChildID);
             this._sortListOfPeople();
             sortedListOfPeople.notifyListeners(); // notify the views that data has changed
           },
@@ -235,23 +217,22 @@ abstract class MainListDisplayBackend {
       getData.getListDataForPodsImIn(
           query: query,
           onChildAdded: () {
-            if (!sortedListOfPods.value.contains(getData.podData)) {
-              sortedListOfPods.value.add(getData.podData);
-              _savedListOfPods.add(getData.podData);
+            if (!listOfPods.contains(getData.podData)) {
+              listOfPods.add(getData.podData);
+              sortListOfPods();
             }
           },
           onChildChanged: () {
             // remove the old entry and replace it with the new one
-            sortedListOfPods.value.removeWhere((pod) => pod.podID == getData.changedChildID);
-            _savedListOfPeople.removeWhere((pod) => pod.userID == getData.changedChildID);
-            if (!sortedListOfPods.value.contains(getData.podData)) {
-              sortedListOfPods.value.add(getData.podData);
-              _savedListOfPods.add(getData.podData);
+            listOfPods.removeWhere((pod) => pod.podID == getData.changedChildID);
+            if (!listOfPods.contains(getData.podData)) {
+              listOfPods.add(getData.podData);
+              sortListOfPods();
             }
           },
           onChildRemoved: () {
-            sortedListOfPods.value.removeWhere((pod) => pod.podID == getData.removedChildID);
-            _savedListOfPods.removeWhere((pod) => pod.podID == getData.removedChildID);
+            listOfPods.removeWhere((pod) => pod.podID == getData.removedChildID);
+            sortListOfPods();
           },
           onValueChanged: () {
             // if there is no data to show, display "you aren't in any pods yet"
@@ -261,33 +242,6 @@ abstract class MainListDisplayBackend {
               isShowingNobodyFound.value = false;
           });
     }
-  }
-
-  ///When the search bar text changes, filter the displayed list to only show results that contain any part of the
-  ///string
-  void searchPeople({required String searchText}) {
-    // restores the original list so that if I misspell something, I can hit backspace and get results without having
-    // to clear the search text entirely and try again
-    sortedListOfPeople.value = _savedListOfPeople;
-    searchText.trim(); // trim the whitespace
-    if (searchText.isEmpty) return;
-
-    final peopleMatchingSearchText = sortedListOfPeople.value
-        .where((person) => person.name.toLowerCase().contains(searchText.toLowerCase()))
-        .toList();
-    sortedListOfPeople.value = peopleMatchingSearchText;
-  }
-
-  ///When the search bar text changes, filter the displayed list to only show results that contain any part of the
-  ///string
-  void searchPods({required String searchText}) {
-    sortedListOfPods.value = _savedListOfPods;
-    searchText.trim(); // trim the whitespace
-    if (searchText.isEmpty) return;
-
-    final podsMatchingSearchText =
-        sortedListOfPods.value.where((pod) => pod.name.toLowerCase().contains(searchText.toLowerCase())).toList();
-    sortedListOfPods.value = podsMatchingSearchText;
   }
 }
 

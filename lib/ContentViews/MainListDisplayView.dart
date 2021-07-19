@@ -771,7 +771,9 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   /// Get a pod's data given a map of type <String, dynamic>
   PodData _extractPodData({required Map podData, required String podID}) {
     final String thumbnailURL = podData["thumbnailURL"];
+    final String thumbnailPath = podData["thumbnailPath"];
     final String fullPhotoURL = podData["fullPhotoURL"];
+    final String fullPhotoPath = podData["fullPhotoPath"];
     final String podName = podData["name"];
     final num dateCreatedRaw = podData["dateCreated"];
     final double dateCreated = dateCreatedRaw.toDouble();
@@ -788,8 +790,8 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         anyoneCanJoin: anyoneCanJoin,
         podID: podID,
         podCreatorID: podCreatorID,
-        thumbnailURL: thumbnailURL,
-        fullPhotoURL: fullPhotoURL,
+        thumbnailURL: thumbnailURL, thumbnailPath: thumbnailPath,
+        fullPhotoURL: fullPhotoURL, fullPhotoPath: fullPhotoPath,
         podScore: podScore);
     return data;
   }

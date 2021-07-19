@@ -199,13 +199,15 @@ class ResizeAndUploadImage {
     final imageStoragePath = isPodMessage
         ? PodsDatabasePaths(podID: chatPartnerOrPodID).podMessagingImagesRef.child(imageId)
         : MessagingDatabasePaths(userID: myFirebaseUserId, interactingWithUserWithID: chatPartnerOrPodID)
-        .messageContentImagePath
-        .child(imageId);
+            .messageContentImagePath
+            .child(imageId);
 
     // resize the thumbnail and full image to make them smaller
     var inputImage = decodeImage(image.readAsBytesSync());
     if (inputImage == null) return null;
-    final resizedPhoto = inputImage.width >= inputImage.height ?  copyResize(inputImage, width: 1080) : copyResize(inputImage, height: 1080); // max
+    final resizedPhoto = inputImage.width >= inputImage.height
+        ? copyResize(inputImage, width: 1080)
+        : copyResize(inputImage, height: 1080); // max
     // allowed width or height for now is 1080 pixels
 
     // Save the photo as a jpg in the application directory
@@ -221,5 +223,118 @@ class ResizeAndUploadImage {
 
     return [fullImageDownloadURL, pathToFullImage];
   }
-}
 
+  /// Uploads a pod thumbnail and full image when creating a pod. Returns a Future list of strings in the following
+  /// order: thumbnailURL, thumbnailPath, fullPhotoURL, fullPhotoPath.
+  Future<List<String>?> uploadPodImage({required File image, required String podID}) async {
+    final thumbnailStoragePath = PodsDatabasePaths(podID: podID, imageName: "thumbnail").podImageRef;
+    final fullImageStoragePath = PodsDatabasePaths(podID: podID, imageName: "full_image").podImageRef;
+    this.isUploadInProgress.value = true;
+
+    /// Compress the image before uploading the thumbnail, in order to make it small to save storage space and
+    /// improve loading times
+
+    // resize the thumbnail and full image to make them smaller
+    var inputImage = decodeImage(image.readAsBytesSync());
+    if (inputImage == null) {
+      this.isUploadInProgress.value = false;
+      return null;
+    }
+
+    // Get the aspect ratio. For some reason, resizing with aspect ratio using the built-in function doesn't work
+    // (image fails to upload).
+    final currentWidth = inputImage.width;
+    final currentHeight = inputImage.height;
+    double targetToCurrentWidthRatio(targetWidth) => targetWidth / currentWidth;
+    double targetToCurrentHeightRatio(targetHeight) => targetHeight / currentHeight;
+
+    // We want to resize by the smaller of smaller of the two target to current ratios in order to make sure the
+    // image does not exceed the maximum allowed width or height.
+    int resizedImageWidth(targetWidth, targetHeight) =>
+        (currentWidth * min(targetToCurrentWidthRatio(targetWidth), targetToCurrentHeightRatio(targetHeight))).toInt();
+    int resizedImageHeight(targetWidth, targetHeight) =>
+        (currentHeight * min(targetToCurrentWidthRatio(targetWidth), targetToCurrentHeightRatio(targetHeight))).toInt();
+    final resizingThumbnail = copyResize(inputImage,
+        width: resizedImageWidth(250, 250), height: resizedImageHeight(250, 250)); // thumbnail is
+    // 125x125
+    final resizingFullPhoto =
+        copyResize(inputImage, width: resizedImageWidth(1080, 1080), height: resizedImageHeight(1080, 1080)); // full
+    // photo is 1080x1080
+
+    // Save the thumbnail as a PNG and overwrite the original image
+    image.writeAsBytesSync(encodePng(resizingThumbnail));
+
+    // Create an output path for the compressed thumbnail
+    final lastIndexThumbnail = image.path.lastIndexOf(RegExp(r'.jp'));
+    final splitThumbnailPath = image.path.substring(0, lastIndexThumbnail);
+    final thumbnailOutPath = "${splitThumbnailPath}_out${image.path.substring(lastIndexThumbnail)}";
+    final thumbnailBytes =
+        await FlutterImageCompress.compressAndGetFile(image.absolute.path, thumbnailOutPath, quality: 40)
+            .catchError((error) {
+      print("An error occurred while compressing my thumbnail: $error");
+      this.isUploadInProgress.value = false;
+    });
+    if (thumbnailBytes == null) {
+      this.isUploadInProgress.value = false;
+      return null;
+    }
+
+    // upload the thumbnail and get the download URL
+    TaskSnapshot thumbnailUploadTask = await thumbnailStoragePath.putFile(thumbnailBytes).catchError((error) {
+      print("An error occurred while uploading my thumbnail to storage: $error");
+      this.isUploadInProgress.value = false;
+    });
+    final pathToThumbnail = thumbnailUploadTask.ref.fullPath;
+    final thumbnailDownloadURL = await thumbnailUploadTask.ref.getDownloadURL().catchError((error) {
+      print("Error getting my thumbnail download URL: $error");
+      this.isUploadInProgress.value = false;
+    });
+
+    // Save the full photo as a png and overwrite the thumbnail
+    image.writeAsBytesSync(encodePng(resizingFullPhoto));
+
+    // Create an output path for the compressed full photo
+    final lastIndexFullPhoto = image.path.lastIndexOf(RegExp(r'.jp'));
+    final splitFullPhotoPath = image.path.substring(0, lastIndexFullPhoto);
+    final fullPhotoOutPath = "${splitFullPhotoPath}_out${image.path.substring(lastIndexFullPhoto)}";
+    final fullPhotoBytes =
+        await FlutterImageCompress.compressAndGetFile(image.absolute.path, fullPhotoOutPath).catchError((error) {
+      print("Image compression error: $error");
+      this.isUploadInProgress.value = false;
+    });
+    if (fullPhotoBytes == null) {
+      this.isUploadInProgress.value = false;
+      return null;
+    }
+
+    // upload the full photo and get the download URL
+    TaskSnapshot fullPhotoUploadTask = await fullImageStoragePath.putFile(fullPhotoBytes).catchError((error) {
+      print("An error occurred while uploading my full profile image to storage: $error");
+      this.isUploadInProgress.value = false;
+    });
+    final pathToFullImage = fullPhotoUploadTask.ref.fullPath;
+    final fullImageDownloadURL = await fullPhotoUploadTask.ref.getDownloadURL().catchError((error) {
+      print("Error getting the download URL: $error");
+      this.isUploadInProgress.value = false;
+    });
+
+    // Set the pod profile data with the thumbnail and full photo URL and path
+    final task = PodsDatabasePaths(podID: podID).podDocument.set({
+      "profileData": {
+        "thumbnailURL": thumbnailDownloadURL,
+        "thumbnailPath": pathToThumbnail,
+        "fullPhotoURL"
+            "": fullImageDownloadURL,
+        "fullPhotoPath": pathToFullImage
+      }
+    }, SetOptions(merge: true));
+
+    await task;
+    task.catchError((error) {
+      print("An error occurred while setting my new thumbnail URL: $error");
+      this.isUploadInProgress.value = false;
+    });
+    this.isUploadInProgress.value = false; // hide the loading spinner
+    return [thumbnailDownloadURL, pathToThumbnail, fullImageDownloadURL, pathToFullImage];
+  }
+}

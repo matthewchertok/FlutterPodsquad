@@ -355,9 +355,13 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                           height: 125.scaledForScreenSize(context: context),
                                         ),
                                         onPressed: () {
-                                          // Navigate to view my profile
+                                          // Navigate to view my profile (if it's complete)
+                                          if (MyProfileTabBackendFunctions.shared.isProfileComplete)
                                           Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                                               builder: (context) => ViewPersonDetails(personID: myFirebaseUserId)));
+
+                                          // otherwise, take a picture with the camera
+                                          else _pickImage(source: ImageSource.camera);
                                         },
                                       );
                               })),

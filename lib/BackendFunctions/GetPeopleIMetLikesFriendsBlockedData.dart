@@ -33,8 +33,8 @@ class GetPeopleIMetLikesFriendsBlockedData {
       anyoneCanJoin: false,
       podID: "podID",
       podCreatorID: "podCreatorID",
-      thumbnailURL: "thumbnailURL",
-      fullPhotoURL: "fullPhotoURL",
+      thumbnailURL: "thumbnailURL", thumbnailPath: "",
+      fullPhotoURL: "fullPhotoURL", fullPhotoPath: "",
       podScore: 0);
 
   ///When a child is removed, this is set and can be referenced
@@ -182,7 +182,9 @@ class GetPeopleIMetLikesFriendsBlockedData {
     final dateCreated = dateCreatedRaw.toDouble();
     final description = value["description"] as String;
     final fullPhotoURL = value["fullPhotoURL"] as String;
+    final fullPhotoPath = value["fullPhotoPath"] as String;
     final thumbnailURL = value["thumbnailURL"] as String;
+    final thumbnailPath = value["thumbnailPath"] as String;
     final podScoreRaw = value["podScore"] as num;
     final podScore = podScoreRaw.toInt();
 
@@ -193,8 +195,8 @@ class GetPeopleIMetLikesFriendsBlockedData {
         anyoneCanJoin: anyoneCanJoin,
         podID: podID,
         podCreatorID: podCreatorID,
-        thumbnailURL: thumbnailURL,
-        fullPhotoURL: fullPhotoURL,
+        thumbnailURL: thumbnailURL, thumbnailPath: thumbnailPath,
+        fullPhotoURL: fullPhotoURL, fullPhotoPath: fullPhotoPath,
         podScore: podScore);
     onPodDataReady();
   }

@@ -3,9 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:podsquad/BackendDataclasses/ChatMessageDataclasses.dart';
-import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
-import 'package:podsquad/UIBackendClasses/MessagesDictionary.dart';
 
 class MessagingTabFunctions {
   late final bool isPodMode;
@@ -17,10 +15,6 @@ class MessagingTabFunctions {
   ///Tracks the latest message in each conversation. Every time this dictionary changes, the displayed list is
   ///automatically updated as well.
   Map<String, ChatMessage> latestMessagesDict = {};
-
-  ///Saves a copy of _latestMessageList so that the list can be filtered and searched without losing the
-  ///original data
-  var savedLatestMessageList = <ChatMessage>[];
 
   ///Stores an ordered list of the latest message in all messaging conversations.
   List<ChatMessage> _latestMessageList = [];
@@ -57,17 +51,12 @@ class MessagingTabFunctions {
     _latestMessageListenersDict.clear();
     latestMessagesDict.clear();
     _latestMessageList.clear();
-    savedLatestMessageList.clear();
     isShowingNoMessages.value = false;
     didGetData.value = false;
   }
 
-  ///Reset the list of message conversations to the original, unfiltered list. Call this when navigating away from a
-  ///widget.
-  void resetSearch() => _latestMessageList = savedLatestMessageList;
-
   ///When latestMessageDict changes, ensure those changes are reflected in latestMessageList.
-  void _refreshLatestMessagesList({required Map<String, ChatMessage> newDict}) {
+  void refreshLatestMessagesList({required Map<String, ChatMessage> newDict}) {
     // build a new copy of the messages list before updating the display (to minimize flickering)
     List<ChatMessage> latestMessageList = [];
     newDict.values.forEach((message) {
@@ -78,7 +67,6 @@ class MessagingTabFunctions {
 
     // update the displayed lists with the new value
     _latestMessageList = latestMessageList;
-    savedLatestMessageList = latestMessageList;
 
     // Now update the sorted latest messages list
     if (_latestMessageList.isNotEmpty) {
@@ -105,30 +93,6 @@ class MessagingTabFunctions {
       sortedLatestMessageList.value.clear(); // clearing the value forces a state reset (otherwise nothing will
       // change, because the message IDs stay the same so the message won't update)
       sortedLatestMessageList.value = _latestMessageList;
-    }
-  }
-
-  ///Allow the user to search their message conversations
-  void searchMessagesList({required String searchText}) {
-    _latestMessageList = savedLatestMessageList; // restores the original list so that while searching, I
-    // can misspell something and hit backspace to get results instead of having to clear the search text entirely
-    // and try again.
-    if (searchText.isEmpty) return; // don't bother searching if the text is empty
-    if (isPodMode) {
-      // filter for messages where the pod name contains the search text
-      final messagesMatchingSearchText = _latestMessageList
-          .where((message) => (message.podName ??
-                  "search "
-                      "term doesn't match")
-              .toLowerCase()
-              .contains(searchText.toLowerCase()))
-          .toList();
-      _latestMessageList = messagesMatchingSearchText;
-    } else {
-      final messagesMatchingSearchText = _latestMessageList
-          .where((message) => message.chatPartnerName.toLowerCase().contains(searchText.toLowerCase()))
-          .toList();
-      _latestMessageList = messagesMatchingSearchText;
     }
   }
 
@@ -241,7 +205,7 @@ class MessagingTabFunctions {
               readBy: List<String>.from(readBy));
 
           latestMessagesDict[podID] = message; // update the latest message that gets displayed for the pod
-          _refreshLatestMessagesList(newDict: latestMessagesDict);
+          refreshLatestMessagesList(newDict: latestMessagesDict);
           print("LATEST MESSAGE IN POD CONVERSATION IS ${message.text}");
           // conversation in the Messaging tab
         });
@@ -263,7 +227,7 @@ class MessagingTabFunctions {
       final podProfileData = docSnapshot.get("profileData") as Map<String, dynamic>;
       final podName = podProfileData["name"] as String;
       latestMessagesDict[podID]?.podName = podName;
-      _refreshLatestMessagesList(newDict: latestMessagesDict);
+      refreshLatestMessagesList(newDict: latestMessagesDict);
     });
     _podNameListenersDict[podID] = listener; // track the listener so it can be removed later
   }
@@ -349,7 +313,7 @@ class MessagingTabFunctions {
           print("BIDEN - the latest message in my conversation with $senderName is ${chatMessage.text}");
           //replace the value in the message dictionary with a value equal to the latest chat message. Must
           latestMessagesDict[chatPartnerID] = chatMessage;
-          _refreshLatestMessagesList(newDict: latestMessagesDict);
+          refreshLatestMessagesList(newDict: latestMessagesDict);
         });
       }
 

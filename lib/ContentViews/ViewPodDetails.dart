@@ -261,6 +261,9 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
                             child: Text("OK"),
                             onPressed: () {
                               dismissAlert(context: context);
+
+                              // Go back if the pod is deleted, since it no longer exists.
+                              if (_podMembersList.length == 0) Navigator.of(context, rootNavigator: true).pop();
                             })
                       ],
                     );

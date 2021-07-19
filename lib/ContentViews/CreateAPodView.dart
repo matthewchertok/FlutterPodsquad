@@ -192,6 +192,9 @@ class _CreateAPodViewState extends State<CreateAPodView> {
     PodsDatabasePaths(podID: podID).getPodData(onCompletion: (podData){
       setState(() {
         this._podData = podData;
+        this._nameController.text = podData.name;
+        this._descriptionController.text = podData.description;
+        this._anyoneCanJoin = podData.anyoneCanJoin;
       });
     });
   }

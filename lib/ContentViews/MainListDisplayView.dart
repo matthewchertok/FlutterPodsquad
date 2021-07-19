@@ -199,37 +199,46 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                 if (podID != null && podCreatorID != null) {
                   // You can't remove the pod creator
                   if (person.userID != podCreatorID) {
-                    final removeMemberAlert = CupertinoAlertDialog(title: Text("Remove ${person.name}?"), content:
-                    Text("Are you sure you want to proceed?"), actions: [
-                      CupertinoButton(child: Text("No"), onPressed: (){
-                        dismissAlert(context: context);
-                      }),
+                    final removeMemberAlert = CupertinoAlertDialog(
+                      title: Text("Remove ${person.name}?"),
+                      content: Text("Are you sure you want to proceed?"),
+                      actions: [
+                        CupertinoButton(
+                            child: Text("No"),
+                            onPressed: () {
+                              dismissAlert(context: context);
+                            }),
+                        CupertinoButton(
+                            child: Text(
+                              "Yes",
+                              style: TextStyle(color: CupertinoColors.destructiveRed),
+                            ),
+                            onPressed: () {
+                              dismissAlert(context: context);
+                              PodsDatabasePaths(podID: podID, userID: person.userID).leavePod(
+                                  podName: podData?.name ?? "Pod",
+                                  personName: person.name,
+                                  onSuccess: () {
+                                    final successAlert = CupertinoAlertDialog(
+                                      title: Text("${person.name} Removed From ${podData?.name ?? "Pod"}"),
+                                      actions: [
+                                        CupertinoButton(
+                                            child: Text("OK"),
+                                            onPressed: () {
+                                              // remove the person from the list
+                                              setState(() {
+                                                _listOfPeople.removeWhere((element) => element.userID == person.userID);
+                                              });
 
-                      CupertinoButton(child: Text("Yes", style: TextStyle(color: CupertinoColors.destructiveRed),), onPressed: (){
-                        dismissAlert(context: context);
-                        PodsDatabasePaths(podID: podID, userID: person.userID).leavePod(
-                            podName: podData?.name ?? "Pod",
-                            personName: person.name,
-                            onSuccess: () {
-                              final successAlert = CupertinoAlertDialog(
-                                title: Text("${person.name} Removed From ${podData?.name ?? "Pod"}"),
-                                actions: [
-                                  CupertinoButton(
-                                      child: Text("OK"),
-                                      onPressed: () {
-                                        // remove the person from the list
-                                        setState(() {
-                                          _listOfPeople.removeWhere((element) => element.userID == person.userID);
-                                        });
-
-                                        dismissAlert(context: context);
-                                      })
-                                ],
-                              );
-                              showCupertinoDialog(context: context, builder: (context) => successAlert);
-                            });
-                      })
-                    ],);
+                                              dismissAlert(context: context);
+                                            })
+                                      ],
+                                    );
+                                    showCupertinoDialog(context: context, builder: (context) => successAlert);
+                                  });
+                            })
+                      ],
+                    );
                     showCupertinoDialog(context: context, builder: (context) => removeMemberAlert);
                   }
 
@@ -266,35 +275,46 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                 if (podID != null && podCreatorID != null) {
                   // You can't block the pod creator
                   if (person.userID != podCreatorID) {
-                    final blockAlert = CupertinoAlertDialog(title: Text("Block ${person.name}"), content: Text("Are "
-                        "you sure you want to proceed?"), actions: [
-                          CupertinoButton(child: Text("No"), onPressed: (){
-                            dismissAlert(context: context);
-                          }),
-                      CupertinoButton(child: Text("Yes", style: TextStyle(color: CupertinoColors.destructiveRed),), onPressed: (){
-                        dismissAlert(context: context);
-                        PodsDatabasePaths(podID: podID, userID: person.userID).blockFromPod(
-                            podName: podData?.name ?? "Pod",
-                            personName: person.name,
-                            onSuccess: () {
-                              final successAlert = CupertinoAlertDialog(
-                                title: Text("${person.name} Blocked From ${podData?.name ?? "Pod"}"),
-                                actions: [
-                                  CupertinoButton(
-                                      child: Text("OK"),
-                                      onPressed: () {
-                                        // remove the person from the list
-                                        setState(() {
-                                          _listOfPeople.removeWhere((element) => element.userID == person.userID);
-                                        });
-                                        dismissAlert(context: context);
-                                      })
-                                ],
-                              );
-                              showCupertinoDialog(context: context, builder: (context) => successAlert);
-                            });
-                      })
-                    ],);
+                    final blockAlert = CupertinoAlertDialog(
+                      title: Text("Block ${person.name}"),
+                      content: Text("Are "
+                          "you sure you want to proceed?"),
+                      actions: [
+                        CupertinoButton(
+                            child: Text("No"),
+                            onPressed: () {
+                              dismissAlert(context: context);
+                            }),
+                        CupertinoButton(
+                            child: Text(
+                              "Yes",
+                              style: TextStyle(color: CupertinoColors.destructiveRed),
+                            ),
+                            onPressed: () {
+                              dismissAlert(context: context);
+                              PodsDatabasePaths(podID: podID, userID: person.userID).blockFromPod(
+                                  podName: podData?.name ?? "Pod",
+                                  personName: person.name,
+                                  onSuccess: () {
+                                    final successAlert = CupertinoAlertDialog(
+                                      title: Text("${person.name} Blocked From ${podData?.name ?? "Pod"}"),
+                                      actions: [
+                                        CupertinoButton(
+                                            child: Text("OK"),
+                                            onPressed: () {
+                                              // remove the person from the list
+                                              setState(() {
+                                                _listOfPeople.removeWhere((element) => element.userID == person.userID);
+                                              });
+                                              dismissAlert(context: context);
+                                            })
+                                      ],
+                                    );
+                                    showCupertinoDialog(context: context, builder: (context) => successAlert);
+                                  });
+                            })
+                      ],
+                    );
                     showCupertinoDialog(context: context, builder: (context) => blockAlert);
                   }
 
@@ -351,35 +371,43 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                 final podID = podData?.podID;
                 if (podID != null) {
                   // unblock the user
-                  final unblockAlert = CupertinoAlertDialog(title: Text("Unblock ${person.name}"), content: Text
-                    ("Are you sure you want to proceed? ${person.name.firstName()} will become a member again."), actions: [
-                      CupertinoButton(child: Text("No"), onPressed: (){
-                        dismissAlert(context: context);
-                      }),
-                    CupertinoButton(child: Text("Yes"), onPressed: (){
-                      dismissAlert(context: context);
-                      PodsDatabasePaths(podID: podID, userID: person.userID).unBlockFromPod(
-                          personName: person.name,
-                          onSuccess: () {
-                            final successAlert = CupertinoAlertDialog(
-                              title: Text("${person.name} Unblocked From ${podData?.name ?? "Pod"}"),
-                              actions: [
-                                CupertinoButton(
-                                    child: Text("OK"),
-                                    onPressed: () {
-                                      // remove the person from the list
-                                      setState(() {
-                                        _listOfPeople.removeWhere((element) => element.userID == person.userID);
-                                      });
+                  final unblockAlert = CupertinoAlertDialog(
+                    title: Text("Unblock ${person.name}"),
+                    content: Text(
+                        "Are you sure you want to proceed? ${person.name.firstName()} will become a member again."),
+                    actions: [
+                      CupertinoButton(
+                          child: Text("No"),
+                          onPressed: () {
+                            dismissAlert(context: context);
+                          }),
+                      CupertinoButton(
+                          child: Text("Yes"),
+                          onPressed: () {
+                            dismissAlert(context: context);
+                            PodsDatabasePaths(podID: podID, userID: person.userID).unBlockFromPod(
+                                personName: person.name,
+                                onSuccess: () {
+                                  final successAlert = CupertinoAlertDialog(
+                                    title: Text("${person.name} Unblocked From ${podData?.name ?? "Pod"}"),
+                                    actions: [
+                                      CupertinoButton(
+                                          child: Text("OK"),
+                                          onPressed: () {
+                                            // remove the person from the list
+                                            setState(() {
+                                              _listOfPeople.removeWhere((element) => element.userID == person.userID);
+                                            });
 
-                                      dismissAlert(context: context);
-                                    })
-                              ],
-                            );
-                            showCupertinoDialog(context: context, builder: (context) => successAlert);
-                          });
-                    })
-                  ],);
+                                            dismissAlert(context: context);
+                                          })
+                                    ],
+                                  );
+                                  showCupertinoDialog(context: context, builder: (context) => successAlert);
+                                });
+                          })
+                    ],
+                  );
                   showCupertinoDialog(context: context, builder: (context) => unblockAlert);
                 }
               },
@@ -652,7 +680,9 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
       ShowMyPodsBackendFunctions.shared.sortedListOfPods.addListener(() {
         var myPods = ShowMyPodsBackendFunctions.shared.sortedListOfPods.value;
         myPods.sort((a, b) => a.name.compareTo(b.name)); // sort alphabetically
-        this._listOfPods = myPods;
+        setState(() {
+          this._listOfPods = myPods;
+        });
       });
     }
   }
@@ -790,8 +820,10 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         anyoneCanJoin: anyoneCanJoin,
         podID: podID,
         podCreatorID: podCreatorID,
-        thumbnailURL: thumbnailURL, thumbnailPath: thumbnailPath,
-        fullPhotoURL: fullPhotoURL, fullPhotoPath: fullPhotoPath,
+        thumbnailURL: thumbnailURL,
+        thumbnailPath: thumbnailPath,
+        fullPhotoURL: fullPhotoURL,
+        fullPhotoPath: fullPhotoPath,
         podScore: podScore);
     return data;
   }
@@ -828,8 +860,10 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                 CupertinoActionSheetAction(
                     onPressed: () {
                       dismissAlert(context: context);
-                      Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
-                          builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.searchPods))).then((value) {
+                      Navigator.of(context, rootNavigator: true)
+                          .push(CupertinoPageRoute(
+                              builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.searchPods)))
+                          .then((value) {
                         setState(() {
                           this._selectedIndex = null; // clear the selected index to remove row highlighting
                         });
@@ -856,6 +890,20 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
               ],
             );
             showCupertinoModalPopup(context: context, builder: (context) => sheet);
+          });
+    else if (viewMode == MainListDisplayViewModes.addPersonToPod)
+      return CupertinoButton(
+          padding: EdgeInsets.zero,
+          child: Icon(CupertinoIcons.plus),
+          onPressed: () {
+            // Navigate to create a pod
+            Navigator.of(context, rootNavigator: true)
+                .push(CupertinoPageRoute(builder: (context) => CreateAPodView(isCreatingNewPod: true))).then((value)
+            {
+              setState(() {
+                this._selectedIndex = null;
+              });
+            });
           });
     else
       return Container(width: 0, height: 0);
@@ -961,7 +1009,8 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                         });
                         // navigate to view the person's details
                         Navigator.of(context, rootNavigator: true)
-                            .push(CupertinoPageRoute(builder: (context) => ViewPersonDetails(personID: person.userID))).then((value) {
+                            .push(CupertinoPageRoute(builder: (context) => ViewPersonDetails(personID: person.userID)))
+                            .then((value) {
                           setState(() {
                             this._selectedIndex = null; // clear the selected index to remove row highlighting
                           });
@@ -982,11 +1031,13 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
 
                           // navigate to view pod details
                           if (viewMode != MainListDisplayViewModes.addPersonToPod)
-                            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
-                                builder: (context) => ViewPodDetails(
-                                      podID: pod.podID,
-                                      showChatButton: true,
-                                    ))).then((value) {
+                            Navigator.of(context, rootNavigator: true)
+                                .push(CupertinoPageRoute(
+                                    builder: (context) => ViewPodDetails(
+                                          podID: pod.podID,
+                                          showChatButton: true,
+                                        )))
+                                .then((value) {
                               setState(() {
                                 this._selectedIndex = null; // clear the selected index to remove row highlighting
                               });

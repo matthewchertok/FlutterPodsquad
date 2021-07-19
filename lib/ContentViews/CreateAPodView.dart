@@ -15,8 +15,7 @@ import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'dart:io';
 
-import 'package:uuid/uuid.dart';
-
+// TODO: Delete the pod profile image if I leave the screen without creating a pod
 /// Create a new pod (set isCreatingNewPod to true) or edit an existing pod (set isCreatingNewPod to false and pass
 /// in the podID). If creating a new pod, leave podID equal to null. If editing a pod, I must pass in the podID.
 class CreateAPodView extends StatefulWidget {
@@ -299,7 +298,7 @@ class _CreateAPodViewState extends State<CreateAPodView> {
                       )),
 
                       // Pod name
-                      CupertinoTextFormFieldRow(textCapitalization: TextCapitalization.sentences,
+                      CupertinoTextFormFieldRow(textCapitalization: TextCapitalization.words,
                         controller: _nameController,
                         placeholder: "Choose a pod name",
                       ),

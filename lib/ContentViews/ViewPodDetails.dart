@@ -125,6 +125,8 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
 
   /// Show a confirmation alert and join a pod
   void _joinPod() {
+    if (_podMembersList.length == 0) return; // don't allow joining a deleted pod. Otherwise there would be
+    // problems.
     final confirmationAlert = CupertinoAlertDialog(
       title: Text("Join Pod"),
       content: Text("Are you sure you want to "
@@ -217,10 +219,13 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
                         CupertinoButton(
                             child: Text("OK"),
                             onPressed: () {
-                              dismissAlert(context: context);
-
-                              // Go back if the pod is deleted, since it no longer exists.
-                              if (_podMembersList.length == 0) Navigator.of(context, rootNavigator: true).pop();
+                              // pop twice if the pod is deleted to dismiss the alert and go back a screen
+                              if (_podMembersList.length > 0)
+                                dismissAlert(context: context);
+                              else {
+                                int popCount = 0;
+                                Navigator.of(context, rootNavigator: true).popUntil((_) => popCount++ >= 2);
+                              }
                             })
                       ],
                     );
@@ -260,10 +265,9 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
                         CupertinoButton(
                             child: Text("OK"),
                             onPressed: () {
-                              dismissAlert(context: context);
-
-                              // Go back if the pod is deleted, since it no longer exists.
-                              if (_podMembersList.length == 0) Navigator.of(context, rootNavigator: true).pop();
+                              // pop twice if the pod is deleted to dismiss the alert and go back a screen
+                              int popCount = 0;
+                              Navigator.of(context, rootNavigator: true).popUntil((_) => popCount++ >= 2);
                             })
                       ],
                     );
@@ -285,8 +289,9 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
           actions: [
             // For convenience, also show a Join Pod option if I'm not a member. THe difference between the other
             // button below the pod photo is that this button will show even if I'm blocked or if the pod doesn't
-            // allow anyone to join. This button will warn me why I can't join.
-            if (!_amMemberOfPod)
+            // allow anyone to join. This button will warn me why I can't join. Unless there's nobody in the pod (if
+            // it was deleted). Then just don't show the button.
+            if (!_amMemberOfPod && _podMembersList.length > 0)
               CupertinoActionSheetAction(
                   onPressed: () {
                     dismissAlert(context: context);
@@ -307,8 +312,8 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
                       showCupertinoDialog(context: context, builder: (context) => blockedAlert);
                     }
 
-                    // Only Members Can Add Members alert
-                    else if (!podData.anyoneCanJoin) {
+                    // Only Members Can Add Members alert (except if I created the pod, then I can join it again)
+                    else if (!podData.anyoneCanJoin && podData.podCreatorID != myFirebaseUserId) {
                       final permissionAlert = CupertinoAlertDialog(
                         title: Text("Unable To Join Pod"),
                         content: Text(
@@ -558,9 +563,14 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
                                             isPodMode: true)));
                                   }),
 
-                            // If the pod allows anyone to join and I'm not a member (and am also not blocked), show the
-                            // Join button
-                            if (!_amMemberOfPod && !_amBlockedFromPod && podData.anyoneCanJoin)
+                            // If the pod allows anyone to join (or I created the pod) and I'm not a member (and am
+                            // also not blocked), show the
+                            // Join button. You also can't join a pod that has no members, as that pod would've been
+                            // deleted.
+                            if (!_amMemberOfPod &&
+                                !_amBlockedFromPod &&
+                                (podData.anyoneCanJoin || podData.podCreatorID == myFirebaseUserId) &&
+                                _podMembersList.length > 0)
                               CupertinoButton(
                                 child: Row(
                                   children: [

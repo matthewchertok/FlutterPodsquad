@@ -54,6 +54,7 @@ dependencies:
   record: ^3.0.0
   flutter_keyboard_visibility: ^5.0.2
   focus_detector: ^2.0.0
+  wakelock: ^0.5.2
 
 dev_dependencies:
   flutter_test:

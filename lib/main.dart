@@ -14,6 +14,7 @@ import 'package:podsquad/UIBackendClasses/MainListDisplayBackend.dart';
 import 'package:podsquad/UIBackendClasses/MessagesDictionary.dart';
 import 'package:podsquad/UIBackendClasses/MessagingTabFunctions.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
+import 'package:wakelock/wakelock.dart';
 
 import 'BackendDataHolders/UserAuth.dart';
 
@@ -68,6 +69,10 @@ class _AppState extends State<MyApp> {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp
     ]);
+
+    // Enable the wakelock to stop the screen from going to sleep (enables Discover Nearby to scan as long as the app
+    // is open)
+    Wakelock.enable();
 
     return CupertinoApp(
         home: ValueListenableBuilder(

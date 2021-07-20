@@ -9,7 +9,7 @@ import 'dart:math';
 
 import 'package:flutter/scheduler.dart';
 
-String get myFirebaseUserId => (FirebaseAuth.instance.currentUser?.uid ?? "null");
+String get myFirebaseUserId => (FirebaseAuth.instance.currentUser?.uid ?? "");
 
 ///A reference to the Firestore database object used throughout the app
 final FirebaseFirestore firestoreDatabase = FirebaseFirestore.instance;

@@ -676,7 +676,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
 
     // If the viewMode is podMemberships (the pods that a person is in), populate the list with the passed-in value
     // (sorted alphabetically)
-    if (viewMode == MainListDisplayViewModes.podMemberships) {
+    else if (viewMode == MainListDisplayViewModes.podMemberships) {
       if (podMemberships != null) {
         var sortedPodMemberships = podMemberships ?? [];
         sortedPodMemberships.sort((a, b) => a.name.compareTo(b.name));
@@ -685,7 +685,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
     }
 
     // If the viewMode is addPersonToPod or myPods, display the list of pods I'm in
-    if (viewMode == MainListDisplayViewModes.myPods || viewMode == MainListDisplayViewModes.addPersonToPod) {
+    else if (viewMode == MainListDisplayViewModes.myPods || viewMode == MainListDisplayViewModes.addPersonToPod) {
       final myPods = ShowMyPodsBackendFunctions.shared.sortedListOfPods.value;
       this._listOfPods = myPods;
 
@@ -699,7 +699,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
     }
 
     // If the viewMode is Likes, then display the list of people I like or the list of people who like me
-    if (viewMode == MainListDisplayViewModes.likes) {
+    else if (viewMode == MainListDisplayViewModes.likes) {
       if (showingSentDataNotReceivedData) {
         final sentLikes = SentLikesBackendFunctions.shared.sortedListOfPeople.value;
         this._listOfPeople = sentLikes;
@@ -727,7 +727,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
     }
 
     // If the viewMode is Friends, then display the list of people I friended or the list of people who friended me
-    if (viewMode == MainListDisplayViewModes.friends) {
+    else if (viewMode == MainListDisplayViewModes.friends) {
       if (showingSentDataNotReceivedData) {
         final sentFriends = SentFriendsBackendFunctions.shared.sortedListOfPeople.value;
         this._listOfPeople = sentFriends;
@@ -755,7 +755,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
     }
 
     // If the viewMode is Blocked, then display the list of people I blocked or the list of people who blocked me
-    if (viewMode == MainListDisplayViewModes.blocked) {
+    else if (viewMode == MainListDisplayViewModes.blocked) {
       if (showingSentDataNotReceivedData) {
         final sentBlocks = SentBlocksBackendFunctions.shared.sortedListOfPeople.value;
         this._listOfPeople = sentBlocks;
@@ -780,6 +780,20 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
           });
         });
       }
+    }
+
+    // If the viewMode is peopleIMet, then display the list of people I met
+    else if (viewMode == MainListDisplayViewModes.peopleIMet){
+      final peopleIMet = PeopleIMetBackendFunctions.shared.sortedListOfPeople.value;
+      this._listOfPeople = peopleIMet;
+
+      // also continuously listen in case I meet someone while the view is open
+      PeopleIMetBackendFunctions.shared.sortedListOfPeople.addListener(() {
+        final peopleIMet = PeopleIMetBackendFunctions.shared.sortedListOfPeople.value;
+        setState(() {
+          this._listOfPeople = peopleIMet;
+        });
+      });
     }
   }
 

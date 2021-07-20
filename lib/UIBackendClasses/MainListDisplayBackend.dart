@@ -66,7 +66,7 @@ abstract class MainListDisplayBackend {
   List<StreamSubscription> _listenerRegistrations = [];
 
   /// Take listOfPeople and sort it in order to make sortedListOfPeople
-  void _sortListOfPeople() {
+  void sortListOfPeople() {
     // For a custom list, there is no need to sort it (although this case isn't used yet so don't worry about it)
     if (this.viewMode == MainListDisplayViewModes.customList)
       sortedListOfPeople.value = listOfPeople;
@@ -176,7 +176,7 @@ abstract class MainListDisplayBackend {
             // add the person to the displayed list
             if (!listOfPeople.contains(getData.profileData)) {
               listOfPeople.add(getData.profileData);
-              this._sortListOfPeople();
+              this.sortListOfPeople();
               sortedListOfPeople.notifyListeners(); // notify the views that data has changed
             }
           },
@@ -185,14 +185,14 @@ abstract class MainListDisplayBackend {
             listOfPeople.removeWhere((person) => person.userID == getData.changedChildID);
             if (!listOfPeople.contains(getData.profileData)) {
               listOfPeople.add(getData.profileData);
-              this._sortListOfPeople();
+              this.sortListOfPeople();
               sortedListOfPeople.notifyListeners(); // notify the views that data has changed
             }
           },
           onChildRemoved: () {
             // remove the person from the list
             listOfPeople.removeWhere((person) => person.userID == getData.removedChildID);
-            this._sortListOfPeople();
+            this.sortListOfPeople();
             sortedListOfPeople.notifyListeners(); // notify the views that data has changed
           },
           onValueChanged: () {

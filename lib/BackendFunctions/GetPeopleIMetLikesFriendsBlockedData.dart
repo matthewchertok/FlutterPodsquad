@@ -5,6 +5,8 @@ import 'package:podsquad/BackendDataclasses/MainListDisplayViewModes.dart';
 import 'package:podsquad/BackendDataclasses/PodData.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
+import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
+import 'package:podsquad/UIBackendClasses/MainListDisplayBackend.dart';
 
 ///Contains methods that get data for the people I met, liked, friended, and blocked
 class GetPeopleIMetLikesFriendsBlockedData {
@@ -90,12 +92,13 @@ class GetPeopleIMetLikesFriendsBlockedData {
         final recipientData = diff.doc.get(recipientKey) as Map<String, dynamic>;
         final senderData = diff.doc.get(senderKey) as Map<String, dynamic>;
         final otherPersonsData = senderData["userID"] as String == myFirebaseUserId ? recipientData : senderData;
-        final timestamp = diff.doc.get("time") as double;
+        final timestampRaw = diff.doc.get("time") as num;
+        final timestamp = timestampRaw.toDouble();
 
         if (diff.type == DocumentChangeType.added || diff.type == DocumentChangeType.modified) {
           this._extractDataForUser(
               value: otherPersonsData,
-              timestamp: timestamp,
+              timestamp: timestamp, isGettingDataForPeopleIMet: isGettingDataForPeopleIMetList,
               onProfileDataReady: () {
                 if(diff.type == DocumentChangeType.modified) changedChildID = otherPersonsData["userID"];
                 diff.type == DocumentChangeType.added ? onChildAdded() : onChildChanged();
@@ -148,8 +151,11 @@ class GetPeopleIMetLikesFriendsBlockedData {
     });
   }
 
+  /// If isGettingDataForPeopleIMet is set to true, then check if I met the person more than 21 days ago. If so,
+  /// delete them from the database both to save space and ensure relevance for users
   void _extractDataForUser(
-      {required Map<String, dynamic> value, required double timestamp, required Function onProfileDataReady}) {
+      {required Map<String, dynamic> value, required double timestamp, required Function onProfileDataReady, bool
+      isGettingDataForPeopleIMet = false}) {
     final userID = value["userID"] as String;
     final name = value["name"] as String;
     final birthday = value["birthday"] as num;
@@ -169,8 +175,28 @@ class GetPeopleIMetLikesFriendsBlockedData {
         bio: bio ?? "",
         podScore: 0,
         thumbnailURL: thumbnailURL,
-        fullPhotoURL: "fullPhotoURL");
+        fullPhotoURL: "fullPhotoURL", timeIMetThePerson: timestamp);
     onProfileDataReady();
+
+    // delete the person if I met them more than 21 days ago. This is to save space in the database, reduce reads,
+    // and improve relevance for users.
+    if (isGettingDataForPeopleIMet) {
+      final timeIMetThePerson = DateTime.fromMillisecondsSinceEpoch((timestamp*1000).toInt());
+      final now = DateTime.now();
+      final timeSinceIMetThePerson = now.difference(timeIMetThePerson).inDays;
+      if (timeSinceIMetThePerson > 21) {
+        // document ID is an alphabetical combination of user IDs
+        final docId = myFirebaseUserId < userID ? myFirebaseUserId + userID : userID + myFirebaseUserId;
+        firestoreDatabase.collection("nearby-people").doc(docId).delete().then((value) {
+
+          // Delete the person from the displayed list on the device (might be redundant since Firestore listeners
+          // could handle it also, but this is just to be safe)
+          PeopleIMetBackendFunctions.shared.listOfPeople.removeWhere((person) => person.userID == userID);
+          PeopleIMetBackendFunctions.shared.sortListOfPeople();
+          PeopleIMetBackendFunctions.shared.sortedListOfPeople.notifyListeners();
+        });
+      }
+    }
   }
 
   void _extractDataForPod({required Map<String, dynamic> value, required Function onPodDataReady}) {

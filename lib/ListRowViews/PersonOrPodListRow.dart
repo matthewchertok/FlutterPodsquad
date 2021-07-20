@@ -59,7 +59,7 @@ class PersonOrPodListRow extends StatelessWidget {
           if (timeIMetThePerson != null)
             Container(
               width: 50,
-              child: Text(TimeAndDateFunctions.timeStampText(timeIMetThePerson!)),
+              child: Text(TimeAndDateFunctions.timeStampText(timeIMetThePerson!), style: TextStyle(fontSize: 10),),
             )
         ],
       ),

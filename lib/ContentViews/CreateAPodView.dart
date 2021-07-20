@@ -14,6 +14,8 @@ import 'package:podsquad/OtherSpecialViews/DecoratedImage.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'dart:io';
+import 'package:focus_detector/focus_detector.dart';
+import 'package:uuid/uuid.dart';
 
 // TODO: Delete the pod profile image if I leave the screen without creating a pod
 /// Create a new pod (set isCreatingNewPod to true) or edit an existing pod (set isCreatingNewPod to false and pass
@@ -46,8 +48,10 @@ class _CreateAPodViewState extends State<CreateAPodView> {
       anyoneCanJoin: false,
       podID: "",
       podCreatorID: "",
-      thumbnailURL: "", thumbnailPath: "",
-      fullPhotoURL: "", fullPhotoPath: "",
+      thumbnailURL: "",
+      thumbnailPath: "",
+      fullPhotoURL: "",
+      fullPhotoPath: "",
       podScore: -1);
 
   /// Used to pick an image
@@ -58,7 +62,6 @@ class _CreateAPodViewState extends State<CreateAPodView> {
 
   /// Link to the anyoneCanJoin switch
   bool _anyoneCanJoin = false;
-
 
   /// Pick an image from the gallery
   void _pickImage({required ImageSource source}) async {
@@ -187,14 +190,53 @@ class _CreateAPodViewState extends State<CreateAPodView> {
   }
 
   /// Get the pod data when the view appears (if editing, not creating a pod)
-  void _getPodData({required String podID}){
-    PodsDatabasePaths(podID: podID).getPodData(onCompletion: (podData){
+  void _getPodData({required String podID}) {
+    PodsDatabasePaths(podID: podID).getPodData(onCompletion: (podData) {
       setState(() {
         this._podData = podData;
         this._nameController.text = podData.name;
         this._descriptionController.text = podData.description;
         this._anyoneCanJoin = podData.anyoneCanJoin;
       });
+    });
+  }
+
+  /// If the user exits (either pressed the Back button or closes the app) without hitting "Create Pod", then delete
+  /// the pod from the database and remove its photos from Storage.
+  Future<void> _cleanUpDataIfPodCreationCancelled() async {
+    if (!isCreatingNewPod) return; // don't execute the function if I'm editing an existing pod
+    final deleteDoc = PodsDatabasePaths(podID: _podData.podID).podDocument.delete(); // delete the pod document in
+    // Firestore
+    final deleteThumbnail = PodsDatabasePaths(podID: _podData.podID, imageName: "thumbnail").podImageRef.delete(); //
+    // delete thumbnail (Storage)
+    final deleteFullImage = PodsDatabasePaths(podID: _podData.podID, imageName: "full_image").podImageRef.delete(); //
+    // delete full image
+
+    await deleteDoc;
+    await deleteThumbnail;
+    await deleteFullImage;
+
+    // we also must clear the name, description, anyoneCanJoin, and podData fields so there isn't a disconnect
+    // between what the user sees and what's in the database
+    setState(() {
+      _imageFile = null;
+
+      // Reset the thumbnail and full photo data, since those get deleted from the database if I close out of the
+      // screen before creating the pod
+      final dateCreated = DateTime.now().millisecondsSinceEpoch * 0.001;
+      this._podData = PodData(
+          name: "",
+          dateCreated: dateCreated,
+          description: _descriptionController.text,
+          anyoneCanJoin: false,
+          podID: podID ?? Uuid().v1(),
+          podCreatorID: myFirebaseUserId,
+          thumbnailURL: "",
+          thumbnailPath: "",
+          fullPhotoURL: "",
+          fullPhotoPath: "",
+          podScore: 0);
+      isCreatingNewPod = true;
     });
   }
 
@@ -210,147 +252,157 @@ class _CreateAPodViewState extends State<CreateAPodView> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    _cleanUpDataIfPodCreationCancelled();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-        child: Stack(
-      children: [
-        CustomScrollView(
-          slivers: [
-            CupertinoSliverNavigationBar(
-              largeTitle: Text(isCreatingNewPod ? "Create Pod" : "Edit Pod"),
-              stretch: true,
-            ),
-            SliverList(
-              delegate: SliverChildListDelegate([
-                SafeArea(
-                    child: Column(
-                  children: [
-                    // profile image
-                    Padding(
-                      padding: EdgeInsets.all(20),
-                      child: CupertinoButton(
-                        child: _podData.thumbnailURL.isNotEmpty
-                            ? DecoratedImage(
-                                imageURL: _podData.thumbnailURL,
-                                width: 125.scaledForScreenSize(context: context),
-                                height: 125.scaledForScreenSize(context: context),
-                              )
-                            : Icon(CupertinoIcons.photo_on_rectangle),
-                        onPressed: () {
-                          // navigate to ViewPodDetails as long as the pod exists (i.e. not creating a new pod)
-                          if (!isCreatingNewPod && podID != null)
-                            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
-                                builder: (context) => ViewPodDetails(podID: podID!, showChatButton: true)));
-                          else
-                            _pickImage(source: ImageSource.gallery); // otherwise, let the user pick an image
-                        },
-                      ),
-                    ),
-
-                    // Pick photo section
-                    CupertinoFormSection(children: [
-                      // Take photo button
-                      CupertinoButton(
-                        onPressed: () {
-                          this._pickImage(source: ImageSource.camera);
-                        },
-                        child: Row(
-                          children: [
-                            Icon(CupertinoIcons.camera),
-                            Padding(padding: EdgeInsets.only(left: 10), child: Text("Take photo"))
-                          ],
-                        ),
-                      ),
-
-                      // Choose photo button
-                      CupertinoButton(
-                        onPressed: () {
-                          this._pickImage(source: ImageSource.gallery);
-                        },
-                        child: Row(
-                          children: [
-                            Icon(CupertinoIcons.photo),
-                            Padding(padding: EdgeInsets.only(left: 10), child: Text("Choose from gallery"))
-                          ],
-                        ),
-                      ),
-                    ]),
-
-                    // Pod info section
-                    CupertinoFormSection(header: Text("Pod Info"), children: [
-                      // Anyone can join switch
-                      CupertinoFormRow(
-                          child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text(_anyoneCanJoin ? "Anyone can join (open)" : "Invite only (closed)"),
-                          Spacer(),
-                          CupertinoSwitch(
-                            value: _anyoneCanJoin,
-                            onChanged: (anyoneCanJoin) {
-                              setState(() {
-                                this._anyoneCanJoin = anyoneCanJoin;
-                              });
-                            },
-                            activeColor: accentColor,
-                          )
-                        ],
-                      )),
-
-                      // Pod name
-                      CupertinoTextFormFieldRow(textCapitalization: TextCapitalization.words,
-                        controller: _nameController,
-                        placeholder: "Choose a pod name",
-                      ),
-
-                      // Pod description
-                      CupertinoTextFormFieldRow(textCapitalization: TextCapitalization.sentences,
-                          controller: _descriptionController,
-                          placeholder: "Describe this"
-                              " pod"),
-
-                      // create or update pod button
-                      CupertinoButton(
-                          child: Text(isCreatingNewPod ? "Create Pod" : "Update Pod"), onPressed: _setPodData)
-                    ])
-                  ],
-                ))
-              ]),
-            )
-          ],
-        ),
-
-        // Contains the image upload progress spinner
-        Center(
-          child: ValueListenableBuilder(
-              valueListenable: ResizeAndUploadImage.sharedInstance.isUploadInProgress,
-              builder: (context, bool inProgress, widget) {
-                if (inProgress) {
-                  return Stack(
+        child: FocusDetector(
+      child: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
+              CupertinoSliverNavigationBar(
+                largeTitle: Text(isCreatingNewPod ? "Create Pod" : "Edit Pod"),
+                stretch: true,
+              ),
+              SliverList(
+                delegate: SliverChildListDelegate([
+                  SafeArea(
+                      child: Column(
                     children: [
-                      BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-                          child: Container(color: CupertinoColors.black.withOpacity(0.1))),
-                      Center(
-                          child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CupertinoActivityIndicator(radius: 15),
-                          Padding(
-                              padding: EdgeInsets.all(10),
-                              child: Text(
-                                "Uploading Image...",
-                                style: TextStyle(color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
-                              ))
-                        ],
-                      ))
+                      // profile image
+                      Padding(
+                        padding: EdgeInsets.all(20),
+                        child: CupertinoButton(
+                          child: _podData.thumbnailURL.isNotEmpty
+                              ? DecoratedImage(
+                                  imageURL: _podData.thumbnailURL,
+                                  width: 125.scaledForScreenSize(context: context),
+                                  height: 125.scaledForScreenSize(context: context),
+                                )
+                              : Icon(CupertinoIcons.photo_on_rectangle),
+                          onPressed: () {
+                            // navigate to ViewPodDetails as long as the pod exists (i.e. not creating a new pod)
+                            if (!isCreatingNewPod && podID != null)
+                              Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                                  builder: (context) => ViewPodDetails(podID: podID!, showChatButton: true)));
+                            else
+                              _pickImage(source: ImageSource.gallery); // otherwise, let the user pick an image
+                          },
+                        ),
+                      ),
+
+                      // Pick photo section
+                      CupertinoFormSection(children: [
+                        // Take photo button
+                        CupertinoButton(
+                          onPressed: () {
+                            this._pickImage(source: ImageSource.camera);
+                          },
+                          child: Row(
+                            children: [
+                              Icon(CupertinoIcons.camera),
+                              Padding(padding: EdgeInsets.only(left: 10), child: Text("Take photo"))
+                            ],
+                          ),
+                        ),
+
+                        // Choose photo button
+                        CupertinoButton(
+                          onPressed: () {
+                            this._pickImage(source: ImageSource.gallery);
+                          },
+                          child: Row(
+                            children: [
+                              Icon(CupertinoIcons.photo),
+                              Padding(padding: EdgeInsets.only(left: 10), child: Text("Choose from gallery"))
+                            ],
+                          ),
+                        ),
+                      ]),
+
+                      // Pod info section
+                      CupertinoFormSection(header: Text("Pod Info"), children: [
+                        // Anyone can join switch
+                        CupertinoFormRow(
+                            child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text(_anyoneCanJoin ? "Anyone can join (open)" : "Invite only (closed)"),
+                            Spacer(),
+                            CupertinoSwitch(
+                              value: _anyoneCanJoin,
+                              onChanged: (anyoneCanJoin) {
+                                setState(() {
+                                  this._anyoneCanJoin = anyoneCanJoin;
+                                });
+                              },
+                              activeColor: accentColor,
+                            )
+                          ],
+                        )),
+
+                        // Pod name
+                        CupertinoTextFormFieldRow(
+                          textCapitalization: TextCapitalization.words,
+                          controller: _nameController,
+                          placeholder: "Choose a pod name",
+                        ),
+
+                        // Pod description
+                        CupertinoTextFormFieldRow(
+                            textCapitalization: TextCapitalization.sentences,
+                            controller: _descriptionController,
+                            placeholder: "Describe this"
+                                " pod"),
+
+                        // create or update pod button
+                        CupertinoButton(
+                            child: Text(isCreatingNewPod ? "Create Pod" : "Update Pod"), onPressed: _setPodData)
+                      ])
                     ],
-                  );
-                } else
-                  return Container(); // return an empty widget if there's no image loading
-              }),
-        )
-      ],
+                  ))
+                ]),
+              )
+            ],
+          ),
+
+          // Contains the image upload progress spinner
+          Center(
+            child: ValueListenableBuilder(
+                valueListenable: ResizeAndUploadImage.sharedInstance.isUploadInProgress,
+                builder: (context, bool inProgress, widget) {
+                  if (inProgress) {
+                    return Stack(
+                      children: [
+                        BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                            child: Container(color: CupertinoColors.black.withOpacity(0.1))),
+                        Center(
+                            child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CupertinoActivityIndicator(radius: 15),
+                            Padding(
+                                padding: EdgeInsets.all(10),
+                                child: Text(
+                                  "Uploading Image...",
+                                  style: TextStyle(color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
+                                ))
+                          ],
+                        ))
+                      ],
+                    );
+                  } else
+                    return Container(); // return an empty widget if there's no image loading
+                }),
+          )
+        ],
+      ), onForegroundLost: _cleanUpDataIfPodCreationCancelled,
     ));
   }
 }

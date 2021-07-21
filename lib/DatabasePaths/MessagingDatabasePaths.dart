@@ -36,7 +36,7 @@ class MessagingDatabasePaths {
         .collection("dm-conversations")
         .doc(conversationID)
         .delete()
-        .then((value) => () {
+        .then((value) {
               //TODO: send a push notification to the other user
               if (onCompletion != null) onCompletion(); // call the completion handler
             })

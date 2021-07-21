@@ -781,7 +781,8 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                                         Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                                             builder: (context) => MessagingView(
                                                 chatPartnerOrPodID: personData.userID,
-                                                chatPartnerOrPodName: personData.name,
+                                                chatPartnerOrPodName: personData.name, chatPartnerThumbnailURL:
+                                            personData.thumbnailURL,
                                                 isPodMode: false)));
                                       })
                                 ],

@@ -315,7 +315,7 @@ class _LoginViewState extends State<LoginView> {
     _passwordFieldController.addListener(() {
       final String password = _passwordFieldController.text;
 
-      if (_passwordFieldController.value.text.toLowerCase() == password) return;
+      if (_passwordFieldController.value.text == password) return;
       _passwordFieldController.value = _passwordFieldController.value.copyWith(
           text: password,
           selection: TextSelection(baseOffset: password.length, extentOffset: password.length),

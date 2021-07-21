@@ -1072,7 +1072,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      child: CustomScrollView(
+      child: SafeArea(child: CustomScrollView(
         controller: _customScrollViewController,
         physics: AlwaysScrollableScrollPhysics(),
         slivers: [
@@ -1214,7 +1214,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                 ),
               ]))
         ],
-      ),
+      ),),
     );
   }
 }

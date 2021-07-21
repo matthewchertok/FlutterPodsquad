@@ -5,7 +5,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:podsquad/BackendDataclasses/ChatMessageDataclasses.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/DatabasePaths/PodsDatabasePaths.dart';
-import 'package:podsquad/UIBackendClasses/MessagingTabFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 import 'package:uuid/uuid.dart';
 
@@ -41,65 +40,30 @@ class MessagesDictionary {
   ///after the user scrolls up.
   var shouldChatLogScroll = Map<String, bool>();
 
-  ///Keep track of all the pods I've hidden
-  set _podsIveHiddenDict(Map<String, bool> newValue) {
-    _podsIveHiddenDict = newValue;
-    List<String> newListOfPodsIveHidden = [];
-    _podsIveHiddenDict.forEach((pod, bool) {
-      newListOfPodsIveHidden.add(pod);
-    });
-    listOfPodChatsIveHidden.value = newListOfPodsIveHidden;
+  /// Update the list of all pods I've hidden. Call this every time I modify _podsIveHiddenDict.
+  void updateListOfPodsIveHidden({required Map<String, bool> newValue}){
+    listOfPodChatsIveHidden.value = newValue.keys.toList();
+    listOfPodChatsIveHidden.notifyListeners();
   }
 
-  ///Keep track of all the pods I've hidden
-  Map<String, bool> get _podsIveHiddenDict => _podsIveHiddenDict;
+  ///Keep track of all the pods I've hidden. Must call updateListOfPodsIveHidden() immediately after changing the value.
+  Map<String, bool> _podsIveHiddenDict = {};
 
-  ///Keep track of all the DM conversations I've hidden
-  set _dmsIveHiddenDict(Map<String, bool> newValue) {
-    _dmsIveHiddenDict = newValue;
-    List<String> newListOfDmsIveHidden = [];
-    _dmsIveHiddenDict.forEach((conversation, bool) {
-      newListOfDmsIveHidden.add(conversation);
-    });
-    listOfDMConversationsIveHidden.value = newListOfDmsIveHidden;
+  /// Update the list of all DMs I've hidden. Call this every time I modify _dmsIveHiddenDict.
+  void updateListOfDMsIveHidden({required Map<String, bool> newValue}){
+    listOfDMConversationsIveHidden.value = newValue.keys.toList();
+    listOfDMConversationsIveHidden.notifyListeners();
   }
 
-  ///Keep track of all the DM conversations I've hidden
-  Map<String, bool> get _dmsIveHiddenDict => _dmsIveHiddenDict;
+  ///Keep track of all the DM conversations I've hidden. Must call updateListOfDMsIveHidden() immediately after
+  ///changing the value. The keys are equal to the IDs of the chat partners whom I've hidden.
+  Map<String, bool> _dmsIveHiddenDict = {};
 
   ///Contains a list of all pod IDs where I've hidden the chat
-  set listOfPodChatsIveHidden(ValueNotifier<List<String>> newValue) {
-    listOfPodChatsIveHidden = newValue;
-
-    ///The list of IDs for all my pod conversations
-    final podChatIDsList =
-        LatestPodMessagesDictionary.shared.sortedLatestMessageList.value.map((e) => e.podID).toList();
-
-    //If every conversation is hidden (or I don't have any conversations), say that I have no messages to display.
-    if (podChatIDsList.isEmpty || podChatIDsList.difference(betweenOtherList: listOfPodChatsIveHidden.value).isEmpty)
-      LatestPodMessagesDictionary.shared.isShowingNoMessages.value = true;
-    else
-      LatestPodMessagesDictionary.shared.isShowingNoMessages.value = false;
-  }
-
-  ///Contains a list of all pod IDs where I've hidden the chat
-  ValueNotifier<List<String>> get listOfPodChatsIveHidden => listOfPodChatsIveHidden;
+  ValueNotifier<List<String>> listOfPodChatsIveHidden = ValueNotifier([]);
 
   ///Contains a list of all direct message chat partner IDs where I've hidden the chat
-  set listOfDMConversationsIveHidden(ValueNotifier<List<String>> newValue) {
-    final dmChatIDsList =
-        LatestDirectMessagesDictionary.shared.sortedLatestMessageList.value.map((e) => e.chatPartnerId).toList();
-
-    // If every conversation is hidden (or I don't have any conversations), say that I have no messages to display.
-    if (dmChatIDsList.isEmpty ||
-        dmChatIDsList.difference(betweenOtherList: listOfDMConversationsIveHidden.value).isEmpty)
-      LatestDirectMessagesDictionary.shared.isShowingNoMessages.value = true;
-    else
-      LatestDirectMessagesDictionary.shared.isShowingNoMessages.value = false;
-  }
-
-  ///Contains a list of all direct message chat partner IDs where I've hidden the chat
-  ValueNotifier<List<String>> get listOfDMConversationsIveHidden => listOfDMConversationsIveHidden;
+  ValueNotifier<List<String>> listOfDMConversationsIveHidden = ValueNotifier([]);
 
   ///Tracks all stream subscriptions so I can remove them if I need to. Map {chatPartnerOrPodID: StreamSubscription}
   var _listenerRegistrationsDict = Map<String, StreamSubscription>();
@@ -115,7 +79,9 @@ class MessagesDictionary {
     directMessagesDict.value.clear();
     podMessageDict.value.clear();
     _podsIveHiddenDict.clear();
+    updateListOfPodsIveHidden(newValue: _podsIveHiddenDict);
     _dmsIveHiddenDict.clear();
+    updateListOfDMsIveHidden(newValue: _dmsIveHiddenDict);
     directMessageConversationIDsDict.clear();
   }
 
@@ -166,16 +132,19 @@ class MessagesDictionary {
         .snapshots()
         .listen((docSnapshot) {
       docSnapshot.docChanges.forEach((diff) {
-        final participants = diff.doc.get("participants") as List<String>;
+        final participantsRaw = diff.doc.get("participants") as List<dynamic>;
+        final participants = List<String>.from(participantsRaw);
         final chatPartnerID = participants.first == myFirebaseUserId ? participants.last : participants.first;
         if (diff.type == DocumentChangeType.added) {
           var dmsIveHidden = _dmsIveHiddenDict; // copy the variable
           dmsIveHidden[chatPartnerID] = true; // modify the variable
           this._dmsIveHiddenDict = dmsIveHidden; // use the setter
+          updateListOfDMsIveHidden(newValue: this._dmsIveHiddenDict);
         } else if (diff.type == DocumentChangeType.removed) {
           var dmsIveHidden = _dmsIveHiddenDict; // copy the variable
           dmsIveHidden.removeWhere((key, value) => key == chatPartnerID); // modify the variable
           this._dmsIveHiddenDict = dmsIveHidden; // use the setter
+          updateListOfDMsIveHidden(newValue: this._dmsIveHiddenDict);
         }
       });
     });
@@ -210,16 +179,17 @@ class MessagesDictionary {
       hasLoadedEveryMessageInConversationDictionary[chatPartnerID] = snapshot.docs.length == 0; // if there are no
       // messages in the conversation, then I don't need to load any earlier ones.
 
-      final lastDocument = snapshot.docs.last; // the query will return only one document anyway
+      final lastDocument = snapshot.docs.length > 0 ? snapshot.docs.last : null; // the query will return only one
+      // document, if there are any documents. But we must make sure there are documents, or the app will crash.
 
       ///Limit the listener to messages where systemTime is greater than or equal to this cutoff to avoid duplicating
       /// messages and using extra reads. Optional double because the last document might not exist if a conversation
       /// has 0 documents.
-      final timeCutoff = lastDocument.get("systemTime") as double?;
+      final timeCutoff = lastDocument?.get("systemTime") as double?;
 
       // track the oldest document we downloaded so that future queries know to stop there and not re-fetch documents
       // we already got
-      endBeforeDictionary[chatPartnerID] = lastDocument;
+      if (lastDocument != null) endBeforeDictionary[chatPartnerID] = lastDocument;
       onCompletion(); // now that we have the last document, we can call the completion handler to then listen to
       // changes to the previous 9 documents without having to double-read those documents.
 
@@ -240,7 +210,8 @@ class MessagesDictionary {
           if (diff.type == DocumentChangeType.added) {
             shouldChatLogScroll[chatPartnerID] = true; // scroll to the bottom when a new message is added
             final data = diff.doc.data();
-            final systemTime = diff.doc.get("systemTime") as double;
+            final systemTimeRaw = diff.doc.get("systemTime") as num;
+            final systemTime = systemTimeRaw.toDouble();
             final id = diff.doc.get("id") as String;
             final imageURL = data?["imageURL"] as String?;
             final imagePath = data?["imagePath"] as String?;
@@ -445,15 +416,18 @@ class MessagesDictionary {
             var podsIveHidden = _podsIveHiddenDict; // copy the variable
             podsIveHidden[podID] = true; // modify it
             this._podsIveHiddenDict = podsIveHidden; // use the setter
+            updateListOfPodsIveHidden(newValue: this._podsIveHiddenDict);
           }
           // if I un-hide a pod, remove it from my hidden pods dictionary
           else if (diff.type == DocumentChangeType.removed) {
             var podsIveHidden = _podsIveHiddenDict; // copy the variable
             podsIveHidden.removeWhere((key, value) => key == podID); // modify it
             this._podsIveHiddenDict = podsIveHidden; // use the setter
+            updateListOfPodsIveHidden(newValue: this._podsIveHiddenDict);
           }
         }
       });
+      print("I'm inactive from the following pods: ${this._podsIveHiddenDict.keys}");
     });
     _listenerRegistrationsDict["podInactiveListener"] = inactivePodsListener;
   }

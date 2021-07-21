@@ -476,93 +476,90 @@ class MessagesDictionary {
         .snapshots()
         .listen((snapshot) {
       podMessageAddedListener?.cancel(); //immediately cancel the subscription once I get the last message
+      // I may need to replace this stream subscription with a get() call if the cache proves to be an issue.
 
       hasLoadedEveryMessageInConversationDictionary[podID] = snapshot.docs.length == 0; // if there are no
       // messages in the conversation, then I don't need to load any earlier ones.
 
-      final lastDocument = snapshot.docs.length > 0 ? snapshot.docs.last : null; // the query will return only one
-      // document anyway
-      if (lastDocument != null) {
-        ///Limit the listener to messages where systemTime is greater than or equal to this cutoff to avoid duplicating
-        /// messages and using extra reads. Optional double because the last document might not exist if a conversation
-        /// has 0 documents.
-        final timeCutoff = lastDocument.get("systemTime") as double?;
+      // track the oldest document we downloaded so that future queries know to stop there and not re-fetch
+      // documents we already got. There should only be 1 document anyway.
+      if (snapshot.docs.length > 0) endBeforeDictionary[podID] = snapshot.docs.first;
+      final lastDocument = endBeforeDictionary[podID];
 
-        // track the oldest document we downloaded so that future queries know to stop there and not re-fetch documents
-        // we already got
-        endBeforeDictionary[podID] = lastDocument;
-        onCompletion(); // now that we have the last document, we can call the completion handler to then listen to
-        // changes to the previous 9 documents without having to double-read those documents.
+      ///Limit the listener to messages where systemTime is greater than or equal to this cutoff to avoid duplicating
+      /// messages and using extra reads. Optional double because the last document might not exist if a conversation
+      /// has 0 documents.
+      final timeCutoff = lastDocument?.get("systemTime") as double?;
 
-        final collectionRef = PodsDatabasePaths(podID: podID).podDocument.collection("messages").orderBy("systemTime");
-        // Depending on whether the conversation exists, either subscribe to the entire conversation (if it doesn't
-        // exist yet), or start subscribing to the newest message.
-        final query = timeCutoff == null ? collectionRef : collectionRef.startAt([timeCutoff]);
-        //Now, start an unlimited listener beginning with the last document that will handle it when new messages are
-        // added or deleted.
-        // ignore: cancel_subscriptions
-        final messageAddedModifiedRemovedListener = query.snapshots().listen((snapshot) {
-          snapshot.docChanges.forEach((diff) {
-            if (diff.type == DocumentChangeType.added) {
-              shouldChatLogScroll[podID] = true; // scroll to the bottom when a new message is added
-              final data = diff.doc.data();
-              final systemTime = diff.doc.get("systemTime") as double;
-              final id = diff.doc.get("id") as String;
-              final imageURL = data?["imageURL"] as String?;
-              final imagePath = data?["imagePath"] as String?;
-              final audioURL = data?["audioURL"] as String?;
-              final audioPath = data?["audioPath"] as String?;
-              final senderId = diff.doc.get("senderId") as String;
-              final senderName = diff.doc.get("senderName") as String;
-              final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
-              final text = diff.doc.get("text") as String;
+      onCompletion(); // now that we have the last document, we can call the completion handler to then listen to
+      // changes to the previous 9 documents without having to double-read those documents.
 
-              final podMessage = ChatMessage(
-                  id: id,
-                  recipientId: "",
-                  recipientName: "",
-                  senderId: senderId,
-                  senderName: senderName,
-                  timeStamp: systemTime,
-                  text: text,
-                  senderThumbnailURL: senderThumbnailURL,
-                  recipientThumbnailURL: "",
-                  imageURL: imageURL,
-                  audioURL: audioURL,
-                  imagePath: imagePath,
-                  audioPath: audioPath,
-                  podID: podID);
+      final collectionRef = PodsDatabasePaths(podID: podID).podDocument.collection("messages").orderBy("systemTime");
+      // Depending on whether the conversation exists, either subscribe to the entire conversation (if it doesn't
+      // exist yet), or start subscribing to the newest message.
+      final query = timeCutoff == null ? collectionRef : collectionRef.startAt([timeCutoff]);
+      //Now, start an unlimited listener beginning with the last document that will handle it when new messages are
+      // added or deleted.
+      // ignore: cancel_subscriptions
+      final messageAddedModifiedRemovedListener = query.snapshots().listen((snapshot) {
+        snapshot.docChanges.forEach((diff) {
+          if (diff.type == DocumentChangeType.added) {
+            shouldChatLogScroll[podID] = true; // scroll to the bottom when a new message is added
+            final data = diff.doc.data();
+            final systemTimeRaw = diff.doc.get("systemTime") as num;
+            final systemTime = systemTimeRaw.toDouble();
+            final id = diff.doc.get("id") as String;
+            final imageURL = data?["imageURL"] as String?;
+            final imagePath = data?["imagePath"] as String?;
+            final audioURL = data?["audioURL"] as String?;
+            final audioPath = data?["audioPath"] as String?;
+            final senderId = diff.doc.get("senderId") as String;
+            final senderName = diff.doc.get("senderName") as String;
+            final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
+            final text = diff.doc.get("text") as String;
 
-              //Add the message to the associated chat partner ID in the dictionary
-              if (podMessage.text
-                  .trim()
-                  .isNotEmpty) {
-                if (podMessageDict.value[podID] == null) podMessageDict.value[podID] = []; // initialize a list
-                if (podMessageDict.value[podID] != null) {
-                  if (!podMessageDict.value[podID]!.contains(podMessage)) {
-                    podMessageDict.value[podID]?.add(podMessage);
-                    podMessageDict.notifyListeners();
-                  }
+            final podMessage = ChatMessage(
+                id: id,
+                recipientId: "",
+                recipientName: "",
+                senderId: senderId,
+                senderName: senderName,
+                timeStamp: systemTime,
+                text: text,
+                senderThumbnailURL: senderThumbnailURL,
+                recipientThumbnailURL: "",
+                imageURL: imageURL,
+                audioURL: audioURL,
+                imagePath: imagePath,
+                audioPath: audioPath,
+                podID: podID);
+
+            //Add the message to the associated chat partner ID in the dictionary
+            if (podMessage.text.trim().isNotEmpty) {
+              if (podMessageDict.value[podID] == null) podMessageDict.value[podID] = []; // initialize a list
+              if (podMessageDict.value[podID] != null) {
+                if (!podMessageDict.value[podID]!.contains(podMessage)) {
+                  podMessageDict.value[podID]?.add(podMessage);
+                  podMessageDict.notifyListeners();
                 }
               }
-            } else if (diff.type == DocumentChangeType.modified) {
-              final messageID = diff.doc.get("id") as String;
-              final senderName = diff.doc.get("senderName") as String;
-              final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
-              podMessageDict.value[podID]?.changeSenderNameAndOrThumbnailURL(
-                  forMessageWithID: messageID, toNewName: senderName, toNewThumbnailURL: senderThumbnailURL);
-              podMessageDict.notifyListeners();
-            } else if (diff.type == DocumentChangeType.removed) {
-              final messageID = diff.doc.get("id") as String;
-              podMessageDict.value[podID]?.removeWhere((message) => message.id == messageID);
-              podMessageDict.notifyListeners();
             }
-          });
-        }
-        );
-        _listenerRegistrationsDict[podID] =
-            messageAddedModifiedRemovedListener; // register the stream subscription so I
-      }
+          } else if (diff.type == DocumentChangeType.modified) {
+            final messageID = diff.doc.get("id") as String;
+            final senderName = diff.doc.get("senderName") as String;
+            final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
+            podMessageDict.value[podID]?.changeSenderNameAndOrThumbnailURL(
+                forMessageWithID: messageID, toNewName: senderName, toNewThumbnailURL: senderThumbnailURL);
+            podMessageDict.notifyListeners();
+          } else if (diff.type == DocumentChangeType.removed) {
+            final messageID = diff.doc.get("id") as String;
+            podMessageDict.value[podID]?.removeWhere((message) => message.id == messageID);
+            podMessageDict.notifyListeners();
+          }
+        });
+      });
+      _listenerRegistrationsDict[podID] = messageAddedModifiedRemovedListener; // register the stream subscription so I
+
       // can remove it later
     });
   }

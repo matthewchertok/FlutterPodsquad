@@ -292,6 +292,8 @@ class PodsDatabasePaths {
                       "$podName chat",
                   notificationType: NotificationTypes.podDetails);
           });
+
+          if (onCompletion != null) onCompletion();
         }).catchError((error) {
           print("Failed to delete a pod chat: $error");
         });
@@ -368,6 +370,7 @@ class PodsDatabasePaths {
         final personID = document.get("userID") as String;
         if (!this.podInactiveMembersIDsList.contains(personID)) this.podInactiveMembersIDsList.add(personID);
       }
+      if (onCompletion != null) onCompletion();
     });
   }
 

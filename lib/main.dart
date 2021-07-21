@@ -83,6 +83,8 @@ class _AppState extends State<MyApp> {
                 LatestDirectMessagesDictionary.shared.loadLatestMessageForAllDirectMessageConversations();
                 MessagesDictionary.shared.preLoadAllDirectMessageConversations();
                 MessagesDictionary.shared.preLoadAllPodMessageConversations();
+                MessagesDictionary.shared.preLoadListOfDMsImInactiveFrom();
+                MessagesDictionary.shared.preLoadListOfPodsImInactiveFrom();
                 SentBlocksBackendFunctions.shared.addDataToListView();
                 ReceivedBlocksBackendFunctions.shared.addDataToListView();
                 SentLikesBackendFunctions.shared.addDataToListView();

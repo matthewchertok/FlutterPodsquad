@@ -1,13 +1,20 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:podsquad/BackendDataclasses/ChatMessageDataclasses.dart';
+import 'package:podsquad/CommonlyUsedClasses/AlertDialogs.dart';
+import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/MessagingView.dart';
+import 'package:podsquad/DatabasePaths/MessagingDatabasePaths.dart';
+import 'package:podsquad/DatabasePaths/PodsDatabasePaths.dart';
 import 'package:podsquad/ListRowViews/LatestMessageRow.dart';
 import 'package:podsquad/BackendFunctions/ShowLikesFriendsBlocksActionSheet.dart';
 import 'package:podsquad/OtherSpecialViews/PodModeButton.dart';
 import 'package:podsquad/OtherSpecialViews/SearchTextField.dart';
 import 'package:podsquad/UIBackendClasses/MessagingTabFunctions.dart';
+import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 
 class MessagingTab extends StatefulWidget {
   const MessagingTab({Key? key}) : super(key: key);
@@ -36,7 +43,7 @@ class _MessagingTabState extends State<MessagingTab> {
       return combinedList
           .where((element) =>
               element.chatPartnerName.toLowerCase().contains(_searchTextController.text.trim().toLowerCase()) ||
-                  element.text.toLowerCase().contains(_searchTextController.text.trim().toLowerCase()))
+              element.text.toLowerCase().contains(_searchTextController.text.trim().toLowerCase()))
           .toList();
   }
 
@@ -51,6 +58,177 @@ class _MessagingTabState extends State<MessagingTab> {
 
   /// Set to true if I am typing something into the search bar
   var isSearching = false;
+
+  /// Hide a DM or pod conversation
+  void _hideConversation({required ChatMessage message}) {
+    // highlight the conversation
+    setState(() {
+      _selectedIndex = _displayedMessagesList.indexWhere((element) => element.id == message.id);
+    });
+
+    // hide a DM conversation
+    if (message.podID == null) {
+      final hideDMConversationAlert = CupertinoAlertDialog(
+        title: Text("Hide Conversation"),
+        content: Text("Are you "
+            "sure you want to hide your conversation with ${message.chatPartnerName}? You will be able to view it again if you send or receive a message from ${message.chatPartnerName.firstName()}."),
+        actions: [
+          // cancel button
+          CupertinoButton(
+              child: Text("No"),
+              onPressed: () {
+                dismissAlert(context: context);
+                setState(() {
+                  this._selectedIndex = null; // clear the row highlighting
+                });
+              }),
+
+          // hide button
+          CupertinoButton(
+              child: Text("Yes"),
+              onPressed: () {
+                dismissAlert(context: context);
+                final documentId = message.chatPartnerId < myFirebaseUserId
+                    ? message.chatPartnerId + myFirebaseUserId
+                    : myFirebaseUserId + message.chatPartnerId;
+                firestoreDatabase.collection("dm-conversations").doc(documentId).set({
+                  myFirebaseUserId: {"didHideChat": true}
+                }, SetOptions(merge: true)).then((value) {
+                  setState(() {
+                    this._selectedIndex = null; // clear the row highlighting
+                  });
+                });
+              })
+        ],
+      );
+      showCupertinoDialog(context: context, builder: (context) => hideDMConversationAlert);
+    }
+
+    // hide a pod conversation
+    else {
+      final hidePodConversationAlert = CupertinoAlertDialog(
+        title: Text("Hide Conversation"),
+        content: Text("Are you "
+            "sure you want to hide the ${message.podName} chat? You will be able to view it again if you send a message"
+            " to the pod. Additionally, you will not receive new message notifications from ${message.podName} while "
+            "the chat is hidden"),
+        actions: [
+          // cancel button
+          CupertinoButton(
+              child: Text("No"),
+              onPressed: () {
+                dismissAlert(context: context);
+                setState(() {
+                  this._selectedIndex = null; // clear the row highlighting
+                });
+              }),
+
+          // hide chat button
+          CupertinoButton(
+              child: Text("Yes"),
+              onPressed: () {
+                dismissAlert(context: context);
+                PodsDatabasePaths(podID: message.podID!).hidePodConversation(onCompletion: () {
+                  setState(() {
+                    this._selectedIndex = null; // clear the row highlighting
+                  });
+                });
+              })
+        ],
+      );
+      showCupertinoDialog(context: context, builder: (context) => hidePodConversationAlert);
+    }
+  }
+
+  /// Delete a DM or pod conversation
+  void _deleteConversation({required ChatMessage message}) {
+    // highlight the conversation
+    setState(() {
+      _selectedIndex = _displayedMessagesList.indexWhere((element) => element.id == message.id);
+    });
+
+    // delete a DM conversation
+    if (message.podID == null) {
+      final conversationID = message.chatPartnerId < myFirebaseUserId
+          ? message.chatPartnerId + myFirebaseUserId
+          : myFirebaseUserId + message.chatPartnerId;
+      final deleteDMConversationAlert = CupertinoAlertDialog(
+        title: Text("Are You Sure?"),
+        content: Text("Are you "
+            "sure you want to permanently delete your conversation with ${message.chatPartnerName}? This action cannot "
+            "be undone."),
+        actions: [
+          CupertinoButton(
+              child: Text("No"),
+              onPressed: () {
+                dismissAlert(context: context);
+                setState(() {
+                  this._selectedIndex = null;
+                });
+              }),
+          CupertinoButton(
+              child: Text("Yes", style: TextStyle(color: CupertinoColors.destructiveRed)),
+              onPressed: () {
+                dismissAlert(context: context);
+                MessagingDatabasePaths(userID: message.chatPartnerId, interactingWithUserWithID: myFirebaseUserId)
+                    .deleteConversation(
+                        conversationID: conversationID,
+                        onCompletion: () {
+                          showSingleButtonAlert(
+                              context: context,
+                              title: "Deletion In Progress",
+                              content: "Your conversation with ${message.chatPartnerName} will be deleted shortly.",
+                              dismissButtonLabel: "OK");
+                          setState(() {
+                            this._selectedIndex = null;
+                          });
+                        });
+              })
+        ],
+      );
+      showCupertinoDialog(context: context, builder: (context) => deleteDMConversationAlert);
+    }
+
+    // delete a pod conversation
+    else {
+      final deletePodConversationAlert = CupertinoAlertDialog(
+        title: Text("Are You Sure?"),
+        content: Text("Are you "
+            "sure you want to permanently delete the ${message.podName ?? "pod"} chat? This action cannot be undone."),
+        actions: [
+          CupertinoButton(
+              child: Text("No"),
+              onPressed: () {
+                dismissAlert(context: context);
+                setState(() {
+                  this._selectedIndex = null;
+                });
+              }),
+          CupertinoButton(
+              child: Text(
+                "Yes",
+                style: TextStyle(color: CupertinoColors.destructiveRed),
+              ),
+              onPressed: () {
+                dismissAlert(context: context);
+                PodsDatabasePaths(podID: message.podID!).deletePodConversation(
+                    podName: message.podName ?? "this pod",
+                    onCompletion: () {
+                      showSingleButtonAlert(
+                          context: context,
+                          title: "Deletion In Progress",
+                          content: "All messages in ${message.podName ?? "this pod"} will be deleted shortly.",
+                          dismissButtonLabel: "OK");
+                    });
+                setState(() {
+                  this._selectedIndex = null;
+                });
+              })
+        ],
+      );
+      showCupertinoDialog(context: context, builder: (context) => deletePodConversationAlert);
+    }
+  }
 
   @override
   void initState() {
@@ -133,7 +311,8 @@ class _MessagingTabState extends State<MessagingTab> {
                 showLikesFriendsBlocksActionSheet(context: context);
               },
               padding: EdgeInsets.zero,
-            ), trailing: podModeButton(context: context),
+            ),
+            trailing: podModeButton(context: context),
             largeTitle: Text("Messages"),
             stretch: true,
           ),
@@ -182,19 +361,45 @@ class _MessagingTabState extends State<MessagingTab> {
                           });
                         });
                       },
-                      child: Card(
-                        color: _selectedIndex == _displayedMessagesList.indexWhere((element) => element == message)
-                            ? Colors.white60
-                            : CupertinoColors.systemBackground,
-                        child: Padding(
-                          padding: EdgeInsets.all(8),
-                          child: LatestMessageRow(
-                            chatPartnerOrPodName: message.podID != null ? message.podName! : message.chatPartnerName,
-                            chatPartnerOrPodThumbnailURL: message.chatPartnerThumbnailURL,
-                            content: message.text,
-                            timeStamp: message.timeStamp,
+                      child: Slidable(
+                        child: Card(
+                          color: _selectedIndex == _displayedMessagesList.indexWhere((element) => element == message)
+                              ? Colors.white60
+                              : CupertinoColors.systemBackground,
+                          child: Padding(
+                            padding: EdgeInsets.all(8),
+                            child: LatestMessageRow(
+                              chatPartnerOrPodName: message.podID != null ? message.podName! : message.chatPartnerName,
+                              chatPartnerOrPodThumbnailURL: message.chatPartnerThumbnailURL,
+                              content: message.text,
+                              timeStamp: message.timeStamp,
+                            ),
                           ),
                         ),
+                        actionPane: SlidableDrawerActionPane(),
+
+                        // The Hide button is on the left, and the Delete button is on the right
+                        actions: [
+                          // hide a conversation
+                          IconSlideAction(
+                              color: CupertinoColors.systemYellow,
+                              icon: CupertinoIcons.eye_slash,
+                              caption: "Hide",
+                              onTap: () {
+                                this._hideConversation(message: message);
+                              })
+                        ],
+                        secondaryActions: [
+                          // delete a conversation
+                          IconSlideAction(
+                            color: CupertinoColors.destructiveRed,
+                            icon: CupertinoIcons.trash,
+                            caption: "Delete",
+                            onTap: () {
+                              this._deleteConversation(message: message);
+                            },
+                          )
+                        ],
                       ),
                     ),
                   if (this._displayedMessagesList.isEmpty)

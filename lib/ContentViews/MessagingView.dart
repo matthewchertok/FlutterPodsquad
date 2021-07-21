@@ -127,8 +127,11 @@ class _MessagingViewState extends State<MessagingView> {
     // That way, we can loop through the list and add each message sequentially, and it will work out that the oldest
     // message we be at the start of the list.
 
-    // Only scroll to the bottom if a new message is added.
-    final shouldScrollToBottom = newList.last.timeStamp > displayedChatLog.last.timeStamp;
+    // Only scroll to the bottom if a new message is added. I have to do some null checks though in case one of the
+    // lists is empty. Otherwise it would cause a crash that would stop new messages from displaying
+    final lastMessageTimeInNewList = newList.length > 0 ? newList.last.timeStamp : 0;
+    final lastMessageTimeInOldList = displayedChatLog.length > 0 ? displayedChatLog.last.timeStamp : -1;
+    final shouldScrollToBottom = lastMessageTimeInNewList > lastMessageTimeInOldList;
 
     // For each differences, insert or remove items
     differences.forEach((difference) {

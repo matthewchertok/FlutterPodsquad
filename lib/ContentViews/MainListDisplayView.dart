@@ -1198,14 +1198,14 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                             )),
 
                     if (!isPodMode && this._displayedListOfPeople.isEmpty)
-                      SafeArea(
+                      Padding(padding: EdgeInsets.all(20),
                           child: Text(
                             isSearching ? "No results found" : "Nobody to display",
                             style: TextStyle(color: CupertinoColors.inactiveGray),
                           )),
 
                     if (isPodMode && this._displayedListOfPods.isEmpty)
-                      SafeArea(
+                      Padding(padding: EdgeInsets.all(20),
                           child: Text(
                             isSearching ? "No results found" : "No pods to display",
                             style: TextStyle(color: CupertinoColors.inactiveGray),

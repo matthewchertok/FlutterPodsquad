@@ -511,12 +511,11 @@ class _MessagingTabState extends State<MessagingTab> {
                         ),
                       if (this.showingHiddenChats && this._hiddenMessagesList.isEmpty || !this.showingHiddenChats && this
                           ._displayedMessagesList.isEmpty)
-                        SafeArea(
-                          child: Text(
+                        Padding(padding: EdgeInsets.all(20), child: Text(
                             isSearching ? "No results found" : "You don't have any messages",
                             style: TextStyle(color: CupertinoColors.inactiveGray),
-                          ),
-                        )
+                          ),),
+
                     ],
                   ),
                 ],

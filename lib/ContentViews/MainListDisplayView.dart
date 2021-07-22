@@ -14,6 +14,7 @@ import 'package:podsquad/ContentViews/CreateAPodView.dart';
 import 'package:podsquad/ContentViews/ViewPersonDetails.dart';
 import 'package:podsquad/ContentViews/ViewPodDetails.dart';
 import 'package:podsquad/DatabasePaths/PodsDatabasePaths.dart';
+import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
 import 'package:podsquad/ListRowViews/PersonOrPodListRow.dart';
 import 'package:podsquad/BackendFunctions/ShowLikesFriendsBlocksActionSheet.dart';
 import 'package:podsquad/OtherSpecialViews/PodModeButton.dart';
@@ -22,15 +23,16 @@ import 'package:podsquad/UIBackendClasses/MainListDisplayBackend.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 
 class MainListDisplayView extends StatefulWidget {
-  const MainListDisplayView({Key? key,
-    required this.viewMode,
-    this.showingSentDataNotReceivedData = true,
-    this.personData,
-    this.personId,
-    this.podData,
-    this.personName,
-    this.podMembers,
-    this.podMemberships})
+  const MainListDisplayView(
+      {Key? key,
+      required this.viewMode,
+      this.showingSentDataNotReceivedData = true,
+      this.personData,
+      this.personId,
+      this.podData,
+      this.personName,
+      this.podMembers,
+      this.podMemberships})
       : super(key: key);
   final String viewMode;
   final bool showingSentDataNotReceivedData;
@@ -54,16 +56,15 @@ class MainListDisplayView extends StatefulWidget {
   final List<PodData>? podMemberships;
 
   @override
-  _MainListDisplayViewState createState() =>
-      _MainListDisplayViewState(
-          viewMode: this.viewMode,
-          showingSentDataNotReceivedData: this.showingSentDataNotReceivedData,
-          personData: personData,
-          personId: personId,
-          podData: podData,
-          personName: this.personName,
-          podMembers: podMembers,
-          podMemberships: podMemberships);
+  _MainListDisplayViewState createState() => _MainListDisplayViewState(
+      viewMode: this.viewMode,
+      showingSentDataNotReceivedData: this.showingSentDataNotReceivedData,
+      personData: personData,
+      personId: personId,
+      podData: podData,
+      personName: this.personName,
+      podMembers: podMembers,
+      podMemberships: podMemberships);
 }
 
 class _MainListDisplayViewState extends State<MainListDisplayView> {
@@ -83,14 +84,15 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   final _searchTextController = TextEditingController();
   final _customScrollViewController = ScrollController();
 
-  _MainListDisplayViewState({required this.viewMode,
-    required this.showingSentDataNotReceivedData,
-    this.personData,
-    this.personId,
-    this.podData,
-    this.personName,
-    this.podMembers,
-    this.podMemberships}) {
+  _MainListDisplayViewState(
+      {required this.viewMode,
+      required this.showingSentDataNotReceivedData,
+      this.personData,
+      this.personId,
+      this.podData,
+      this.personName,
+      this.podMembers,
+      this.podMemberships}) {
     this.isPodMode = viewMode == MainListDisplayViewModes.searchPods ||
         viewMode == MainListDisplayViewModes.myPods ||
         viewMode == MainListDisplayViewModes.podMemberships ||
@@ -105,16 +107,14 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   /// The actually-displayed list of people. Includes code to filter the list of people to include only the
   /// results where a part of the name or bio matches the search text.
   List<ProfileData> get _displayedListOfPeople {
-    if (_searchTextController.text
-        .trim()
-        .isEmpty)
+    if (_searchTextController.text.trim().isEmpty)
       return _listOfPeople;
     else {
       final searchText = _searchTextController.text.trim();
       final filteredList = _listOfPeople
           .where((person) =>
-      person.name.toLowerCase().contains(searchText.toLowerCase()) ||
-          person.bio.toLowerCase().contains(searchText.toLowerCase()))
+              person.name.toLowerCase().contains(searchText.toLowerCase()) ||
+              person.bio.toLowerCase().contains(searchText.toLowerCase()))
           .toList();
       return filteredList;
     }
@@ -126,16 +126,14 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   /// The actually-displayed list of pods. Includes code to filter the list of pods to include only the results
   /// where a part of the name or bio matches the search text.
   List<PodData> get _displayedListOfPods {
-    if (_searchTextController.text
-        .trim()
-        .isEmpty)
+    if (_searchTextController.text.trim().isEmpty)
       return _listOfPods;
     else {
       final searchText = _searchTextController.text.trim();
       final filteredList = _listOfPods
           .where((pod) =>
-      pod.name.toLowerCase().contains(searchText.toLowerCase()) ||
-          pod.description.toLowerCase().contains(searchText.toLowerCase()))
+              pod.name.toLowerCase().contains(searchText.toLowerCase()) ||
+              pod.description.toLowerCase().contains(searchText.toLowerCase()))
           .toList();
       return filteredList;
     }
@@ -153,23 +151,96 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   Widget _personListRow({required ProfileData person}) {
     // if we're just displaying a list of people with no interaction needed, return a PersonOrPodListRow object.
     // Also, even if we are displaying pod members, I can't block myself.
-    if (!interactingWithPodMembers || person.userID == myFirebaseUserId)
-      return Card(
-        color: _selectedIndex == _listOfPeople.indexWhere((element) => element == person)
-            ? Colors.white60
-            : CupertinoColors.systemBackground,
-        child: Padding(
-          padding: EdgeInsets.all(8),
-          child: PersonOrPodListRow(
-            personOrPodID: person.userID,
-            personOrPodName: person.name,
-            personOrPodThumbnailURL: person.thumbnailURL,
-            personOrPodBio: person.bio,
-            timeIMetThePerson: person.timeIMetThePerson,
+    if (!interactingWithPodMembers || person.userID == myFirebaseUserId) {
+      if (viewMode != MainListDisplayViewModes.peopleIMet)
+        return Card(
+          color: _selectedIndex == _listOfPeople.indexWhere((element) => element == person)
+              ? Colors.white60
+              : CupertinoColors.systemBackground,
+          child: Padding(
+            padding: EdgeInsets.all(8),
+            child: PersonOrPodListRow(
+              personOrPodID: person.userID,
+              personOrPodName: person.name,
+              personOrPodThumbnailURL: person.thumbnailURL,
+              personOrPodBio: person.bio,
+              timeIMetThePerson: person.timeIMetThePerson,
+            ),
           ),
-        ),
-      );
-    else {
+        );
+
+      // if viewMode is peopleIMet, then make a Slidable with the option to un-meet someone
+      else {
+        return Slidable(
+          child: Card(
+            color: _selectedIndex == _listOfPeople.indexWhere((element) => element == person)
+                ? Colors.white60
+                : CupertinoColors.systemBackground,
+            child: Padding(
+              padding: EdgeInsets.all(8),
+              child: PersonOrPodListRow(
+                personOrPodID: person.userID,
+                personOrPodName: person.name,
+                personOrPodThumbnailURL: person.thumbnailURL,
+                personOrPodBio: person.bio,
+                timeIMetThePerson: person.timeIMetThePerson,
+              ),
+            ),
+          ),
+          actionPane: SlidableDrawerActionPane(),
+          actions: [
+            // un-meet the person
+            IconSlideAction(
+              caption: "Un-Meet",
+              color: CupertinoColors.destructiveRed,
+              icon: CupertinoIcons.person_badge_minus,
+              onTap: () {
+                final unMeetPersonAlert = CupertinoAlertDialog(
+                  title: Text("Un-Meet ${person.name}?"),
+                  content: Text("You and ${person.name.firstName()} will no longer "
+                      "appear in each other's People I Met lists."),
+                  actions: [
+                    CupertinoButton(
+                        child: Text("No"),
+                        onPressed: () {
+                          dismissAlert(context: context);
+                        }),
+                    CupertinoButton(
+                        child: Text(
+                          "Yes",
+                          style: TextStyle(color: CupertinoColors.destructiveRed),
+                        ),
+                        onPressed: () {
+                          dismissAlert(context: context);
+                          // find the one document that contains data for our meeting, and delete it.
+                          // To find the document, we must use the fact that person1 is the lower ID alphabetically, and
+                          // person 2 is the higher ID alphabetically.
+                          final person1ID = myFirebaseUserId < person.userID ? myFirebaseUserId : person.userID;
+                          final person2ID = myFirebaseUserId < person.userID ? person.userID : myFirebaseUserId;
+
+                          firestoreDatabase
+                              .collection("nearby-people")
+                              .where("person1.userID", isEqualTo: person1ID)
+                              .where("person2.userID", isEqualTo: person2ID)
+                              .get()
+                              .then((snapshot) {
+                            // there should only be one document. Delete it.
+                            snapshot.docs.forEach((document) {
+                              document.reference.delete();
+                            });
+                          }).catchError((error) {
+                            print("An error occurred while trying to un-meet someone: $error");
+                          });
+                        })
+                  ],
+                );
+                showCupertinoDialog(context: context, builder: (context) => unMeetPersonAlert);
+              },
+            )
+          ],
+        );
+      }
+    } else {
       // If we're viewing pod members, then we must show the option to block or remove them. I'll arbitrarily put the
       // Remove button on the left and Block button on the right.
       if (viewMode == MainListDisplayViewModes.podMembers)
@@ -503,11 +574,8 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
       final blockedAlert = CupertinoAlertDialog(
         title: Text("Unable to add $personName to ${podData.name}"),
         content: Text(
-            "${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun,
-                pronounTense: PronounTenses.HeSheThey,
-                shouldBeCapitalized: true)} ${PronounFormatter.isOrAre(
-                pronoun: personData.preferredPronoun, shouldBeCapitalized: false)} blocked "
-                "from ${podData.name}"),
+            "${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: true)} ${PronounFormatter.isOrAre(pronoun: personData.preferredPronoun, shouldBeCapitalized: false)} blocked "
+            "from ${podData.name}"),
         actions: [
           CupertinoButton(
               child: Text("OK"),
@@ -525,11 +593,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
       final alreadyMemberAlert = CupertinoAlertDialog(
         title: Text("Cannot add ${personData.name} to ${podData.name}"),
         content: Text(
-            "${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun,
-                pronounTense: PronounTenses.HeSheThey,
-                shouldBeCapitalized: true)} ${PronounFormatter.isOrAre(
-                pronoun: personData.preferredPronoun, shouldBeCapitalized: false)} already a member of ${podData
-                .name}"),
+            "${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: true)} ${PronounFormatter.isOrAre(pronoun: personData.preferredPronoun, shouldBeCapitalized: false)} already a member of ${podData.name}"),
         actions: [
           CupertinoButton(
               child: Text("OK"),
@@ -563,9 +627,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
               onPressed: () {
                 this._selectedIndex = null; // clear the selected index to remove the list highlight
                 dismissAlert(context: context);
-                final timeSinceEpochInSeconds = DateTime
-                    .now()
-                    .millisecondsSinceEpoch * 0.001;
+                final timeSinceEpochInSeconds = DateTime.now().millisecondsSinceEpoch * 0.001;
                 final infoDict = PodMemberInfoDict(
                     userID: personData.userID,
                     bio: personData.bio,
@@ -580,7 +642,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                       if (!podMembers.contains(personData)) {
                         if (PodMembersDictionary.sharedInstance.dictionary.value[podData.podID] == null)
                           PodMembersDictionary.sharedInstance.dictionary.value[podData.podID] =
-                          []; // initialize a list if necessary
+                              []; // initialize a list if necessary
                         PodMembersDictionary.sharedInstance.dictionary.value[podData.podID]?.add(personData);
                         PodMembersDictionary.sharedInstance.dictionary.notifyListeners();
                         PodMembersDictionary.sharedInstance.updateTheOtherDictionaries();
@@ -659,9 +721,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
     _searchTextController.addListener(() {
       final text = _searchTextController.text;
       setState(() {
-        this.isSearching = text
-            .trim()
-            .isNotEmpty;
+        this.isSearching = text.trim().isNotEmpty;
       });
     });
 
@@ -711,8 +771,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
             this._listOfPeople = sentLikes;
           });
         });
-      }
-      else {
+      } else {
         final receivedLikes = ReceivedLikesBackendFunctions.shared.sortedListOfPeople.value;
         this._listOfPeople = receivedLikes;
 
@@ -739,8 +798,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
             this._listOfPeople = sentFriends;
           });
         });
-      }
-      else {
+      } else {
         final receivedFriends = ReceivedFriendsBackendFunctions.shared.sortedListOfPeople.value;
         this._listOfPeople = receivedFriends;
 
@@ -767,8 +825,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
             this._listOfPeople = sentBlocks;
           });
         });
-      }
-      else {
+      } else {
         final receivedBlocks = ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.value;
         this._listOfPeople = receivedBlocks;
 
@@ -783,7 +840,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
     }
 
     // If the viewMode is peopleIMet, then display the list of people I met
-    else if (viewMode == MainListDisplayViewModes.peopleIMet){
+    else if (viewMode == MainListDisplayViewModes.peopleIMet) {
       final peopleIMet = PeopleIMetBackendFunctions.shared.sortedListOfPeople.value;
       this._listOfPeople = peopleIMet;
 
@@ -812,17 +869,17 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
     // view is displaying
     final query = viewMode == MainListDisplayViewModes.searchUsers
         ? await firestoreDatabase
-        .collection("users")
-        .where("profileData.name", isGreaterThanOrEqualTo: searchText)
-        .where("profileData.name", isLessThan: endBeforeText)
-        .orderBy("profileData.name")
-        .get()
+            .collection("users")
+            .where("profileData.name", isGreaterThanOrEqualTo: searchText)
+            .where("profileData.name", isLessThan: endBeforeText)
+            .orderBy("profileData.name")
+            .get()
         : await firestoreDatabase
-        .collection("pods")
-        .where("profileData.name", isGreaterThanOrEqualTo: searchText)
-        .where("profileData.name", isLessThan: endBeforeText)
-        .orderBy("profileData.name")
-        .get();
+            .collection("pods")
+            .where("profileData.name", isGreaterThanOrEqualTo: searchText)
+            .where("profileData.name", isLessThan: endBeforeText)
+            .orderBy("profileData.name")
+            .get();
 
     // show an alert saying no results found
     if (query.docs.length == 0) {
@@ -972,7 +1029,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                       dismissAlert(context: context);
                       Navigator.of(context, rootNavigator: true)
                           .push(CupertinoPageRoute(
-                          builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.searchPods)))
+                              builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.searchPods)))
                           .then((value) {
                         setState(() {
                           this._selectedIndex = null; // clear the selected index to remove row highlighting
@@ -1008,7 +1065,8 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
           onPressed: () {
             // Navigate to create a pod
             Navigator.of(context, rootNavigator: true)
-                .push(CupertinoPageRoute(builder: (context) => CreateAPodView(isCreatingNewPod: true))).then((value) {
+                .push(CupertinoPageRoute(builder: (context) => CreateAPodView(isCreatingNewPod: true)))
+                .then((value) {
               setState(() {
                 this._selectedIndex = null;
               });
@@ -1045,16 +1103,11 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
     super.dispose();
     _customScrollViewController.removeListener(() {});
     if (viewMode == MainListDisplayViewModes.myPods)
-      ShowMyPodsBackendFunctions.shared.sortedListOfPods
-          .removeListener(() {});
+      ShowMyPodsBackendFunctions.shared.sortedListOfPods.removeListener(() {});
     else if (viewMode == MainListDisplayViewModes.likes && showingSentDataNotReceivedData)
-      SentLikesBackendFunctions
-          .shared.sortedListOfPeople
-          .removeListener
-        (() {});
+      SentLikesBackendFunctions.shared.sortedListOfPeople.removeListener(() {});
     else if (viewMode == MainListDisplayViewModes.likes && !showingSentDataNotReceivedData)
-      ReceivedLikesBackendFunctions
-          .shared.sortedListOfPeople.removeListener(() {});
+      ReceivedLikesBackendFunctions.shared.sortedListOfPeople.removeListener(() {});
     else if (viewMode == MainListDisplayViewModes.friends && showingSentDataNotReceivedData)
       SentFriendsBackendFunctions.shared.sortedListOfPeople.removeListener(() {});
     else if (viewMode == MainListDisplayViewModes.friends && !showingSentDataNotReceivedData)
@@ -1063,158 +1116,160 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
       SentBlocksBackendFunctions.shared.sortedListOfPeople.removeListener(() {});
     else if (viewMode == MainListDisplayViewModes.blocked && !showingSentDataNotReceivedData)
       ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.removeListener(() {});
-    else if (viewMode == MainListDisplayViewModes.peopleIMet) PeopleIMetBackendFunctions.shared.sortedListOfPeople
-        .removeListener
-      (() {});
+    else if (viewMode == MainListDisplayViewModes.peopleIMet)
+      PeopleIMetBackendFunctions.shared.sortedListOfPeople.removeListener(() {});
     _selectedIndex = null;
   }
 
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      child: SafeArea(child: CustomScrollView(
-        controller: _customScrollViewController,
-        physics: AlwaysScrollableScrollPhysics(),
-        slivers: [
-          CupertinoSliverNavigationBar(
-            padding: viewMode != MainListDisplayViewModes.peopleIMet
-                ? EdgeInsetsDirectional.zero
-                : EdgeInsetsDirectional.all(5),
-            largeTitle: Text(navBarTitle(viewMode: viewMode)),
-            leading: backButton(),
-            trailing: navBarTrailing(),
-            stretch: true,
-          ),
-          SliverList(
-              delegate: SliverChildListDelegate([
-                // will contain content
-                Column(
-                  children: [
-                    // Collapsible search bar. The reason I must use CupertinoTextField instead of
-                    // CupertinoSearchTextField (the
-                    // themed search bar) is that CupertinoSearchTextField does not have a text auto-capitalization property,
-                    // meaning that by default, letters are always lower-cased. This might cause confusion for users, as they
-                    // would have to manually capitalize their searches every time. It's much easier for them if the text field
-                    // auto-capitalizes for them, which is why I'm using a regular CupertinoTextField for now.
-                    AnimatedSwitcher(
-                        transitionBuilder: (child, animation) {
-                          return SizeTransition(
-                            sizeFactor: animation,
-                            child: child,
-                          );
-                        },
-                        duration: Duration(milliseconds: 250),
-                        child: _searchBarShowing
-                            ? Padding(
-                            padding: EdgeInsets.only(bottom: 10),
-                            child: SearchTextField(
-                              controller: _searchTextController,
-                              onSubmitted: (searchText) {
-                                if (viewMode == MainListDisplayViewModes.searchUsers ||
-                                    viewMode == MainListDisplayViewModes.searchPods)
-                                  this.searchForUserOrPodByName(matching: searchText);
-                              },
-                              onClearButtonPressed: () {
-                                // clear the search results if the "x" is tapped
-                                if (viewMode == MainListDisplayViewModes.searchUsers)
-                                  setState(() {
-                                    _listOfPeople.clear();
-                                  });
-                                if (viewMode == MainListDisplayViewModes.searchPods)
-                                  setState(() {
-                                    _listOfPods.clear();
-                                  });
-                              },
-                            ))
-                            : Container()),
+      child: SafeArea(
+        child: CustomScrollView(
+          controller: _customScrollViewController,
+          physics: AlwaysScrollableScrollPhysics(),
+          slivers: [
+            CupertinoSliverNavigationBar(
+              padding: viewMode != MainListDisplayViewModes.peopleIMet
+                  ? EdgeInsetsDirectional.zero
+                  : EdgeInsetsDirectional.all(5),
+              largeTitle: Text(navBarTitle(viewMode: viewMode)),
+              leading: backButton(),
+              trailing: navBarTrailing(),
+              stretch: true,
+            ),
+            SliverList(
+                delegate: SliverChildListDelegate([
+              // will contain content
+              Column(
+                children: [
+                  // Collapsible search bar. The reason I must use CupertinoTextField instead of
+                  // CupertinoSearchTextField (the
+                  // themed search bar) is that CupertinoSearchTextField does not have a text auto-capitalization property,
+                  // meaning that by default, letters are always lower-cased. This might cause confusion for users, as they
+                  // would have to manually capitalize their searches every time. It's much easier for them if the text field
+                  // auto-capitalizes for them, which is why I'm using a regular CupertinoTextField for now.
+                  AnimatedSwitcher(
+                      transitionBuilder: (child, animation) {
+                        return SizeTransition(
+                          sizeFactor: animation,
+                          child: child,
+                        );
+                      },
+                      duration: Duration(milliseconds: 250),
+                      child: _searchBarShowing
+                          ? Padding(
+                              padding: EdgeInsets.only(bottom: 10),
+                              child: SearchTextField(
+                                controller: _searchTextController,
+                                onSubmitted: (searchText) {
+                                  if (viewMode == MainListDisplayViewModes.searchUsers ||
+                                      viewMode == MainListDisplayViewModes.searchPods)
+                                    this.searchForUserOrPodByName(matching: searchText);
+                                },
+                                onClearButtonPressed: () {
+                                  // clear the search results if the "x" is tapped
+                                  if (viewMode == MainListDisplayViewModes.searchUsers)
+                                    setState(() {
+                                      _listOfPeople.clear();
+                                    });
+                                  if (viewMode == MainListDisplayViewModes.searchPods)
+                                    setState(() {
+                                      _listOfPods.clear();
+                                    });
+                                },
+                              ))
+                          : Container()),
 
-                    // show a list of people
-                    if (!isPodMode)
-                      for (var person in _displayedListOfPeople)
-                        GestureDetector(
+                  // show a list of people
+                  if (!isPodMode)
+                    for (var person in _displayedListOfPeople)
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            // highlight the row
+                            this._selectedIndex = this._listOfPeople.indexWhere((element) => element == person);
+                          });
+                          // navigate to view the person's details
+                          Navigator.of(context, rootNavigator: true)
+                              .push(
+                                  CupertinoPageRoute(builder: (context) => ViewPersonDetails(personID: person.userID)))
+                              .then((value) {
+                            setState(() {
+                              this._selectedIndex = null; // clear the selected index to remove row highlighting
+                            });
+                          });
+                        },
+                        child: _personListRow(person: person),
+                      ),
+
+                  // show a list of pods
+                  if (isPodMode)
+                    for (var pod in _displayedListOfPods)
+                      GestureDetector(
                           onTap: () {
                             setState(() {
                               // highlight the row
-                              this._selectedIndex = this._listOfPeople.indexWhere((element) => element == person);
+                              this._selectedIndex = this._listOfPods.indexWhere((element) => element == pod);
                             });
-                            // navigate to view the person's details
-                            Navigator.of(context, rootNavigator: true)
-                                .push(CupertinoPageRoute(
-                                builder: (context) => ViewPersonDetails(personID: person.userID)))
-                                .then((value) {
-                              setState(() {
-                                this._selectedIndex = null; // clear the selected index to remove row highlighting
-                              });
-                            });
-                          },
-                          child: _personListRow(person: person),
-                        ),
 
-                    // show a list of pods
-                    if (isPodMode)
-                      for (var pod in _displayedListOfPods)
-                        GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                // highlight the row
-                                this._selectedIndex = this._listOfPods.indexWhere((element) => element == pod);
-                              });
-
-                              // navigate to view pod details
-                              if (viewMode != MainListDisplayViewModes.addPersonToPod)
-                                Navigator.of(context, rootNavigator: true)
-                                    .push(CupertinoPageRoute(
-                                    builder: (context) =>
-                                        ViewPodDetails(
-                                          podID: pod.podID,
-                                          showChatButton: true,
-                                        )))
-                                    .then((value) {
-                                  setState(() {
-                                    this._selectedIndex = null; // clear the selected index to remove row highlighting
-                                  });
+                            // navigate to view pod details
+                            if (viewMode != MainListDisplayViewModes.addPersonToPod)
+                              Navigator.of(context, rootNavigator: true)
+                                  .push(CupertinoPageRoute(
+                                      builder: (context) => ViewPodDetails(
+                                            podID: pod.podID,
+                                            showChatButton: true,
+                                          )))
+                                  .then((value) {
+                                setState(() {
+                                  this._selectedIndex = null; // clear the selected index to remove row highlighting
                                 });
+                              });
 
-                              // show a dialog allowing me to add the person to a pod
-                              else {
-                                final personData = this.personData;
-                                if (personData != null) this._addPersonToPod(personData: personData, podData: pod);
-                              }
+                            // show a dialog allowing me to add the person to a pod
+                            else {
+                              final personData = this.personData;
+                              if (personData != null) this._addPersonToPod(personData: personData, podData: pod);
+                            }
 
-                              // add the person to the pod
-                            },
-                            child: Card(
-                              color: _selectedIndex == _listOfPods.indexWhere((element) => element == pod)
-                                  ? Colors.white60
-                                  : CupertinoColors.systemBackground,
-                              child: Padding(
-                                padding: EdgeInsets.all(8),
-                                child: PersonOrPodListRow(
-                                    personOrPodID: pod.podID,
-                                    personOrPodName: pod.name,
-                                    personOrPodThumbnailURL: pod.thumbnailURL,
-                                    personOrPodBio: pod.description),
-                              ),
-                            )),
-
-                    if (!isPodMode && this._displayedListOfPeople.isEmpty)
-                      Padding(padding: EdgeInsets.all(20),
-                          child: Text(
-                            isSearching ? "No results found" : "Nobody to display",
-                            style: TextStyle(color: CupertinoColors.inactiveGray),
+                            // add the person to the pod
+                          },
+                          child: Card(
+                            color: _selectedIndex == _listOfPods.indexWhere((element) => element == pod)
+                                ? Colors.white60
+                                : CupertinoColors.systemBackground,
+                            child: Padding(
+                              padding: EdgeInsets.all(8),
+                              child: PersonOrPodListRow(
+                                  personOrPodID: pod.podID,
+                                  personOrPodName: pod.name,
+                                  personOrPodThumbnailURL: pod.thumbnailURL,
+                                  personOrPodBio: pod.description),
+                            ),
                           )),
 
-                    if (isPodMode && this._displayedListOfPods.isEmpty)
-                      Padding(padding: EdgeInsets.all(20),
-                          child: Text(
-                            isSearching ? "No results found" : "No pods to display",
-                            style: TextStyle(color: CupertinoColors.inactiveGray),
-                          )),
-                  ],
-                ),
-              ]))
-        ],
-      ),),
+                  if (!isPodMode && this._displayedListOfPeople.isEmpty)
+                    Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Text(
+                          isSearching ? "No results found" : "Nobody to display",
+                          style: TextStyle(color: CupertinoColors.inactiveGray),
+                        )),
+
+                  if (isPodMode && this._displayedListOfPods.isEmpty)
+                    Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Text(
+                          isSearching ? "No results found" : "No pods to display",
+                          style: TextStyle(color: CupertinoColors.inactiveGray),
+                        )),
+                ],
+              ),
+            ]))
+          ],
+        ),
+      ),
     );
   }
 }

@@ -328,7 +328,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                   showLikesFriendsBlocksActionSheet(context: context);
                 },
                 padding: EdgeInsets.zero,
-              ), trailing: podModeButton(context: context),
+              ),
               largeTitle: Text("My Profile"),
               stretch: true,
             ),

@@ -401,17 +401,10 @@ class _MessagingTabState extends State<MessagingTab> {
               },
               padding: EdgeInsets.zero,
             ),
-            trailing: this.showingHiddenChats ? null : Container(width: 120, child: Row(mainAxisAlignment:
-            MainAxisAlignment.end, children: [
-              // Navigate to see my hidden chats (so I can un-hide them)
-              if (_hiddenMessagesList.length > 0)
-                CupertinoButton(padding: EdgeInsets.zero, child: Icon(CupertinoIcons.eye_slash_fill), onPressed: (){
-                  Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => MessagingTab(showingHiddenChats: true,)));
-                }),
-
-              // the button to go to view my pods
-              podModeButton(context: context)
-            ],),),
+            trailing: this.showingHiddenChats ? null : _hiddenMessagesList.length > 0 ?
+        CupertinoButton(padding: EdgeInsets.zero, child: Icon(CupertinoIcons.eye_slash_fill), onPressed: (){
+      Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => MessagingTab(showingHiddenChats: true,)));
+    }) : null,
             largeTitle: Text(this.showingHiddenChats ? "Hidden Chats" : "Messages"),
             stretch: true,
           ),

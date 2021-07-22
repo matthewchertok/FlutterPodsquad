@@ -17,6 +17,7 @@ import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'package:wakelock/wakelock.dart';
 
 import 'BackendDataHolders/UserAuth.dart';
+import 'BackendFunctions/NearbyScanner.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -94,6 +95,7 @@ class _AppState extends State<MyApp> {
                 ReportedPeopleBackendFunctions.shared.observeReportedPeople();
                 ShowMyPodsBackendFunctions.shared.addDataToListView();
                 PeopleIMetBackendFunctions.shared.addDataToListView();
+                NearbyScanner.shared.publishAndSubscribe(); // start listening for people nearby over Bluetooth
                 // Must wait until profile data is ready; otherwise we'll run into the issue of profile data not
                 // loading. The reason I can't just put snapshots on profile data is that Flutter can behave weirdly,
                 // such that opening a text field can cause the widget to think it disappeared, which causes the view

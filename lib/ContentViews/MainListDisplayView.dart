@@ -997,9 +997,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
 
   /// Creates the trailing widget on the navigation bar, depending on the view mode
   Widget navBarTrailing() {
-    if (viewMode == MainListDisplayViewModes.peopleIMet)
-      return podModeButton(context: context);
-    else if (viewMode == MainListDisplayViewModes.myPods)
+    if (viewMode == MainListDisplayViewModes.myPods)
       return CupertinoButton(
           padding: EdgeInsets.zero,
           child: Icon(CupertinoIcons.line_horizontal_3),

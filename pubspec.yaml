@@ -55,6 +55,7 @@ dependencies:
   flutter_keyboard_visibility: ^5.0.2
   focus_detector: ^2.0.0
   wakelock: ^0.5.2
+  flutter_slider_drawer: ^2.0.0
 
 dev_dependencies:
   flutter_test:

@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_slider_drawer/flutter_slider_drawer.dart';
 import 'package:podsquad/BackendDataclasses/MainListDisplayViewModes.dart';
 import 'package:podsquad/ContentViews/MyProfileTab.dart';
 import 'package:podsquad/ContentViews/MainListDisplayView.dart';
 import 'package:podsquad/ContentViews/MessagingTab.dart';
+import 'package:podsquad/OtherSpecialViews/LikesFriendsBlocksDrawer.dart';
 
 class WelcomeView extends StatefulWidget {
   const WelcomeView({Key? key}) : super(key: key);
@@ -16,7 +18,11 @@ class _WelcomeViewState extends State<WelcomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoTabScaffold(
+    return CupertinoPageScaffold(child: SliderMenuContainer(key: drawerKey, hasAppBar: false, sliderMenu:
+    likesFriendsBlocksDrawer
+      (context: context),
+        sliderMain:
+    CupertinoTabScaffold(
         controller: _tabController,
         tabBar: CupertinoTabBar(items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(CupertinoIcons.person_3), label: "People I Met"),
@@ -49,6 +55,9 @@ class _WelcomeViewState extends State<WelcomeView> {
                 }
             }
           });
-        });
+        })));
   }
 }
+
+/// A global variable key that can be used to control the drawer
+final drawerKey = GlobalKey<SliderMenuContainerState>();

@@ -13,6 +13,7 @@ import 'package:podsquad/ListRowViews/LatestMessageRow.dart';
 import 'package:podsquad/BackendFunctions/ShowLikesFriendsBlocksActionSheet.dart';
 import 'package:podsquad/OtherSpecialViews/PodModeButton.dart';
 import 'package:podsquad/OtherSpecialViews/SearchTextField.dart';
+import 'package:podsquad/TabLayoutViews/WelcomeView.dart';
 import 'package:podsquad/UIBackendClasses/MessagesDictionary.dart';
 import 'package:podsquad/UIBackendClasses/MessagingTabFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
@@ -397,7 +398,7 @@ class _MessagingTabState extends State<MessagingTab> {
             leading: this.showingHiddenChats ? null : CupertinoButton(
               child: Icon(CupertinoIcons.line_horizontal_3),
               onPressed: () {
-                showLikesFriendsBlocksActionSheet(context: context);
+                drawerKey.currentState?.toggle(); // open the likes/friends/blocks drawer;
               },
               padding: EdgeInsets.zero,
             ),

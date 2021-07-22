@@ -19,6 +19,7 @@ import 'package:podsquad/ListRowViews/PersonOrPodListRow.dart';
 import 'package:podsquad/BackendFunctions/ShowLikesFriendsBlocksActionSheet.dart';
 import 'package:podsquad/OtherSpecialViews/PodModeButton.dart';
 import 'package:podsquad/OtherSpecialViews/SearchTextField.dart';
+import 'package:podsquad/TabLayoutViews/WelcomeView.dart';
 import 'package:podsquad/UIBackendClasses/MainListDisplayBackend.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 
@@ -997,66 +998,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
 
   /// Creates the trailing widget on the navigation bar, depending on the view mode
   Widget navBarTrailing() {
-    if (viewMode == MainListDisplayViewModes.myPods)
-      return CupertinoButton(
-          padding: EdgeInsets.zero,
-          child: Icon(CupertinoIcons.line_horizontal_3),
-          onPressed: () {
-            final sheet = CupertinoActionSheet(
-              title: Text("Pod Options"),
-              message: Text("Create a new pod or search for "
-                  "one by name"),
-              actions: [
-                // Create pod
-                CupertinoActionSheetAction(
-                    onPressed: () {
-                      dismissAlert(context: context);
-                      Navigator.of(context, rootNavigator: true)
-                          .push(CupertinoPageRoute(builder: (context) => CreateAPodView(isCreatingNewPod: true)))
-                          .then((value) {
-                        setState(() {
-                          this._selectedIndex = null; // clear the selected index to remove row highlighting
-                        });
-                      });
-                    },
-                    child: Text("Create Pod")),
-
-                // Search for a pod by name
-                CupertinoActionSheetAction(
-                    onPressed: () {
-                      dismissAlert(context: context);
-                      Navigator.of(context, rootNavigator: true)
-                          .push(CupertinoPageRoute(
-                              builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.searchPods)))
-                          .then((value) {
-                        setState(() {
-                          this._selectedIndex = null; // clear the selected index to remove row highlighting
-                        });
-                      });
-                    },
-                    child: Text("Search Pods By Name")),
-
-                // Help button
-                CupertinoActionSheetAction(
-                    onPressed: () {
-                      dismissAlert(context: context);
-                      //TODO: create the Help sheet
-                    },
-                    child: Text("Help")),
-
-                // Cancel button
-                CupertinoActionSheetAction(
-                  onPressed: () {
-                    dismissAlert(context: context);
-                  },
-                  child: Text("Cancel"),
-                  isDefaultAction: true,
-                )
-              ],
-            );
-            showCupertinoModalPopup(context: context, builder: (context) => sheet);
-          });
-    else if (viewMode == MainListDisplayViewModes.addPersonToPod)
+    if (viewMode == MainListDisplayViewModes.addPersonToPod)
       return CupertinoButton(
           padding: EdgeInsets.zero,
           child: Icon(CupertinoIcons.plus),
@@ -1077,7 +1019,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   /// Show a back button if I should be allowed to go back. If the view is people I met (in the main tab view), then
   /// show the button to open the action sheet to view likes/friends/blocks
   Widget backButton() {
-    if (viewMode != MainListDisplayViewModes.peopleIMet)
+    if (viewMode != MainListDisplayViewModes.peopleIMet && viewMode != MainListDisplayViewModes.myPods)
       return CupertinoButton(
           padding: EdgeInsets.zero,
           child: Icon(
@@ -1090,7 +1032,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
       return CupertinoButton(
         child: Icon(CupertinoIcons.line_horizontal_3),
         onPressed: () {
-          showLikesFriendsBlocksActionSheet(context: context);
+          drawerKey.currentState?.toggle(); // open the likes/friends/blocks drawer;
         },
         padding: EdgeInsets.zero,
       );

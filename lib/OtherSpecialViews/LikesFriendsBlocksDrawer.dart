@@ -5,7 +5,6 @@ import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/CreateAPodView.dart';
 import 'package:podsquad/ContentViews/MainListDisplayView.dart';
 import 'package:podsquad/TabLayoutViews/LikesFriendsBlocksTabView.dart';
-import 'package:podsquad/TabLayoutViews/WelcomeView.dart';
 
 /// The drawer that opens from the left side of the screen to allow the user to navigate to view their
 /// likes/friends/blocks
@@ -26,7 +25,7 @@ Widget likesFriendsBlocksDrawer({required BuildContext context}) => SafeArea(
           ListTile(
             title: Text("Search Users by Name"),
             onTap: () {
-              drawerKey.currentState?.toggle(); // hide the drawer before navigating
+          //    drawerKey.currentState?.toggle(); // hide the drawer before navigating
               Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                   builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.searchUsers)));
             },
@@ -35,7 +34,7 @@ Widget likesFriendsBlocksDrawer({required BuildContext context}) => SafeArea(
           // Search for a pod by name
           ListTile(
               onTap: () {
-                drawerKey.currentState?.toggle(); // hide the drawer before navigating
+           //     drawerKey.currentState?.toggle(); // hide the drawer before navigating
                 Navigator.of(context, rootNavigator: true)
                     .push(CupertinoPageRoute(
                     builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.searchPods)))
@@ -46,11 +45,9 @@ Widget likesFriendsBlocksDrawer({required BuildContext context}) => SafeArea(
 
           ListTile(
               onTap: () {
-                drawerKey.currentState?.toggle(); // hide the drawer before navigating
+            //    drawerKey.currentState?.toggle(); // hide the drawer before navigating
                 Navigator.of(context, rootNavigator: true)
-                    .push(CupertinoPageRoute(builder: (context) => CreateAPodView(isCreatingNewPod: true)))
-                    .then((value) {;
-                });
+                    .push(CupertinoPageRoute(builder: (context) => CreateAPodView(isCreatingNewPod: true)));
               },
               title: Text("Create Pod")),
 
@@ -58,7 +55,7 @@ Widget likesFriendsBlocksDrawer({required BuildContext context}) => SafeArea(
           ListTile(
             title: Text("View Likes"),
             onTap: () {
-              drawerKey.currentState?.toggle(); // hide the drawer before navigating
+          //    drawerKey.currentState?.toggle(); // hide the drawer before navigating
           // navigate to view likes
               Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                   builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes.likes)));
@@ -69,7 +66,7 @@ Widget likesFriendsBlocksDrawer({required BuildContext context}) => SafeArea(
           ListTile(
             title: Text("View Friends"),
             onTap: () {
-              drawerKey.currentState?.toggle(); // hide the drawer before navigating
+         //     drawerKey.currentState?.toggle(); // hide the drawer before navigating
               Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                   builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes.friends)));
             },
@@ -79,7 +76,7 @@ Widget likesFriendsBlocksDrawer({required BuildContext context}) => SafeArea(
           ListTile(
             title: Text("Blocked People"),
             onTap: () {
-              drawerKey.currentState?.toggle(); // hide the drawer before navigating
+         //     drawerKey.currentState?.toggle(); // hide the drawer before navigating
               Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                   builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes.blocked)));
             },

@@ -27,6 +27,7 @@ import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'dart:io';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:uuid/uuid.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class MessagingView extends StatefulWidget {
   const MessagingView(
@@ -68,6 +69,7 @@ class _MessagingViewState extends State<MessagingView> {
   final _chatLogScrollController = ScrollController();
   final _imageAndAudioScrollController = ScrollController();
   final _imagePicker = ImagePicker();
+  final _refreshController = RefreshController();
 
   /// The image that gets picked from the photo library
   File? imageFile;
@@ -111,6 +113,9 @@ class _MessagingViewState extends State<MessagingView> {
   /// Keep track of all the pod active members and update in real time
   List<String> _podActiveMemberIDsList = [];
 
+  /// Track whether the chat log is up to date (no more messages to load)
+  bool _noMoreMessagesToLoad = false;
+
   /// If this is DM mode, get the conversation ID as an alphabetical combination of my user ID and my chat partner's
   /// user ID
   String get conversationID => chatPartnerOrPodID < myFirebaseUserId
@@ -141,29 +146,32 @@ class _MessagingViewState extends State<MessagingView> {
       // if a new message was added, insert it at the end
       if (newMessageAdded) {
         displayedChatLog.insert(0, difference);
-        displayedChatLog.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
+        displayedChatLog.sort((b, a) => a.timeStamp.compareTo(b.timeStamp));
         _listKey.currentState?.insertItem(0);
       }
 
       if (newMessageRemoved) {
-        displayedChatLog.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
+        displayedChatLog.sort((b, a) => a.timeStamp.compareTo(b.timeStamp));
         final index = displayedChatLog.indexWhere((element) => element == difference);
         _listKey.currentState?.removeItem(
             index,
             (context, animation) => MessagingRow(
-                messageId: difference.id,
-                messageText: difference.text,
-                senderId: difference.senderId,
-                senderThumbnailURL: difference.senderThumbnailURL,
-                timeStamp: difference.timeStamp, isPodMode: isPodMode, chatPartnerOrPodName: difference
-                .chatPartnerName, chatPartnerOrPodID: difference.chatPartnerId,));
+                  messageId: difference.id,
+                  messageText: difference.text,
+                  senderId: difference.senderId,
+                  senderThumbnailURL: difference.senderThumbnailURL,
+                  timeStamp: difference.timeStamp,
+                  isPodMode: isPodMode,
+                  chatPartnerOrPodName: difference.chatPartnerName,
+                  chatPartnerOrPodID: difference.chatPartnerId,
+                ));
         displayedChatLog.removeWhere((element) => element == difference);
         Slidable.of(context)?.dismiss(); // dismiss Slidable objects; otherwise I'll run into the issue of opening
         // another message's slidable after the current message is deleted.
       }
     });
 
-    if (shouldScrollToBottom) _scrollChatLogToBottom(overScrollBy: 0);
+    //  if (shouldScrollToBottom) _scrollChatLogToBottom(overScrollBy: 0);
   }
 
   /// Show an alert asking the user to confirm that they want to delete a message from the conversation
@@ -343,7 +351,8 @@ class _MessagingViewState extends State<MessagingView> {
         imageURL: message.imageURL,
         imagePath: message.imagePath,
         audioURL: message.audioURL,
-        audioPath: message.audioPath, podID: isPodMode ? chatPartnerOrPodID : null);
+        audioPath: message.audioPath,
+        podID: isPodMode ? chatPartnerOrPodID : null);
 
     // If we're sending a direct message, upload it to the right place and put in the right settings
     if (isDM) {
@@ -536,11 +545,18 @@ class _MessagingViewState extends State<MessagingView> {
 
   /// Load in older messages if the user pulls to refresh
   Future<void> _loadOlderMessages() async {
+    int numMessagesLoaded = 0; // use this to determine whether to display that the chat log is up to date
     if (!isPodMode)
-      MessagesDictionary.shared
+      numMessagesLoaded = await MessagesDictionary.shared
           .loadOlderDMMessagesIfNecessary(chatPartnerID: chatPartnerOrPodID, conversationID: conversationID);
     else
-      MessagesDictionary.shared.loadOlderPodMessagesIfNecessary(podID: chatPartnerOrPodID);
+      numMessagesLoaded = await MessagesDictionary.shared.loadOlderPodMessagesIfNecessary(podID: chatPartnerOrPodID);
+    _refreshController.loadComplete(); // mark the task as complete to hide the refresher
+    setState(() {
+      this._noMoreMessagesToLoad = numMessagesLoaded == 0; // there are no more messages to load if the latest refresh
+      // returned
+      // no older messages
+    });
   }
 
   /// Scroll the chat log to teh bottom after a short delay (to allow the new message time to appear). Set overScroll
@@ -696,7 +712,7 @@ class _MessagingViewState extends State<MessagingView> {
     var podMessages = MessagesDictionary.shared.podMessageDict.value[chatPartnerOrPodID] ?? [];
     var combined = dms + podMessages;
     combined = combined.toSet().toList(); // remove duplicates
-    combined.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
+    combined.sort((b, a) => a.timeStamp.compareTo(b.timeStamp));
 
     if (isPodMode)
       this._getActivePodMemberIDs();
@@ -712,7 +728,7 @@ class _MessagingViewState extends State<MessagingView> {
     // best solution would be to just reverse the chat log, but then I wouldn't be able to use the swipe to refresh
     // indicator. Additionally, an advantage of not reversing the chat log is that I get a nice scroll animation when
     // a new message is added.
-    _scrollChatLogToBottom(overScrollBy: 0);
+    // _scrollChatLogToBottom(overScrollBy: 0);
     _checkIfIAmBlocked();
 
     // Update in real time when the chat log changes (for direct messages)
@@ -723,7 +739,7 @@ class _MessagingViewState extends State<MessagingView> {
         var podMessages = MessagesDictionary.shared.podMessageDict.value[chatPartnerOrPodID] ?? [];
         var combined = dms + podMessages;
         combined = combined.toSet().toList(); // remove duplicates
-        combined.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
+        combined.sort((b, a) => a.timeStamp.compareTo(b.timeStamp));
 
         _updateAnimatedList(newList: combined);
       });
@@ -737,7 +753,7 @@ class _MessagingViewState extends State<MessagingView> {
         var podMessages = MessagesDictionary.shared.podMessageDict.value[chatPartnerOrPodID] ?? [];
         var combined = dms + podMessages;
         combined = combined.toSet().toList(); // remove duplicates
-        combined.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
+        combined.sort((b, a) => a.timeStamp.compareTo(b.timeStamp));
         _updateAnimatedList(newList: combined);
       });
     });
@@ -748,7 +764,7 @@ class _MessagingViewState extends State<MessagingView> {
       var keyboardVisibilityController = KeyboardVisibilityController();
       final keyboardVisibilityListener = keyboardVisibilityController.onChange.listen((bool visible) {
         if (visible) {
-          _scrollChatLogToBottom();
+          //     _scrollChatLogToBottom();
 
           /// Ensure proper scrolling if the keyboard opens while recording audio and previewing an image
           if (imageFile != null && isRecordingAudio)
@@ -781,50 +797,58 @@ class _MessagingViewState extends State<MessagingView> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(padding: EdgeInsetsDirectional.all(5),
+      navigationBar: CupertinoNavigationBar(
+        padding: EdgeInsetsDirectional.all(5),
         middle: Text("Message $chatPartnerOrPodName"),
-        trailing: isPodMode? CupertinoButton(padding: EdgeInsets.zero, child: Icon(CupertinoIcons
-            .arrow_turn_up_right), onPressed: (){
-          // navigate to ViewPodDetails
-          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => ViewPodDetails
-            (podID: chatPartnerOrPodID, showChatButton: false,))); // if navigating from messaging, there is no need
-          // to show the Chat button, since that would allow the user to navigate into an infinite stack
-        },) :
-        CupertinoButton(
-          padding: EdgeInsets.zero,
-          child: Icon(CupertinoIcons.line_horizontal_3),
-          onPressed: () {
-            // show an action sheet with the option to block or unblock the user. There will also be a help button once
-            // I create the tutorial sheets at the end
-            final sheet = CupertinoActionSheet(
-              actions: [
-                // block or unblock button. Button is destructive if the option is to block, meaning that if I haven't
-                // blocked them, the button should be red so I don't accidentally block them.
-                CupertinoActionSheetAction(
-                  onPressed: () {
-                    dismissAlert(context: context); // dismiss the action sheet
-                    _blockOrUnblockChatPartner();
-                  },
-                  child: Text(_didIBlockThem
-                      ? "Unblock "
-                          "${chatPartnerOrPodName.split(" ").first}"
-                      : "Block ${chatPartnerOrPodName.split(" ").first}"),
-                  isDestructiveAction: !_didIBlockThem,
-                ),
+        trailing: isPodMode
+            ? CupertinoButton(
+                padding: EdgeInsets.zero,
+                child: Icon(CupertinoIcons.arrow_turn_up_right),
+                onPressed: () {
+                  // navigate to ViewPodDetails
+                  Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                      builder: (context) => ViewPodDetails(
+                            podID: chatPartnerOrPodID,
+                            showChatButton: false,
+                          ))); // if navigating from messaging, there is no need
+                  // to show the Chat button, since that would allow the user to navigate into an infinite stack
+                },
+              )
+            : CupertinoButton(
+                padding: EdgeInsets.zero,
+                child: Icon(CupertinoIcons.line_horizontal_3),
+                onPressed: () {
+                  // show an action sheet with the option to block or unblock the user. There will also be a help button once
+                  // I create the tutorial sheets at the end
+                  final sheet = CupertinoActionSheet(
+                    actions: [
+                      // block or unblock button. Button is destructive if the option is to block, meaning that if I haven't
+                      // blocked them, the button should be red so I don't accidentally block them.
+                      CupertinoActionSheetAction(
+                        onPressed: () {
+                          dismissAlert(context: context); // dismiss the action sheet
+                          _blockOrUnblockChatPartner();
+                        },
+                        child: Text(_didIBlockThem
+                            ? "Unblock "
+                                "${chatPartnerOrPodName.split(" ").first}"
+                            : "Block ${chatPartnerOrPodName.split(" ").first}"),
+                        isDestructiveAction: !_didIBlockThem,
+                      ),
 
-                // cancel button
-                CupertinoActionSheetAction(
-                  onPressed: () {
-                    dismissAlert(context: context);
-                  },
-                  child: Text("Cancel"),
-                  isDefaultAction: true,
-                )
-              ],
-            );
-            showCupertinoModalPopup(context: context, builder: (context) => sheet);
-          },
-        ),
+                      // cancel button
+                      CupertinoActionSheetAction(
+                        onPressed: () {
+                          dismissAlert(context: context);
+                        },
+                        child: Text("Cancel"),
+                        isDefaultAction: true,
+                      )
+                    ],
+                  );
+                  showCupertinoModalPopup(context: context, builder: (context) => sheet);
+                },
+              ),
       ),
       child: KeyboardDismissOnTap(
           child: SafeArea(
@@ -846,114 +870,165 @@ class _MessagingViewState extends State<MessagingView> {
                     ),
 
                   // Chat log
-                  CustomScrollView(
-                    controller: _chatLogScrollController,
-                    physics: AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      CupertinoSliverRefreshControl(
-                        onRefresh: _loadOlderMessages,
+                  Localizations(
+                    locale: Locale('en', 'US'),
+                    delegates: [DefaultWidgetsLocalizations.delegate, DefaultMaterialLocalizations.delegate],
+
+                    // reverse the pull down/pull up since the list is reversed
+                    child: SmartRefresher(
+                      enablePullDown: false,
+                      enablePullUp: true,
+
+                      // if we have additional messages to load, use the classic footer. Otherwise, just display a
+                      // message saying that all messages are loaded.
+                      footer: _noMoreMessagesToLoad
+                          ? CustomFooter(
+                              builder: (BuildContext context, LoadStatus? mode) {
+                                // Yes, I know this could all be simplified to just Container(width:0, height: 0). I'm
+                                // keeping the code for future reference though in case I want to change it.
+                                Widget body;
+                                if (mode == LoadStatus.idle) {
+                                  // when you over scroll but don't intend to load more messages
+                                  body = Text("All Messages Loaded!",
+                                      style: TextStyle(color: CupertinoColors.inactiveGray));
+                                } else if (mode == LoadStatus.loading) {
+                                  // when messages are actively loading
+                                  body = Text("All Messages Loaded!",
+                                      style: TextStyle(color: CupertinoColors.inactiveGray));
+                                } else if (mode == LoadStatus.failed) {
+                                  // if loading fails
+                                  body = Text("All Messages Loaded!",
+                                      style: TextStyle(color: CupertinoColors.inactiveGray));
+                                } else if (mode == LoadStatus.canLoading) {
+                                  // when you drag down to load more messages and are about to release to load them
+                                  body = Text("All Messages Loaded!",
+                                      style: TextStyle(color: CupertinoColors.inactiveGray));
+                                } else {
+                                  body = Text("All Messages Loaded!",
+                                      style: TextStyle(color: CupertinoColors.inactiveGray));
+                                }
+                                return Container(
+                                  height: 55.0,
+                                  child: Center(child: body),
+                                );
+                              },
+                            )
+                          : ClassicFooter(),
+                      controller: _refreshController,
+                      onLoading: _noMoreMessagesToLoad
+                          ? () {
+                              _refreshController.loadComplete(); // if there's nothing to load, then mark loading as
+                              // complete
+                            }
+                          : _loadOlderMessages,
+                      child: CustomScrollView(
+                        reverse: true,
+                        physics: AlwaysScrollableScrollPhysics(),
+                        slivers: [
+                          SliverAnimatedList(
+                              key: _listKey,
+                              initialItemCount: displayedChatLog.length,
+                              itemBuilder: (context, index, animation) {
+                                // index both a direct message and a pod message to ensure the list is interchangeable for both
+                                // types. Must make sure the list index remains within range
+                                final message = displayedChatLog.length > index ? displayedChatLog[index] : null;
+                                if (message == null) return Container(); // empty container if message is null
+                                final timeStamp = message.timeStamp;
+
+                                // Show/hide the time stamp when the row is tapped
+                                return SizeTransition(
+                                  sizeFactor: animation,
+                                  child: Slidable(
+                                    actionPane: SlidableDrawerActionPane(),
+                                    actionExtentRatio: 0.17,
+                                    child: MessagingRow(
+                                      messageId: message.id,
+                                      messageText: message.text,
+                                      senderId: message.senderId,
+                                      senderThumbnailURL: message.senderThumbnailURL,
+                                      timeStamp: message.timeStamp,
+                                      messageImageURL: message.imageURL,
+                                      messageAudioURL: message.audioURL,
+                                      chatPartnerOrPodID: message.chatPartnerId,
+                                      chatPartnerOrPodName: message.chatPartnerName,
+                                      isPodMode: isPodMode,
+                                    ),
+
+                                    // Actions appear on the left. Use them for received messages
+                                    actions: [
+                                      if (message.senderId != myFirebaseUserId)
+                                        // delete the message
+                                        IconSlideAction(
+                                          caption: "Delete",
+                                          color: CupertinoColors.destructiveRed,
+                                          icon: CupertinoIcons.trash,
+                                          onTap: () {
+                                            _deleteMessage(message: message);
+                                          },
+                                        ),
+
+                                      // copy the message
+                                      if (message.senderId != myFirebaseUserId)
+                                        IconSlideAction(
+                                          icon: CupertinoIcons.doc_on_clipboard,
+                                          onTap: () {
+                                            Clipboard.setData(ClipboardData(text: message.text));
+                                          },
+                                          caption: "Copy",
+                                        ),
+
+                                      // the message time stamp
+                                      if (message.senderId != myFirebaseUserId)
+                                        Padding(
+                                          padding: EdgeInsets.all(10),
+                                          child: Text(
+                                            TimeAndDateFunctions.timeStampText(timeStamp),
+                                            style: TextStyle(fontSize: 10),
+                                          ),
+                                        ),
+                                    ],
+
+                                    // Secondary actions appear on the right. Use them for sent messages.
+                                    secondaryActions: [
+                                      // the message time stamp
+                                      if (message.senderId == myFirebaseUserId)
+                                        Padding(
+                                          padding: EdgeInsets.all(10),
+                                          child: Text(
+                                            TimeAndDateFunctions.timeStampText(timeStamp),
+                                            style: TextStyle(fontSize: 10),
+                                          ),
+                                        ),
+
+                                      // copy the message
+                                      if (message.senderId == myFirebaseUserId)
+                                        IconSlideAction(
+                                          icon: CupertinoIcons.doc_on_clipboard,
+                                          onTap: () {
+                                            Clipboard.setData(ClipboardData(text: message.text));
+                                          },
+                                          caption: "Copy",
+                                        ),
+
+                                      if (message.senderId == myFirebaseUserId)
+                                        // delete the message
+                                        IconSlideAction(
+                                          icon: CupertinoIcons.trash,
+                                          onTap: () {
+                                            _deleteMessage(message: message);
+                                          },
+                                          caption: "Delete",
+                                          color: CupertinoColors.destructiveRed,
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              })
+                        ],
                       ),
-                      SliverAnimatedList(
-                          key: _listKey,
-                          initialItemCount: displayedChatLog.length,
-                          itemBuilder: (context, index, animation) {
-                            // index both a direct message and a pod message to ensure the list is interchangeable for both
-                            // types. Must make sure the list index remains within range
-                            final message = displayedChatLog.length > index ? displayedChatLog[index] : null;
-                            if (message == null) return Container(); // empty container if message is null
-                            final timeStamp = message.timeStamp;
-
-                            // Show/hide the time stamp when the row is tapped
-                            return SizeTransition(
-                              sizeFactor: animation,
-                              child: Slidable(
-                                actionPane: SlidableDrawerActionPane(),
-                                actionExtentRatio: 0.17,
-                                child: MessagingRow(
-                                  messageId: message.id,
-                                  messageText: message.text,
-                                  senderId: message.senderId,
-                                  senderThumbnailURL: message.senderThumbnailURL,
-                                  timeStamp: message.timeStamp,
-                                  messageImageURL: message.imageURL,
-                                  messageAudioURL: message.audioURL,
-                                  chatPartnerOrPodID: message.chatPartnerId,
-                                  chatPartnerOrPodName: message.chatPartnerName,
-                                  isPodMode: isPodMode,
-                                ),
-
-                                // Actions appear on the left. Use them for received messages
-                                actions: [
-                                  if (message.senderId != myFirebaseUserId)
-                                    // delete the message
-                                    IconSlideAction(
-                                      caption: "Delete",
-                                      color: CupertinoColors.destructiveRed,
-                                      icon: CupertinoIcons.trash,
-                                      onTap: () {
-                                        _deleteMessage(message: message);
-                                      },
-                                    ),
-
-                                  // copy the message
-                                  if (message.senderId != myFirebaseUserId)
-                                    IconSlideAction(
-                                      icon: CupertinoIcons.doc_on_clipboard,
-                                      onTap: () {
-                                        Clipboard.setData(ClipboardData(text: message.text));
-                                      },
-                                      caption: "Copy",
-                                    ),
-
-                                  // the message time stamp
-                                  if (message.senderId != myFirebaseUserId)
-                                    Padding(
-                                      padding: EdgeInsets.all(10),
-                                      child: Text(
-                                        TimeAndDateFunctions.timeStampText(timeStamp),
-                                        style: TextStyle(fontSize: 10),
-                                      ),
-                                    ),
-                                ],
-
-                                // Secondary actions appear on the right. Use them for sent messages.
-                                secondaryActions: [
-                                  // the message time stamp
-                                  if (message.senderId == myFirebaseUserId)
-                                    Padding(
-                                      padding: EdgeInsets.all(10),
-                                      child: Text(
-                                        TimeAndDateFunctions.timeStampText(timeStamp),
-                                        style: TextStyle(fontSize: 10),
-                                      ),
-                                    ),
-
-                                  // copy the message
-                                  if (message.senderId == myFirebaseUserId)
-                                    IconSlideAction(
-                                      icon: CupertinoIcons.doc_on_clipboard,
-                                      onTap: () {
-                                        Clipboard.setData(ClipboardData(text: message.text));
-                                      },
-                                      caption: "Copy",
-                                    ),
-
-                                  if (message.senderId == myFirebaseUserId)
-                                    // delete the message
-                                    IconSlideAction(
-                                      icon: CupertinoIcons.trash,
-                                      onTap: () {
-                                        _deleteMessage(message: message);
-                                      },
-                                      caption: "Delete",
-                                      color: CupertinoColors.destructiveRed,
-                                    ),
-                                ],
-                              ),
-                            );
-                          }),
-                    ],
+                    ),
                   ),
+
                   if (imageFile != null || isRecordingAudio)
                     BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
@@ -1139,8 +1214,8 @@ class _MessagingViewState extends State<MessagingView> {
                         timeStamp: timeStamp,
                         text: text,
                         senderThumbnailURL: myThumbnailURL,
-                        recipientThumbnailURL: chatPartnerThumbnailURL ?? "", podID:  isPodMode ? chatPartnerOrPodID
-                        : null);
+                        recipientThumbnailURL: chatPartnerThumbnailURL ?? "",
+                        podID: isPodMode ? chatPartnerOrPodID : null);
                     if (!_sendingInProgress) _sendMessage(messageToSend: messageToSend);
                   }),
             ),

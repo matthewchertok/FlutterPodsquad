@@ -265,20 +265,29 @@ class MessagesDictionary {
     });
   }
 
-  ///Use this function to load older messages in a conversation using pagination.
-  void loadOlderDMMessagesIfNecessary(
-      {required String chatPartnerID, required String conversationID, int limitToLast = 10}) {
+  ///Use this function to load older messages in a conversation using pagination. Returns the number of messages that
+  /// were loaded (0 if the chat log is fully up to date).
+  Future<int> loadOlderDMMessagesIfNecessary(
+      {required String chatPartnerID, required String conversationID, int limitToLast = 10}) async {
     final numberOfMessages = limitToLast; // renamed for clarity inside the function body
     shouldChatLogScroll[chatPartnerID] = false; // don't scroll the chat log to the bottom when loading older messages
+
+    /// Inform the async function when to complete
+    final completer = Completer<int>();
 
     // if the user has scrolled up to load every message in the conversation already, don't attempt to load any more.
     final hasLoadedEveryMessageInConversation = hasLoadedEveryMessageInConversationDictionary[chatPartnerID];
     if (hasLoadedEveryMessageInConversation != null) {
-      if (hasLoadedEveryMessageInConversation) return;
+      if (hasLoadedEveryMessageInConversation) {
+        completer.complete(0);
+        return completer.future;
+      }
     }
 
     // Make sure not to load any messages newer than this, as they have already been loaded.
     final endDocument = endBeforeDictionary[chatPartnerID];
+
+    // if there is data to load, then load it
     if (endDocument != null) {
       areMoreMessagesLoadingDict.value[chatPartnerID] = true; // indicate that more messages are loading
       // ignore: cancel_subscriptions
@@ -352,16 +361,16 @@ class MessagesDictionary {
         });
         print(
             "Loaded in ${snapshot.docs.length} new messages! The total conversation is ${directMessagesDict.value[chatPartnerID]?.length ?? 0} messages long!");
-      });
+      completer.complete(snapshot.docs.length); // initial loading is complete; return the future
+          });
 
-      // give a unique registration to the listener so that it can be tracked and removed if needed
-      final random = Random();
-
-      ///random.nextInt(1000) will return a random integer between 0 and 999 (inclusive)
-      final randomListenerID =
-          random.nextInt(1000) + random.nextInt(1000) + random.nextInt(1000) + random.nextInt(1000);
+      final randomListenerID = Uuid().v1();
       _listenerRegistrationsDict[chatPartnerID + "$randomListenerID"] = olderDMsListener;
     }
+
+    // otherwise, mark the async as complete and return
+    else completer.complete(0);
+    return completer.future;
   }
 
   ///Prepares the messages for all pod conversations in the background so that each chat is ready to go when opened
@@ -432,7 +441,6 @@ class MessagesDictionary {
     _listenerRegistrationsDict["podInactiveListener"] = inactivePodsListener;
   }
 
-//TODO: Figure out why pod messages aren't loading into MessagingView
   ///First, get the last message in the conversation. Then add a listener to listen for new messages starting with
   ///that message. If a conversation is empty, simply add a listener to handle all messages in the conversation.
   void _listenForPodMessageAddedChangedRemoved({required String podID, required Function onCompletion}) {
@@ -539,19 +547,28 @@ class MessagesDictionary {
   }
 
   ///Loads older pod messages if a user requests them and if the user hasn't already loaded the entire conversation.
-  ///Uses a snapshot listener to enable reading from the cache if available.
-  void loadOlderPodMessagesIfNecessary({required String podID, int limitToLast = 10}) {
+  ///Uses a snapshot listener to enable reading from the cache if available. Returns the number of messages that
+  /// were loaded (0 if the chat log is fully up to date).
+  Future<int> loadOlderPodMessagesIfNecessary({required String podID, int limitToLast = 10}) async {
     final numberOfMessages = limitToLast; // renaming for clarity inside the function body
     shouldChatLogScroll[podID] = false; // don't scroll the chat log to the bottom when loading older messages
+
+    /// Used to return a future
+    final completer = Completer<int>();
 
     // if the user has scrolled up to load every message in the conversation already, don't attempt to load any more.
     final hasLoadedEveryMessageInConversation = hasLoadedEveryMessageInConversationDictionary[podID];
     if (hasLoadedEveryMessageInConversation != null) {
-      if (hasLoadedEveryMessageInConversation) return;
+      if (hasLoadedEveryMessageInConversation) {
+        completer.complete(0);
+        return completer.future;
+      }
     }
 
     // Make sure not to load any messages newer than this, as they have already been loaded.
     final endDocument = endBeforeDictionary[podID];
+
+    // if there is data to load, then get it and mark the future as complete once it's ready
     if (endDocument != null) {
       areMoreMessagesLoadingDict.value[podID] = true; // indicate that more messages are loading
       // ignore: cancel_subscriptions
@@ -626,11 +643,17 @@ class MessagesDictionary {
             podMessageDict.value[podID]?.removeWhere((message) => message.id == messageID);
           podMessageDict.notifyListeners();
         });
+
+        completer.complete(snapshot.docs.length); // mark the future as complete once initial data is loaded
       });
 
       ///random.nextInt(1000) will return a random integer between 0 and 999 (inclusive)
       final randomListenerID = Uuid().v1();
       _listenerRegistrationsDict[podID + "$randomListenerID"] = olderPodMessagesListener;
     }
+
+    // otherwise, mark the future as complete now
+    else completer.complete(0);
+    return completer.future;
   }
 }

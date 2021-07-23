@@ -85,33 +85,40 @@ class ChatMessage {
       this.podThumbnailURL,
       this.readBy});
 
-  ///Marks a message as read in the database
-  void markMessageRead(ChatMessage message, List<String> listOfReadMessageIds, String conversationID) {
+  ///Marks a message as read in the database. If it's a DM, pass in the alphabetical combination of chat partner IDs.
+  /// If it's a pod message, pass in the pod ID for conversationID.
+  void markMessageRead({required ChatMessage message, required List<String> listOfPeopleWhoReadTheMessage, required
+  String
+  conversationID}) {
     String messageID = message.id;
-    if (!listOfReadMessageIds.contains(messageID)) {
+    if (!listOfPeopleWhoReadTheMessage.contains(myFirebaseUserId)) {
       bool isPodMessage =
-          conversationID.length > 20; //pod IDs are 20 characters long, but DM conversation IDs are 40 characters long
+          conversationID.length <= 20; //pod IDs are 20 characters long, but DM conversation IDs are 40 characters long
 
       // Now actually update the message in the database
       if (isPodMessage) {
-        firestoreDatabase.collection("pods").doc(conversationID).collection("messages").doc(messageID).update({
+        firestoreDatabase.collection("pods").doc(conversationID).collection("messages").doc(messageID).set({
           "readBy": FieldValue.arrayUnion([myFirebaseUserId]),
           // Indicate that I read the message
           "readTime": {myFirebaseUserId: DateTime.now().millisecondsSinceEpoch * 0.001},
           // Indicate the time I read the message. Must divide by 1000 because
           // Swift (and the database) stores time in seconds since January 1, 1970.
           "readName": {myFirebaseUserId: MyProfileTabBackendFunctions.shared.myProfileData.value.name}
-        }); // there's no merge: true option in Dart, so I have to use the update method (which should work exactly the same way).
+        }, SetOptions(merge: true)); // there's no merge: true option in Dart, so I have to use the update method (which
+        // should
+        // work exactly the same way).
       } else {
         firestoreDatabase
             .collection("dm-conversations")
             .doc(conversationID)
             .collection("messages")
             .doc(messageID)
-            .update({
+            .set({
           "readBy": FieldValue.arrayUnion([myFirebaseUserId]),
           "readTime": {myFirebaseUserId: DateTime.now().millisecondsSinceEpoch * 0.001},
           "readName": {myFirebaseUserId: MyProfileTabBackendFunctions.shared.myProfileData.value.name}
+        }, SetOptions(merge: true)).catchError((error){
+          print("Error marking message read: $error");
         });
       }
     }

@@ -207,39 +207,41 @@ class MessagesDictionary {
       // ignore: cancel_subscriptions
       final dmAddedOrRemovedListener = query.snapshots().listen((snapshot) {
         snapshot.docChanges.forEach((diff) {
+          shouldChatLogScroll[chatPartnerID] = true; // scroll to the bottom when a new message is added
+          final data = diff.doc.data();
+          final systemTimeRaw = diff.doc.get("systemTime") as num;
+          final systemTime = systemTimeRaw.toDouble();
+          final id = diff.doc.get("id") as String;
+          final imageURL = data?["imageURL"] as String?;
+          final imagePath = data?["imagePath"] as String?;
+          final audioURL = data?["audioURL"] as String?;
+          final audioPath = data?["audioPath"] as String?;
+          final recipientId = diff.doc.get("recipientId") as String;
+          final recipientName = diff.doc.get("recipientName") as String;
+          final senderId = diff.doc.get("senderId") as String;
+          final senderName = diff.doc.get("senderName") as String;
+          final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
+          final recipientThumbnailURL = diff.doc.get("recipientThumbnailURL") as String;
+          final text = diff.doc.get("text") as String;
+          final readByRaw = data?["readBy"] as List<dynamic>?;
+          final readBy = List<String>.from(readByRaw ?? []);
+
+          final chatMessage = ChatMessage(
+              id: id,
+              recipientId: recipientId,
+              recipientName: recipientName,
+              senderId: senderId,
+              senderName: senderName,
+              timeStamp: systemTime,
+              text: text,
+              senderThumbnailURL: senderThumbnailURL,
+              recipientThumbnailURL: recipientThumbnailURL,
+              imagePath: imagePath,
+              imageURL: imageURL,
+              audioPath: audioPath,
+              audioURL: audioURL, readBy: readBy);
+
           if (diff.type == DocumentChangeType.added) {
-            shouldChatLogScroll[chatPartnerID] = true; // scroll to the bottom when a new message is added
-            final data = diff.doc.data();
-            final systemTimeRaw = diff.doc.get("systemTime") as num;
-            final systemTime = systemTimeRaw.toDouble();
-            final id = diff.doc.get("id") as String;
-            final imageURL = data?["imageURL"] as String?;
-            final imagePath = data?["imagePath"] as String?;
-            final audioURL = data?["audioURL"] as String?;
-            final audioPath = data?["audioPath"] as String?;
-            final recipientId = diff.doc.get("recipientId") as String;
-            final recipientName = diff.doc.get("recipientName") as String;
-            final senderId = diff.doc.get("senderId") as String;
-            final senderName = diff.doc.get("senderName") as String;
-            final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
-            final recipientThumbnailURL = diff.doc.get("recipientThumbnailURL") as String;
-            final text = diff.doc.get("text") as String;
-
-            final chatMessage = ChatMessage(
-                id: id,
-                recipientId: recipientId,
-                recipientName: recipientName,
-                senderId: senderId,
-                senderName: senderName,
-                timeStamp: systemTime,
-                text: text,
-                senderThumbnailURL: senderThumbnailURL,
-                recipientThumbnailURL: recipientThumbnailURL,
-                imagePath: imagePath,
-                imageURL: imageURL,
-                audioPath: audioPath,
-                audioURL: audioURL);
-
             //Add the message to the associated chat partner ID in the dictionary
             if (chatMessage.text.trim().isNotEmpty) {
               // initialize a list if it's null
@@ -252,7 +254,14 @@ class MessagesDictionary {
                 }
               }
             }
-          } else if (diff.type == DocumentChangeType.removed) {
+          } else if (diff.type == DocumentChangeType.modified){
+            // update the list of people who read the message
+            directMessagesDict.value[chatPartnerID]?.where((element) => element.id == chatMessage.id).first.readBy =
+                readBy;
+            directMessagesDict.notifyListeners();
+          }
+
+          else if (diff.type == DocumentChangeType.removed) {
             final messageID = diff.doc.get("id") as String;
             directMessagesDict.value[chatPartnerID]?.removeWhere((message) => message.id == messageID);
             directMessagesDict.notifyListeners(); // it's required here because otherwise Dart doesn't know to
@@ -279,8 +288,7 @@ class MessagesDictionary {
     final hasLoadedEveryMessageInConversation = hasLoadedEveryMessageInConversationDictionary[chatPartnerID];
     if (hasLoadedEveryMessageInConversation != null) {
       if (hasLoadedEveryMessageInConversation) {
-        completer.complete(0);
-        return completer.future;
+        return 0;
       }
     }
 
@@ -309,37 +317,39 @@ class MessagesDictionary {
         if (snapshot.docs.length > 0) endBeforeDictionary[chatPartnerID] = snapshot.docs.first;
 
         snapshot.docChanges.forEach((diff) {
+          final data = diff.doc.data();
+          final systemTime = diff.doc.get("systemTime") as double;
+          final id = diff.doc.get("id") as String;
+          final imageURL = data?["imageURL"] as String?;
+          final imagePath = data?["imagePath"] as String?;
+          final audioURL = data?["audioURL"] as String?;
+          final audioPath = data?["audioPath"] as String?;
+          final recipientId = diff.doc.get("recipientId") as String;
+          final recipientName = diff.doc.get("recipientName") as String;
+          final senderId = diff.doc.get("senderId") as String;
+          final senderName = diff.doc.get("senderName") as String;
+          final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
+          final recipientThumbnailURL = diff.doc.get("recipientThumbnailURL") as String;
+          final text = diff.doc.get("text") as String;
+          final readByRaw = data?["readBy"] as List<dynamic>?;
+          final readBy = List<String>.from(readByRaw ?? []);
+
+          final chatMessage = ChatMessage(
+              id: id,
+              recipientId: recipientId,
+              recipientName: recipientName,
+              senderId: senderId,
+              senderName: senderName,
+              timeStamp: systemTime,
+              text: text,
+              senderThumbnailURL: senderThumbnailURL,
+              recipientThumbnailURL: recipientThumbnailURL,
+              imagePath: imagePath,
+              imageURL: imageURL,
+              audioPath: audioPath,
+              audioURL: audioURL, readBy: readBy);
+
           if (diff.type == DocumentChangeType.added) {
-            final data = diff.doc.data();
-            final systemTime = diff.doc.get("systemTime") as double;
-            final id = diff.doc.get("id") as String;
-            final imageURL = data?["imageURL"] as String?;
-            final imagePath = data?["imagePath"] as String?;
-            final audioURL = data?["audioURL"] as String?;
-            final audioPath = data?["audioPath"] as String?;
-            final recipientId = diff.doc.get("recipientId") as String;
-            final recipientName = diff.doc.get("recipientName") as String;
-            final senderId = diff.doc.get("senderId") as String;
-            final senderName = diff.doc.get("senderName") as String;
-            final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
-            final recipientThumbnailURL = diff.doc.get("recipientThumbnailURL") as String;
-            final text = diff.doc.get("text") as String;
-
-            final chatMessage = ChatMessage(
-                id: id,
-                recipientId: recipientId,
-                recipientName: recipientName,
-                senderId: senderId,
-                senderName: senderName,
-                timeStamp: systemTime,
-                text: text,
-                senderThumbnailURL: senderThumbnailURL,
-                recipientThumbnailURL: recipientThumbnailURL,
-                imagePath: imagePath,
-                imageURL: imageURL,
-                audioPath: audioPath,
-                audioURL: audioURL);
-
             //Add the message to the associated chat partner ID in the dictionary
             if (chatMessage.text.trim().isNotEmpty) {
               // initialize a list if it's null
@@ -350,6 +360,13 @@ class MessagesDictionary {
                 directMessagesDict.notifyListeners();
               }
             }
+          }
+
+          else if (diff.type == DocumentChangeType.modified){
+            // update the list of people who read the message
+            directMessagesDict.value[chatPartnerID]?.where((element) => element.id == chatMessage.id).first.readBy =
+                readBy;
+            directMessagesDict.notifyListeners();
           }
 
           // listen for messages removed from the conversation
@@ -368,8 +385,8 @@ class MessagesDictionary {
       _listenerRegistrationsDict[chatPartnerID + "$randomListenerID"] = olderDMsListener;
     }
 
-    // otherwise, mark the async as complete and return
-    else completer.complete(0);
+    // otherwise return;
+    else return 0;
     return completer.future;
   }
 
@@ -485,37 +502,38 @@ class MessagesDictionary {
       // ignore: cancel_subscriptions
       final messageAddedModifiedRemovedListener = query.snapshots().listen((snapshot) {
         snapshot.docChanges.forEach((diff) {
+          final data = diff.doc.data();
+          final systemTimeRaw = diff.doc.get("systemTime") as num;
+          final systemTime = systemTimeRaw.toDouble();
+          final messageID = diff.doc.get("id") as String;
+          final imageURL = data?["imageURL"] as String?;
+          final imagePath = data?["imagePath"] as String?;
+          final audioURL = data?["audioURL"] as String?;
+          final audioPath = data?["audioPath"] as String?;
+          final senderId = diff.doc.get("senderId") as String;
+          final senderName = diff.doc.get("senderName") as String;
+          final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
+          final text = diff.doc.get("text") as String;
+          final readByRaw = data?["readBy"] as List<dynamic>?;
+          final readBy = List<String>.from(readByRaw ?? []);
+
+          final podMessage = ChatMessage(
+              id: messageID,
+              recipientId: "",
+              recipientName: "",
+              senderId: senderId,
+              senderName: senderName,
+              timeStamp: systemTime,
+              text: text,
+              senderThumbnailURL: senderThumbnailURL,
+              recipientThumbnailURL: "",
+              imageURL: imageURL,
+              audioURL: audioURL,
+              imagePath: imagePath,
+              audioPath: audioPath,
+              podID: podID, readBy: readBy);
+
           if (diff.type == DocumentChangeType.added) {
-            shouldChatLogScroll[podID] = true; // scroll to the bottom when a new message is added
-            final data = diff.doc.data();
-            final systemTimeRaw = diff.doc.get("systemTime") as num;
-            final systemTime = systemTimeRaw.toDouble();
-            final id = diff.doc.get("id") as String;
-            final imageURL = data?["imageURL"] as String?;
-            final imagePath = data?["imagePath"] as String?;
-            final audioURL = data?["audioURL"] as String?;
-            final audioPath = data?["audioPath"] as String?;
-            final senderId = diff.doc.get("senderId") as String;
-            final senderName = diff.doc.get("senderName") as String;
-            final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
-            final text = diff.doc.get("text") as String;
-
-            final podMessage = ChatMessage(
-                id: id,
-                recipientId: "",
-                recipientName: "",
-                senderId: senderId,
-                senderName: senderName,
-                timeStamp: systemTime,
-                text: text,
-                senderThumbnailURL: senderThumbnailURL,
-                recipientThumbnailURL: "",
-                imageURL: imageURL,
-                audioURL: audioURL,
-                imagePath: imagePath,
-                audioPath: audioPath,
-                podID: podID);
-
             //Add the message to the associated chat partner ID in the dictionary
             if (podMessage.text.trim().isNotEmpty) {
               if (podMessageDict.value[podID] == null) podMessageDict.value[podID] = []; // initialize a list
@@ -527,11 +545,13 @@ class MessagesDictionary {
               }
             }
           } else if (diff.type == DocumentChangeType.modified) {
-            final messageID = diff.doc.get("id") as String;
-            final senderName = diff.doc.get("senderName") as String;
-            final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
+
+            // change the sender name and/or thumbnail URL, if necessary
             podMessageDict.value[podID]?.changeSenderNameAndOrThumbnailURL(
                 forMessageWithID: messageID, toNewName: senderName, toNewThumbnailURL: senderThumbnailURL);
+
+            // update the list of people who read the messages so that I don't mark a message read multiple times
+            podMessageDict.value[podID]?.where((element) => element.id == messageID).first.readBy = readBy;
             podMessageDict.notifyListeners();
           } else if (diff.type == DocumentChangeType.removed) {
             final messageID = diff.doc.get("id") as String;
@@ -560,8 +580,7 @@ class MessagesDictionary {
     final hasLoadedEveryMessageInConversation = hasLoadedEveryMessageInConversationDictionary[podID];
     if (hasLoadedEveryMessageInConversation != null) {
       if (hasLoadedEveryMessageInConversation) {
-        completer.complete(0);
-        return completer.future;
+        return 0;
       }
     }
 
@@ -589,38 +608,38 @@ class MessagesDictionary {
         if (snapshot.docs.length > 0) endBeforeDictionary[podID] = snapshot.docs.first;
 
         snapshot.docChanges.forEach((diff) {
+          final data = diff.doc.data();
           final messageID = diff.doc.get("id") as String;
           final senderName = diff.doc.get("senderName") as String;
           final senderThumbnailURL = diff.doc.get("senderThumbnailURL") as String;
+          final systemTimeRaw = diff.doc.get("systemTime") as num;
+          final systemTime = systemTimeRaw.toDouble();
+          final imageURL = data?["imageURL"] as String?;
+          final imagePath = data?["imagePath"] as String?;
+          final audioURL = data?["audioURL"] as String?;
+          final audioPath = data?["audioPath"] as String?;
+          final senderId = diff.doc.get("senderId") as String;
+          final text = diff.doc.get("text") as String;
+          final readByRaw = data?["readBy"] as List<dynamic>?;
+          final readBy = List<String>.from(readByRaw ?? []);
+
+          final podMessage = ChatMessage(
+              id: messageID,
+              recipientId: "",
+              recipientName: "",
+              senderId: senderId,
+              senderName: senderName,
+              timeStamp: systemTime,
+              text: text,
+              senderThumbnailURL: senderThumbnailURL,
+              recipientThumbnailURL: "",
+              imageURL: imageURL,
+              audioURL: audioURL,
+              imagePath: imagePath,
+              audioPath: audioPath,
+              podID: podID, readBy: readBy);
 
           if (diff.type == DocumentChangeType.added) {
-            final data = diff.doc.data();
-            if (data != null) {
-              final systemTimeRaw = diff.doc.get("systemTime") as num;
-              final systemTime = systemTimeRaw.toDouble();
-              final imageURL = data["imageURL"] as String?;
-              final imagePath = data["imagePath"] as String?;
-              final audioURL = data["audioURL"] as String?;
-              final audioPath = data["audioPath"] as String?;
-              final senderId = diff.doc.get("senderId") as String;
-              final text = diff.doc.get("text") as String;
-
-              final podMessage = ChatMessage(
-                  id: messageID,
-                  recipientId: "",
-                  recipientName: "",
-                  senderId: senderId,
-                  senderName: senderName,
-                  timeStamp: systemTime,
-                  text: text,
-                  senderThumbnailURL: senderThumbnailURL,
-                  recipientThumbnailURL: "",
-                  imageURL: imageURL,
-                  audioURL: audioURL,
-                  imagePath: imagePath,
-                  audioPath: audioPath,
-                  podID: podID);
-
               //Add the message to the associated chat partner ID in the dictionary
               if (podMessage.text.trim().isNotEmpty) {
                 if (podMessageDict.value[podID] == null) podMessageDict.value[podID] = []; // initialize a list
@@ -631,13 +650,19 @@ class MessagesDictionary {
                   }
                 }
               }
-            }
+
           }
 
           // listen for messages removed from the conversation
           else if (diff.type == DocumentChangeType.modified) {
+            // if necessary, change the sender name and/or thumbnail
             podMessageDict.value[podID]?.changeSenderNameAndOrThumbnailURL(
                 forMessageWithID: messageID, toNewName: senderName, toNewThumbnailURL: senderThumbnailURL);
+
+            // update the list of people who read the message by finding the message in the list and modifying the
+            // list of people who read it. This is important, as it ensures we don't mark messages as ready multiple
+            // times.
+            podMessageDict.value[podID]?.where((element) => element.id == messageID).first.readBy = readBy;
             podMessageDict.notifyListeners();
           } else if (diff.type == DocumentChangeType.removed)
             podMessageDict.value[podID]?.removeWhere((message) => message.id == messageID);
@@ -647,13 +672,12 @@ class MessagesDictionary {
         completer.complete(snapshot.docs.length); // mark the future as complete once initial data is loaded
       });
 
-      ///random.nextInt(1000) will return a random integer between 0 and 999 (inclusive)
       final randomListenerID = Uuid().v1();
       _listenerRegistrationsDict[podID + "$randomListenerID"] = olderPodMessagesListener;
     }
 
-    // otherwise, mark the future as complete now
-    else completer.complete(0);
+    // otherwise return 0
+    else return 0;
     return completer.future;
   }
 }

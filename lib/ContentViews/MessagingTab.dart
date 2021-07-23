@@ -467,7 +467,7 @@ class _MessagingTabState extends State<MessagingTab> {
                                   chatPartnerOrPodName: message.podID != null ? message.podName! : message.chatPartnerName,
                                   chatPartnerOrPodThumbnailURL: message.chatPartnerThumbnailURL,
                                   content: message.text,
-                                  timeStamp: message.timeStamp,
+                                  timeStamp: message.timeStamp, readBy: message.readBy,
                                 ),
                               ),
                             ),

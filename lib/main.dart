@@ -95,7 +95,6 @@ class _AppState extends State<MyApp> {
                 ReportedPeopleBackendFunctions.shared.observeReportedPeople();
                 ShowMyPodsBackendFunctions.shared.addDataToListView();
                 PeopleIMetBackendFunctions.shared.addDataToListView();
-                NearbyScanner.shared.publishAndSubscribe(); // start listening for people nearby over Bluetooth
                 // Must wait until profile data is ready; otherwise we'll run into the issue of profile data not
                 // loading. The reason I can't just put snapshots on profile data is that Flutter can behave weirdly,
                 // such that opening a text field can cause the widget to think it disappeared, which causes the view
@@ -103,7 +102,10 @@ class _AppState extends State<MyApp> {
                 // was. Using a FutureBuilder guarantees that my profile data will be available when the app opens.
                 return FutureBuilder(future: MyProfileTabBackendFunctions.shared.getMyProfileData(), builder:
                     (context, snapshot){
-                    return WelcomeView();
+                      if (isLoggedIn) NearbyScanner.shared.publishAndSubscribe(); // start listening for people
+                      // nearby over
+                      // Bluetooth
+                      return WelcomeView();
                 });
               }
               else {

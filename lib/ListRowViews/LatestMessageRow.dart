@@ -41,7 +41,10 @@ class LatestMessageRow extends StatelessWidget {
             "${messageTimeStamp.day}\n"
             "$hoursMinutes"
         : "${messageTimeStamp.month.toHumanReadableMonth()} ${messageTimeStamp.day} ${messageTimeStamp.year}";
-    return Text(timeStampText, style: TextStyle(fontSize: fontSize),);
+
+    // make the text bold if I haven't read the  message. Otherwise, make it normal.
+    return Text(timeStampText, style: TextStyle(fontSize: fontSize, fontWeight: (this.readBy?.contains
+      (myFirebaseUserId) ?? true) ? FontWeight.normal : FontWeight.bold),);
   }
 
   @override
@@ -76,12 +79,14 @@ class LatestMessageRow extends StatelessWidget {
                 children: [
                   Text(
                     chatPartnerOrPodName,
-                    style: TextStyle(fontSize: 18),
+                    style: TextStyle(fontSize: 18, fontWeight: (this.readBy?.contains
+                      (myFirebaseUserId) ?? true) ? FontWeight.normal : FontWeight.bold),
                   ),
                   SizedBox(height: 10),
                   Text(
                     content,
-                    style: TextStyle(fontSize: 14), maxLines: 3, overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 14, fontWeight: (this.readBy?.contains
+                      (myFirebaseUserId) ?? true) ? FontWeight.normal : FontWeight.bold), maxLines: 3, overflow: TextOverflow.ellipsis,
                   )
                 ],
               ),

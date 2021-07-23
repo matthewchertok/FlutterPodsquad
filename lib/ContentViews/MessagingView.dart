@@ -704,6 +704,15 @@ class _MessagingViewState extends State<MessagingView> {
     }
   }
 
+  /// Mark a message as read if I haven't read it yet
+  void _markMessageReadIfNecessary({required ChatMessage message}) {
+    // if in doubt, assume that I have read the message to reduce database writes
+    if (!(message.readBy?.contains(myFirebaseUserId) ?? true)){
+      message.markMessageRead(message: message, listOfPeopleWhoReadTheMessage: message.readBy ?? [], conversationID: isPodMode
+          ? chatPartnerOrPodID : conversationID);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -934,6 +943,9 @@ class _MessagingViewState extends State<MessagingView> {
                                 final message = displayedChatLog.length > index ? displayedChatLog[index] : null;
                                 if (message == null) return Container(); // empty container if message is null
                                 final timeStamp = message.timeStamp;
+
+                                // mark the message as read if I haven't read it yet
+                                this._markMessageReadIfNecessary(message: message);
 
                                 // Show/hide the time stamp when the row is tapped
                                 return SizeTransition(

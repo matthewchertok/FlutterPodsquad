@@ -53,6 +53,7 @@ class NearbyScanner {
 
     // This callback gets the message when an a nearby device sends one
     nearbyMessagesApi.onFound = (message) {
+      print("MESSAGE FOUND $message");
       _meetSomeone(personID: message).then((_) => this._sendTheOtherPersonAPushNotificationIfWeHaveNotMetRecently(
           toPersonWithID: message)); // the message contains the person's ID
     };
@@ -77,8 +78,6 @@ class NearbyScanner {
 
   /// Get the list of user IDs for everyone I previously met in the last 21 days.
   Future<Map<String, DateTime>> _getListOfPeopleIAlreadyMet() async {
-    print("COMPLETER CALLED");
-
     /// Use a listener to allow reading from the cache, which will significantly reduce reads in cases where the app
     /// is opened multiple times in a short time span.
     final completer = Completer<Map<String, DateTime>>();
@@ -138,6 +137,7 @@ class NearbyScanner {
   /// The purpose of this is to save reads and writes, as Flutter defaults to continuous subscribing (unlike iOS),
   /// which would quickly run up costs in database reads and writes.
   Future<void> _meetSomeone({required String personID, int breakInterval = 10}) async {
+    print("I met a user with ID $personID");
     // If I never met the person before, pretend I met them long enough ago that the function can execute.
     if (this._peopleIMetAndTimeMap[personID] == null)
       this._peopleIMetAndTimeMap[personID] = DateTime.now().add(Duration(minutes: -breakInterval));

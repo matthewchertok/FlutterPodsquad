@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:podsquad/BackendFunctions/TimeAndDateFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 
@@ -21,26 +22,8 @@ class LatestMessageRow extends StatelessWidget {
 
   /// Make text from the time stamp
   Text timeStampText({double fontSize = 10}) {
-    final messageTimeStamp = DateTime.fromMillisecondsSinceEpoch((timeStamp * 1000).toInt()); // must multiply by 1000
-    // since
-    // database
-    // stores time stamp in seconds since epoch
-    final currentYear = DateTime.now().year;
-
-    // Convert 24-hour time to 12-hour time. Hours are 0 to 23, so anything 12 or greater is PM. Also, be
-    // careful: we say 12:00 pm, not 0:00 pm. Also, we say 12:00 am, not 0:00 am. Also, if the minute is less than
-    // 10, we need to add a 0 before it so it says 12:01 instead of 12:1.
-    final hoursMinutes = messageTimeStamp.hour >= 12
-        ? "${messageTimeStamp.hour - 12 == 0 ? 12 : messageTimeStamp.hour - 12}:${messageTimeStamp.minute < 10 ? "0${messageTimeStamp.minute}" : messageTimeStamp.minute} PM"
-        : "${messageTimeStamp.hour == 0 ? 12 : messageTimeStamp.hour}:${messageTimeStamp.minute < 10 ? "0${messageTimeStamp.minute}" : messageTimeStamp.minute}"
-            "AM";
-
     // If the year is the same, show month, day, and time. Otherwise, show month, day, and year.
-    final timeStampText = messageTimeStamp.year == currentYear
-        ? "${messageTimeStamp.month.toHumanReadableMonth()} "
-            "${messageTimeStamp.day}\n"
-            "$hoursMinutes"
-        : "${messageTimeStamp.month.toHumanReadableMonth()} ${messageTimeStamp.day} ${messageTimeStamp.year}";
+    final timeStampText = TimeAndDateFunctions.timeStampText(timeStamp);
 
     // make the text bold if I haven't read the  message. Otherwise, make it normal.
     return Text(timeStampText, style: TextStyle(fontSize: fontSize, fontWeight: (this.readBy?.contains

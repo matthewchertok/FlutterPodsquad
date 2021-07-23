@@ -171,7 +171,7 @@ abstract class MainListDisplayBackend {
       getData.getListDataForPeopleILikedFriendedBlockedOrMet(
           query: query,
           dataType: viewMode,
-          isGettingDataForPeopleIMetList: false,
+          isGettingDataForPeopleIMetList: collectionName == "nearby-people",
           onChildAdded: () {
             // add the person to the displayed list
             if (!listOfPeople.contains(getData.profileData)) {

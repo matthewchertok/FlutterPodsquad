@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_slider_drawer/flutter_slider_drawer.dart';
 import 'package:podsquad/BackendDataclasses/MainListDisplayViewModes.dart';
 import 'package:podsquad/ContentViews/MyProfileTab.dart';
@@ -18,7 +19,7 @@ class _WelcomeViewState extends State<WelcomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(child: SliderMenuContainer(key: drawerKey, hasAppBar: false, sliderMenu:
+    return Scaffold(body: SliderMenuContainer(key: drawerKey, hasAppBar: false, sliderMenu:
     likesFriendsBlocksDrawer
       (context: context),
         sliderMain:

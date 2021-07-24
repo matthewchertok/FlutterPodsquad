@@ -66,6 +66,12 @@ class ChatMessage {
   ///Pass in a list of people who read the message so I can determine whether to make the font bold
   List<String>? readBy;
 
+  /// Pass in a map of {personID: timeTheyReadTheMessage} that stores when each person read the message
+  Map<String, num>? readTimes;
+
+  /// Pass in a map of {personID: personName} that stores the name of each person who read the message
+  Map<String, String>? readNames;
+
   ChatMessage(
       {required this.id,
       this.imageURL,
@@ -83,7 +89,7 @@ class ChatMessage {
       required this.senderThumbnailURL,
       required this.recipientThumbnailURL,
       this.podThumbnailURL,
-      this.readBy});
+      this.readBy, this.readTimes, this.readNames});
 
   ///Marks a message as read in the database. If it's a DM, pass in the alphabetical combination of chat partner IDs.
   /// If it's a pod message, pass in the pod ID for conversationID.

@@ -169,19 +169,23 @@ class MessagingTabFunctions {
       // there are no messages)
 
       snapshot.docs.forEach((messageDoc) {
-        final messageData = messageDoc.data();
+        final data = messageDoc.data();
         final messageID = messageDoc.get("id") as String;
-        final imageURL = messageData["imageURL"] as String? ?? "";
-        final audioURL = messageData["audioURL"] as String? ?? "";
-        final imagePath = messageData["imagePath"] as String? ?? "";
-        final audioPath = messageData["audioPath"] as String? ?? "";
+        final imageURL = data["imageURL"] as String? ?? "";
+        final audioURL = data["audioURL"] as String? ?? "";
+        final imagePath = data["imagePath"] as String? ?? "";
+        final audioPath = data["audioPath"] as String? ?? "";
         final senderID = messageDoc.get("senderId") as String;
         final senderName = messageDoc.get("senderName") as String;
         final senderThumbnailURL = messageDoc.get("senderThumbnailURL") as String;
         final systemTimeRaw = messageDoc.get("systemTime") as num;
         final systemTime = systemTimeRaw.toDouble();
         final text = messageDoc.get("text") as String;
-        final readBy = messageData["readBy"] as List<dynamic>? ?? [];
+        final readBy = data["readBy"] as List<dynamic>? ?? [];
+        final readTimesMapRaw = data["readTime"] as Map<String, dynamic>? ?? {};
+        final readTimesMap = Map<String, num>.from(readTimesMapRaw);
+        final readNamesMapRaw = data["readName"] as Map<String, dynamic>? ?? {};
+        final readNamesMap = Map<String, String>.from(readNamesMapRaw);
 
         final message = ChatMessage(
             id: messageID,
@@ -200,7 +204,7 @@ class MessagingTabFunctions {
             audioURL: audioURL,
             imagePath: imagePath,
             audioPath: audioPath,
-            readBy: List<String>.from(readBy));
+            readBy: List<String>.from(readBy), readNames: readNamesMap, readTimes: readTimesMap);
 
         latestMessagesDict[podID] = message; // update the latest message that gets displayed for the pod
         refreshLatestMessagesList(newDict: latestMessagesDict);
@@ -282,6 +286,10 @@ class MessagingTabFunctions {
           final recipientThumbnailURL = data["recipientThumbnailURL"] as String;
           final readByDynamic = data["readBy"] as List<dynamic>;
           final readBy = List<String>.from(readByDynamic);
+          final readTimesMapRaw = data["readTime"] as Map<String, dynamic>? ?? {};
+          final readTimesMap = Map<String, num>.from(readTimesMapRaw);
+          final readNamesMapRaw = data["readName"] as Map<String, dynamic>? ?? {};
+          final readNamesMap = Map<String, String>.from(readNamesMapRaw);
 
           final chatMessage = ChatMessage(
               id: id,
@@ -297,7 +305,7 @@ class MessagingTabFunctions {
               imageURL: imageURL,
               audioPath: audioPath,
               audioURL: audioURL,
-              readBy: readBy);
+              readBy: readBy, readNames: readNamesMap, readTimes: readTimesMap);
           //replace the value in the message dictionary with a value equal to the latest chat message.
           latestMessagesDict[chatPartnerID] = chatMessage;
           refreshLatestMessagesList(newDict: latestMessagesDict);

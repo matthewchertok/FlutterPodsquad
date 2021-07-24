@@ -8,8 +8,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:podsquad/BackendDataHolders/PodMembersDictionary.dart';
 import 'package:podsquad/BackendDataclasses/ChatMessageDataclasses.dart';
 import 'package:podsquad/BackendDataclasses/NotificationTypes.dart';
+import 'package:podsquad/BackendDataclasses/PodMemberIDNameAndTypingStatus.dart';
 import 'package:podsquad/BackendFunctions/PushNotificationSender.dart';
 import 'package:podsquad/BackendFunctions/ResizeAndUploadImage.dart';
 import 'package:podsquad/BackendFunctions/UploadAudio.dart';
@@ -70,6 +72,10 @@ class _MessagingViewState extends State<MessagingView> {
   final _imageAndAudioScrollController = ScrollController();
   final _imagePicker = ImagePicker();
   final _refreshController = RefreshController();
+  final _keyboardVisibilityController = KeyboardVisibilityController();
+
+  /// Determine whether the keyboard is visible so I know if I need to hide it when scrolling
+  bool _keyboardVisible = false;
 
   /// The image that gets picked from the photo library
   File? imageFile;
@@ -122,6 +128,234 @@ class _MessagingViewState extends State<MessagingView> {
       ? chatPartnerOrPodID + myFirebaseUserId
       : myFirebaseUserId + chatPartnerOrPodID;
 
+  /// If displaying a DM conversation, this variable determines whether the chat partner is typing
+  bool _chatPartnerTyping = false;
+
+  /// If displaying a pod conversation, this map contains an object for each pod member that determines their name
+  /// and whether they are typing a message. Maps {memberID, PodMemberIDNameAndTypingStatus}
+  Map<String, PodMemberIDNameAndTypingStatus> _podMemberTypingMessageDictionary = {};
+
+  /// Hide the read receipts if I scroll up to see older messages, and re-show them if I scroll back down to the bottom
+  bool _didScrollToHideReadReceipts = false;
+
+  /// Make the text to display when someone else is typing
+  Widget someoneTypingText() {
+    if (isPodMode) {
+      final typingMembersCount = _podMemberTypingMessageDictionary.values.where((member) => member.isTyping).length;
+      // if only one member is typing, just say "NAME is typing"
+      if (typingMembersCount == 1) {
+        final typingMemberName = _podMemberTypingMessageDictionary.values.first.name;
+        return Padding(
+          padding: EdgeInsets.all(5),
+          child: Text(
+            "${typingMemberName.firstName()} is typing...",
+            style: TextStyle(fontSize: 12, color: CupertinoColors.inactiveGray),
+          ),
+        );
+      }
+
+      // if multiple members are typing, say "NAME and [x] others are typing"
+      else if (typingMembersCount > 1) {
+        var typingMembers = _podMemberTypingMessageDictionary.values.where((member) => member.isTyping).toList();
+        typingMembers.sort((a, b) => a.name.compareTo(b.name)); // sort alphabetically
+        final firstTypingMember = typingMembers.first.name;
+        return Padding(
+          padding: EdgeInsets.all(5),
+          child: CupertinoButton(padding: EdgeInsets.zero, alignment: Alignment.bottomLeft, child: Text(
+            "${firstTypingMember.firstName()} and "
+                "${typingMembersCount - 1} ${typingMembersCount - 1 == 1 ? "other is" : "others are"} typing...",
+            style: TextStyle(fontSize: 12, color: CupertinoColors.inactiveGray),
+          ), onPressed: (){
+            final infoSheet = CupertinoActionSheet(
+              title: Text("Currently typing:"),
+              actions: [
+                for (var typingMember in typingMembers)
+                Padding(padding: EdgeInsets.all(5), child: Text(
+                  "${typingMember.name}",
+                  style: TextStyle(color: CupertinoColors.inactiveGray),
+                ),),
+                CupertinoActionSheetAction(
+                  onPressed: () {
+                    dismissAlert(context: context);
+                  },
+                  child: Text("OK"),
+                  isDefaultAction: true,
+                )
+              ],
+            );
+            showCupertinoModalPopup(context: context, builder: (context) => infoSheet);
+          }),
+        );
+      }
+
+      // if nobody is typing, return an empty container
+      else
+        return Container(
+          width: 0,
+          height: 0,
+        );
+    } else {
+      if (_chatPartnerTyping)
+        return Padding(
+          padding: EdgeInsets.all(5),
+          child: Text(
+            "${chatPartnerOrPodName.firstName()} is typing...",
+            style: TextStyle(fontSize: 12, color: CupertinoColors.inactiveGray),
+          ),
+        );
+      else
+        return Container(
+          width: 0,
+          height: 0,
+        );
+    }
+  }
+
+  /// Make the text to display when someone read the message
+  Widget messageReadText({required ChatMessage message}) {
+    final readByMemberIDs = message.readBy ?? [];
+    final readByMemberNames = message.readNames ?? {};
+    final readAtTimes = message.readTimes ?? {};
+    print("MESSAGE READ BY ${readByMemberIDs.length} people. They are $readByMemberIDs");
+
+    if (isPodMode) {
+      if (readByMemberIDs.length > 1) {
+        // if only one other person read the message, just say "Read by NAME"
+        if (readByMemberIDs.length == 2) {
+          final idOfTheMemberWhoReadIt = readByMemberIDs.where((element) => element != myFirebaseUserId).first;
+          final nameOfTheMemberWhoReadIt = readByMemberNames[idOfTheMemberWhoReadIt];
+          final timeTheyReadIt = readAtTimes[idOfTheMemberWhoReadIt] ?? DateTime.now().millisecondsSinceEpoch * 0.001;
+          return Padding(
+            padding: EdgeInsets.all(5),
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              alignment: Alignment.bottomRight,
+              child: Text(
+                "Read by $nameOfTheMemberWhoReadIt",
+                style: TextStyle(fontSize: 12, color: CupertinoColors.inactiveGray),
+              ),
+              onPressed: () {
+                final infoSheet = CupertinoActionSheet(
+                  title: Text("Read by:"),
+                  actions: [
+                    Padding(padding: EdgeInsets.all(5), child: Text(
+                      "$nameOfTheMemberWhoReadIt: ${TimeAndDateFunctions.timeStampText(timeTheyReadIt.toDouble(), capitalized: false, includeFillerWords: true)}",
+                      style: TextStyle(color: CupertinoColors.inactiveGray),
+                    ),),
+                    CupertinoActionSheetAction(
+                      onPressed: () {
+                        dismissAlert(context: context);
+                      },
+                      child: Text("OK"),
+                      isDefaultAction: true,
+                    )
+                  ],
+                );
+                showCupertinoModalPopup(context: context, builder: (context) => infoSheet);
+              },
+            ),
+          );
+        }
+
+        // if multiple people read the message, say "Read by NAME and [x] others"
+        else {
+          // get the names of all members who read the message
+          var memberNamesMap = readByMemberNames;
+          memberNamesMap.removeWhere((key, value) => !readByMemberIDs.contains(key));
+          var memberNames = memberNamesMap.values.toList();
+
+          // sort in alphabetical order
+          memberNames.sort((a, b) => a.compareTo(b));
+          final firstMember = memberNames.length > 0 ? memberNames.first : "someone";
+          return Padding(
+            padding: EdgeInsets.all(5),
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              alignment: Alignment.bottomRight,
+              child: Text(
+                "Read by ${firstMember.firstName()} and ${readByMemberIDs.length - 2} ${readByMemberIDs.length - 2 == 1 ? "other" : "others"}",
+                style: TextStyle(fontSize: 12, color: CupertinoColors.inactiveGray),
+              ),
+              onPressed: () {
+                final infoSheet = CupertinoActionSheet(
+                  title: Text("Read by:"),
+                  actions: [
+                    for (var memberID in readByMemberIDs)
+                      if (memberID != myFirebaseUserId)
+                        Padding(padding: EdgeInsets.all(5), child: Text(
+                          "${readByMemberNames[memberID]}: ${TimeAndDateFunctions.timeStampText((readAtTimes[memberID] ?? 0).toDouble(), capitalized: false, includeFillerWords: true)}",
+                          style: TextStyle(color: CupertinoColors.inactiveGray),
+                        ),),
+                    CupertinoActionSheetAction(
+                      onPressed: () {
+                        dismissAlert(context: context);
+                      },
+                      child: Text("OK"),
+                      isDefaultAction: true,
+                    )
+                  ],
+                );
+                showCupertinoModalPopup(context: context, builder: (context) => infoSheet);
+              },
+            ),
+          );
+        }
+      } else
+        return Container(
+          width: 0,
+          height: 0,
+        ); // if nobody read my message, return an empty container
+    }
+
+    // for DMs, also show the time the message was read
+    else {
+      if (readByMemberIDs.length > 1) {
+        final timeTheyReadTheMessage = readAtTimes[chatPartnerOrPodID] ?? DateTime.now().millisecondsSinceEpoch * 0.001;
+        final readAt = DateTime.fromMillisecondsSinceEpoch((timeTheyReadTheMessage * 1000).toInt());
+        return Padding(
+          padding: EdgeInsets.all(5),
+          child: Text(
+            TimeAndDateFunctions.readByMessage(readAt: readAt),
+            style: TextStyle(fontSize: 12, color: CupertinoColors.inactiveGray),
+          ),
+        );
+      } else
+        return Container(
+          width: 0,
+          height: 0,
+        );
+    }
+  }
+
+  /// Equal to true if I'm actively typing a message (if the text field isn't blank)
+  ValueNotifier<bool> _amCurrentlyTyping = ValueNotifier(false);
+
+  /// Updates the database to tell others whether I am typing a message
+  void _updateTypingStatusInDatabase() {
+    if (isPodMode) {
+      if (_amCurrentlyTyping.value == true) {
+        firestoreDatabase
+            .collection("pods")
+            .doc(chatPartnerOrPodID)
+            .collection("members")
+            .doc(myFirebaseUserId)
+            .update({"typing": true});
+      } else
+        firestoreDatabase
+            .collection("pods")
+            .doc(chatPartnerOrPodID)
+            .collection("members")
+            .doc(myFirebaseUserId)
+            .update({"typing": false});
+    } else {
+      if (_amCurrentlyTyping.value == true) {
+        firestoreDatabase.collection("dm-presence").doc(myFirebaseUserId).set({"typingMessageTo": chatPartnerOrPodID});
+      } else {
+        firestoreDatabase.collection("dm-presence").doc(myFirebaseUserId).set({"typingMessageTo": ""});
+      }
+    }
+  }
+
   /// Insert or remove items with animation
   void _updateAnimatedList({required List<ChatMessage> newList}) {
     // Compute the difference between the new list and the old list and insert the new items into the animated
@@ -170,8 +404,6 @@ class _MessagingViewState extends State<MessagingView> {
         // another message's slidable after the current message is deleted.
       }
     });
-
-    //  if (shouldScrollToBottom) _scrollChatLogToBottom(overScrollBy: 0);
   }
 
   /// Show an alert asking the user to confirm that they want to delete a message from the conversation
@@ -543,6 +775,76 @@ class _MessagingViewState extends State<MessagingView> {
     this._streamSubscriptions.add(streamSubscription);
   }
 
+  /// If this is pod mode, then check which pod members are currently typing
+  void _observeWhichPodMembersAreTyping() {
+    if (!isPodMode) return; // ignore this function if not in pod mode
+    final memberTypingListener = firestoreDatabase
+        .collection("pods")
+        .doc(chatPartnerOrPodID)
+        .collection("members")
+        .where("typing", isEqualTo: true)
+        .where("userID", isNotEqualTo: myFirebaseUserId)
+        .snapshots()
+        .listen((event) {
+      event.docChanges.forEach((diff) {
+        final memberID = diff.doc.id;
+        final memberName = diff.doc.get("name") as String;
+
+        // declare that the person is typing
+        if (diff.type == DocumentChangeType.added) {
+          setState(() {
+            this._podMemberTypingMessageDictionary[memberID] =
+                PodMemberIDNameAndTypingStatus(memberID: memberID, name: memberName, isTyping: true);
+          });
+        }
+
+        // declare that the person is not typing
+        else if (diff.type == DocumentChangeType.removed) {
+          setState(() {
+            this._podMemberTypingMessageDictionary[memberID] =
+                PodMemberIDNameAndTypingStatus(memberID: memberID, name: memberName, isTyping: false);
+          });
+        }
+      });
+    });
+    _streamSubscriptions.add(memberTypingListener);
+  }
+
+  /// If this is a DM conversation, then check whether the chat partner is typing a message to me.
+  void _checkIfMyChatPartnerIsTypingAMessage() {
+    if (isPodMode) return; // no need to do this if in pod mode
+    final chatPartnerTypingListener =
+        firestoreDatabase.collection("dm-presence").doc(chatPartnerOrPodID).snapshots().listen((document) {
+      if (document.exists) {
+        final personTheyAreTypingAMessageTo = document.get("typingMessageTo") as String?;
+        if (personTheyAreTypingAMessageTo != null) {
+          final isTypingToMe = personTheyAreTypingAMessageTo == myFirebaseUserId;
+          setState(() {
+            this._chatPartnerTyping = isTypingToMe;
+          });
+        }
+      }
+    });
+    _streamSubscriptions.add(chatPartnerTypingListener);
+  }
+
+  /// Determine whether to show the typing message and read receipts row
+  bool get showReadReceiptsRow {
+    if (displayedChatLog.length == 0 || _didScrollToHideReadReceipts) return false;
+    // determines whether anyone besides myself read the newest message in the conversation
+    final newestMessageWasSentByMeAndReadBySomeoneElse =
+        (displayedChatLog.first.readBy?.length ?? 1) > 1 && displayedChatLog.first.senderId == myFirebaseUserId;
+
+    // determines whether anyone is typing a message
+    final someoneBesidesMyselfIsTyping =
+        (isPodMode && _podMemberTypingMessageDictionary.values.where((member) => member.isTyping).length > 0) ||
+            (!isPodMode && _chatPartnerTyping);
+
+    // show the row if either someone is typing or the newest message in the chat log was read by someone other than
+    // myself and I was the sender
+    return newestMessageWasSentByMeAndReadBySomeoneElse || someoneBesidesMyselfIsTyping;
+  }
+
   /// Load in older messages if the user pulls to refresh
   Future<void> _loadOlderMessages() async {
     int numMessagesLoaded = 0; // use this to determine whether to display that the chat log is up to date
@@ -559,15 +861,10 @@ class _MessagingViewState extends State<MessagingView> {
     });
   }
 
-  /// Scroll the chat log to teh bottom after a short delay (to allow the new message time to appear). Set overScroll
-  /// to a positive integer if calling inside initState to ensure the chat log scrolls all the way to the bottom of the
-  /// last message.
-  void _scrollChatLogToBottom({int millisecondDelay = 250, int overScrollBy = 0}) {
-    Future.delayed(Duration(milliseconds: 250), () {
-      // scroll a little past max extents to ensure the bottom message comes fully into view
-      _chatLogScrollController.animateTo(_chatLogScrollController.position.maxScrollExtent + overScrollBy,
-          duration: Duration(milliseconds: millisecondDelay), curve: Curves.ease);
-    });
+  /// Scroll the chat log to the newest message
+  void _scrollChatLogToBottom({int milliseconds = 250}) {
+    // scroll a little past max extents to ensure the bottom message comes fully into view
+    _chatLogScrollController.animateTo(0, duration: Duration(milliseconds: milliseconds), curve: Curves.ease);
   }
 
   /// Checks if I'm blocked, or if I blocked my chat partner (DM messaging only)
@@ -707,9 +1004,11 @@ class _MessagingViewState extends State<MessagingView> {
   /// Mark a message as read if I haven't read it yet
   void _markMessageReadIfNecessary({required ChatMessage message}) {
     // if in doubt, assume that I have read the message to reduce database writes
-    if (!(message.readBy?.contains(myFirebaseUserId) ?? true)){
-      message.markMessageRead(message: message, listOfPeopleWhoReadTheMessage: message.readBy ?? [], conversationID: isPodMode
-          ? chatPartnerOrPodID : conversationID);
+    if (!(message.readBy?.contains(myFirebaseUserId) ?? true)) {
+      message.markMessageRead(
+          message: message,
+          listOfPeopleWhoReadTheMessage: message.readBy ?? [],
+          conversationID: isPodMode ? chatPartnerOrPodID : conversationID);
     }
   }
 
@@ -732,12 +1031,6 @@ class _MessagingViewState extends State<MessagingView> {
       displayedChatLog = combined;
     });
 
-    // A large over scroll ensures that the chat log will make it to the end. Without the over scroll, the chat log
-    // will sometimes get stuck a few messages short of the end, which would be confusing to users. Of course, the
-    // best solution would be to just reverse the chat log, but then I wouldn't be able to use the swipe to refresh
-    // indicator. Additionally, an advantage of not reversing the chat log is that I get a nice scroll animation when
-    // a new message is added.
-    // _scrollChatLogToBottom(overScrollBy: 0);
     _checkIfIAmBlocked();
 
     // Update in real time when the chat log changes (for direct messages)
@@ -768,26 +1061,63 @@ class _MessagingViewState extends State<MessagingView> {
     });
 
     // handle the text field when the keyboard appears
-    Future.delayed(Duration(milliseconds: 250), () {
-      // Scroll the chat log to the bottom when the keyboard opens
-      var keyboardVisibilityController = KeyboardVisibilityController();
-      final keyboardVisibilityListener = keyboardVisibilityController.onChange.listen((bool visible) {
-        if (visible) {
-          //     _scrollChatLogToBottom();
+    // Scroll the chat log to the bottom when the keyboard opens
+    final keyboardVisibilityListener = this._keyboardVisibilityController.onChange.listen((bool visible) {
+      if (visible) {
+        this._scrollChatLogToBottom(); // scroll to the newest message when the chat log opens
 
-          /// Ensure proper scrolling if the keyboard opens while recording audio and previewing an image
-          if (imageFile != null && isRecordingAudio)
-            _imageAndAudioScrollController.animateTo(200, duration: Duration(milliseconds: 250), curve: Curves.ease);
-        }
-      });
-      _streamSubscriptions.add(keyboardVisibilityListener);
+        /// Ensure proper scrolling if the keyboard opens while recording audio and previewing an image
+        if (imageFile != null && isRecordingAudio)
+          _imageAndAudioScrollController.animateTo(200, duration: Duration(milliseconds: 250), curve: Curves.ease);
+      }
 
-      // Hide the keyboard if the user scrolls up to see older messages
-      _chatLogScrollController.addListener(() {
-        final isScrolling = _chatLogScrollController.position.isScrollingNotifier.value;
-        final scrollDirection = _chatLogScrollController.position.userScrollDirection;
-        if (isScrolling && scrollDirection == ScrollDirection.forward) hideKeyboard(context: context);
+      setState(() {
+        this._keyboardVisible = visible;
       });
+    });
+    _streamSubscriptions.add(keyboardVisibilityListener);
+
+    // Hide the keyboard if the user scrolls up to see older messages. Also hide the read receipts row (if it isn't
+    // already hidden from previous scrolling)
+    _chatLogScrollController.addListener(() {
+      final isScrolling = _chatLogScrollController.position.isScrollingNotifier.value;
+      final scrollDirection = _chatLogScrollController.position.userScrollDirection;
+      if (isScrolling && scrollDirection == ScrollDirection.reverse) {
+        if (_keyboardVisible) hideKeyboard(context: context);
+        if (!this._didScrollToHideReadReceipts)
+          setState(() {
+            this._didScrollToHideReadReceipts = true;
+          });
+      }
+
+      // if the user scrolls all the way back down to the bottom of the chat log, allow the read receipts row to
+      // show again. Set extentBefore (not extentAfter) to 0 because the chat log CustomScrollView is reversed.
+      if (_chatLogScrollController.position.extentBefore == 0) {
+        setState(() {
+          this._didScrollToHideReadReceipts = false;
+        });
+      }
+    });
+
+    // listen for which pod members are typing, if necessary
+    if (isPodMode)
+      this._observeWhichPodMembersAreTyping();
+
+    // check whether my chat partner is typing a message, if necessary
+    else
+      this._checkIfMyChatPartnerIsTypingAMessage();
+
+    // listen to whether I'm typing a message to update _amCurrentlyTyping
+    _typingMessageController.addListener(() {
+      final amTyping = _typingMessageController.text.trim().isNotEmpty;
+      this._amCurrentlyTyping.value = amTyping;
+    });
+
+    // update the database with information on whether I'm typing a message so that typing presence works for others.
+    // This will be called every time I go from typing to not typing (i.e. text field goes from blank to not blank or
+    // vice verse)
+    this._amCurrentlyTyping.addListener(() {
+      this._updateTypingStatusInDatabase();
     });
   }
 
@@ -800,6 +1130,8 @@ class _MessagingViewState extends State<MessagingView> {
 
     SentBlocksBackendFunctions.shared.sortedListOfPeople.removeListener(() {});
     ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.removeListener(() {});
+    this._amCurrentlyTyping.removeListener(() {});
+    this._typingMessageController.removeListener(() {});
     super.dispose();
   }
 
@@ -932,6 +1264,7 @@ class _MessagingViewState extends State<MessagingView> {
                           : _loadOlderMessages,
                       child: CustomScrollView(
                         reverse: true,
+                        controller: _chatLogScrollController,
                         physics: AlwaysScrollableScrollPhysics(),
                         slivers: [
                           SliverAnimatedList(
@@ -1151,6 +1484,47 @@ class _MessagingViewState extends State<MessagingView> {
                 ],
               ),
             ),
+
+            // This row contains the "[PERSON] is typing..." and read receipts text
+            AnimatedSwitcher(
+              transitionBuilder: (child, animation) {
+                return SizeTransition(sizeFactor: animation, child: child);
+              },
+              duration: Duration(milliseconds: 250),
+              child: this.showReadReceiptsRow
+                  ? Row(crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        // the typing presence text ("someone is typing...")
+                        AnimatedSwitcher(
+                            duration: Duration(milliseconds: 250),
+                            child: someoneTypingText() ==
+                                    Container(
+                                      width: 0,
+                                      height: 0,
+                                    )
+                                ? Container(width: 0, height: 0)
+                                : someoneTypingText()),
+                        Spacer(),
+
+                        // The message read text ("read by NAME"). Use the first message since the chat log is reversed.
+                        AnimatedSwitcher(
+                            duration: Duration(milliseconds: 250),
+                            child: messageReadText(message: displayedChatLog.first) ==
+                                    Container(
+                                      width: 0,
+                                      height: 0,
+                                    )
+                                ? Container(width: 0, height: 0)
+                                : messageReadText(message: displayedChatLog.first)),
+                      ],
+                    )
+                  : Container(
+                      width: 0,
+                      height: 0,
+                    ),
+            ),
+
+            // Text field to type a message
             CupertinoTextField(
               textCapitalization: TextCapitalization.sentences,
               maxLines: null,

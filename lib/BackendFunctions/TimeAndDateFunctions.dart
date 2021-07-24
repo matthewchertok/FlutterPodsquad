@@ -31,27 +31,84 @@ class TimeAndDateFunctions {
       return personAge;
   }
 
-  /// Make text from the time stamp
-  static String timeStampText(double timeStamp) {
-    final messageTimeStamp = DateTime.fromMillisecondsSinceEpoch((timeStamp * 1000).toInt()); // must multiply by 1000
-    // since
-    // database
-    // stores time stamp in seconds since epoch
-    final currentYear = DateTime.now().year;
+  /// Make text from the time stamp. Time stamp should come directly from the database and be in SECONDS since the
+  /// epoch.
+  static String timeStampText(double timeStamp, {bool capitalized = true, bool includeFillerWords = false}) {
+    final dateOfEvent = DateTime.fromMillisecondsSinceEpoch((1000*timeStamp).toInt());
+    final now = DateTime.now();
+
+    // to determine whether something happened today, yesterday, or before, we need to simplify things by only
+    // considering midnight on the day the event occurred.
+    final midnightOnReadDay = DateTime(dateOfEvent.year, dateOfEvent.month, dateOfEvent.day);
+    final midnightToday = DateTime(now.year, now.month, now.day);
 
     // Convert 24-hour time to 12-hour time. Hours are 0 to 23, so anything 12 or greater is PM. Also, be
     // careful: we say 12:00 pm, not 0:00 pm. Also, we say 12:00 am, not 0:00 am. Also, if the minute is less than
     // 10, we need to add a 0 before it so it says 12:01 instead of 12:1.
-    final hoursMinutes = messageTimeStamp.hour >= 12
-        ? "${messageTimeStamp.hour - 12 == 0 ? 12 : messageTimeStamp.hour - 12}:${messageTimeStamp.minute < 10 ? "0${messageTimeStamp.minute}" : messageTimeStamp.minute} PM"
-        : "${messageTimeStamp.hour == 0 ? 12 : messageTimeStamp.hour}:${messageTimeStamp.minute < 10 ? "0${messageTimeStamp.minute}" : messageTimeStamp.minute} AM";
+    final hoursMinutes = dateOfEvent.hour >= 12
+        ? "${dateOfEvent.hour - 12 == 0 ? 12 : dateOfEvent.hour - 12}:${dateOfEvent.minute < 10 ? "0${dateOfEvent.minute}" : dateOfEvent.minute}"
+        " PM"
+        : "${dateOfEvent.hour == 0 ? 12 : dateOfEvent.hour}:${dateOfEvent.minute < 10 ? "0${dateOfEvent
+        .minute}" : dateOfEvent.minute} AM";
 
-    // If the year is the same, show month, day, and time. Otherwise, show month, day, and year.
-    final timeStampText = messageTimeStamp.year == currentYear
-        ? "${messageTimeStamp.month.toHumanReadableMonth()} "
-            "${messageTimeStamp.day}\n"
-            "$hoursMinutes"
-        : "${messageTimeStamp.month.toHumanReadableMonth()} ${messageTimeStamp.day} ${messageTimeStamp.year}";
-    return timeStampText;
+    // if the message was read today
+    if (midnightToday.difference(midnightOnReadDay).inDays < 1) {
+      return "${capitalized ? "T" : "t"}oday ${includeFillerWords ? "at" : ""} $hoursMinutes";
+    }
+
+    // if the message was read yesterday
+    else if (midnightToday.difference(midnightOnReadDay).inDays < 2) {
+      return "${capitalized ? "Y" : "y"} yesterday ${includeFillerWords ? "at" : ""} $hoursMinutes";
+    }
+
+    // if the message was read earlier this year
+    else if (now.year == dateOfEvent.year) {
+      return "${dateOfEvent.month.toHumanReadableMonth()} ${dateOfEvent.day} ${includeFillerWords ? "at" : ""} "
+          "$hoursMinutes";
+    }
+
+    // if the message was read more than 2 days ago and not this year
+    else {
+      return "${dateOfEvent.month.toHumanReadableMonth()} ${dateOfEvent.day} ${dateOfEvent.year}";
+    }
+  }
+
+  /// Make the "read today at 4:20 pm" or "Read yesterday at 11:59 am" message
+  static String readByMessage({required DateTime readAt, bool capitalized = true}){
+    final now = DateTime.now();
+
+    // to determine whether something happened today, yesterday, or before, we need to simplify things by only
+    // considering midnight on the day the event occurred.
+    final midnightOnReadDay = DateTime(readAt.year, readAt.month, readAt.day);
+    final midnightToday = DateTime(now.year, now.month, now.day);
+
+    // Convert 24-hour time to 12-hour time. Hours are 0 to 23, so anything 12 or greater is PM. Also, be
+    // careful: we say 12:00 pm, not 0:00 pm. Also, we say 12:00 am, not 0:00 am. Also, if the minute is less than
+    // 10, we need to add a 0 before it so it says 12:01 instead of 12:1.
+    final hoursMinutes = readAt.hour >= 12
+        ? "${readAt.hour - 12 == 0 ? 12 : readAt.hour - 12}:${readAt.minute < 10 ? "0${readAt.minute}" : readAt.minute}"
+        " PM"
+        : "${readAt.hour == 0 ? 12 : readAt.hour}:${readAt.minute < 10 ? "0${readAt
+        .minute}" : readAt.minute} AM";
+
+    // if the message was read today
+    if (midnightToday.difference(midnightOnReadDay).inDays < 1) {
+      return "${capitalized ? "R" : "r"}ead today at $hoursMinutes";
+    }
+
+    // if the message was read yesterday
+    else if (midnightToday.difference(midnightOnReadDay).inDays < 2) {
+      return "${capitalized ? "R" : "r"}ead yesterday at $hoursMinutes";
+    }
+
+    // if the message was read earlier this year
+    else if (now.year == readAt.year) {
+      return "${capitalized ? "R" : "r"}ead ${readAt.month.toHumanReadableMonth()} ${readAt.day} at $hoursMinutes";
+    }
+
+    // if the message was read more than 2 days ago and not this year
+    else {
+      return "${capitalized ? "R" : "r"}ead ${readAt.month.toHumanReadableMonth()} ${readAt.day} ${readAt.year}";
+    }
   }
 }

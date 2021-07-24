@@ -103,13 +103,28 @@ class _AppState extends State<MyApp> {
                 return FutureBuilder(future: MyProfileTabBackendFunctions.shared.getMyProfileData(), builder:
                     (context, snapshot){
                       if (isLoggedIn) NearbyScanner.shared.publishAndSubscribe(); // start listening for people
-                      // nearby over
-                      // Bluetooth
+                      // nearby over Bluetooth
                       return WelcomeView();
                 });
               }
               else {
+                NearbyScanner.shared.stopPublishAndSubscribe();
                 MyProfileTabBackendFunctions.shared.reset();
+                LatestPodMessagesDictionary.shared.reset();
+                LatestDirectMessagesDictionary.shared.reset();
+                MessagesDictionary.shared.reset();
+                MessagesDictionary.shared.reset();
+                MessagesDictionary.shared.reset();
+                MessagesDictionary.shared.reset();
+                SentBlocksBackendFunctions.shared.reset();
+                ReceivedBlocksBackendFunctions.shared.reset();
+                SentLikesBackendFunctions.shared.reset();
+                ReceivedLikesBackendFunctions.shared.reset();
+                SentFriendsBackendFunctions.shared.reset();
+                ReceivedFriendsBackendFunctions.shared.reset();
+                ReportedPeopleBackendFunctions.shared.reset();
+                ShowMyPodsBackendFunctions.shared.reset();
+                PeopleIMetBackendFunctions.shared.reset();
                 return LoginView();// stop listening to my profile data and reset if I sign
                 // out
               }

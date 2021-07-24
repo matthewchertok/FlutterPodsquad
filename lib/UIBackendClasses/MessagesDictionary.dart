@@ -225,6 +225,10 @@ class MessagesDictionary {
           final text = diff.doc.get("text") as String;
           final readByRaw = data?["readBy"] as List<dynamic>?;
           final readBy = List<String>.from(readByRaw ?? []);
+          final readTimesMapRaw = data?["readTime"] as Map<String, dynamic>? ?? {};
+          final readTimesMap = Map<String, num>.from(readTimesMapRaw);
+          final readNamesMapRaw = data?["readName"] as Map<String, dynamic>? ?? {};
+          final readNamesMap = Map<String, String>.from(readNamesMapRaw);
 
           final chatMessage = ChatMessage(
               id: id,
@@ -239,7 +243,7 @@ class MessagesDictionary {
               imagePath: imagePath,
               imageURL: imageURL,
               audioPath: audioPath,
-              audioURL: audioURL, readBy: readBy);
+              audioURL: audioURL, readBy: readBy, readTimes: readTimesMap, readNames: readNamesMap);
 
           if (diff.type == DocumentChangeType.added) {
             //Add the message to the associated chat partner ID in the dictionary
@@ -258,6 +262,10 @@ class MessagesDictionary {
             // update the list of people who read the message
             directMessagesDict.value[chatPartnerID]?.where((element) => element.id == chatMessage.id).first.readBy =
                 readBy;
+            directMessagesDict.value[chatPartnerID]?.where((element) => element.id == chatMessage.id).first.readNames =
+                readNamesMap;
+            directMessagesDict.value[chatPartnerID]?.where((element) => element.id == chatMessage.id).first.readTimes =
+                readTimesMap;
             directMessagesDict.notifyListeners();
           }
 
@@ -333,6 +341,10 @@ class MessagesDictionary {
           final text = diff.doc.get("text") as String;
           final readByRaw = data?["readBy"] as List<dynamic>?;
           final readBy = List<String>.from(readByRaw ?? []);
+          final readTimesMapRaw = data?["readTime"] as Map<String, dynamic>? ?? {};
+          final readTimesMap = Map<String, num>.from(readTimesMapRaw);
+          final readNamesMapRaw = data?["readName"] as Map<String, dynamic>? ?? {};
+          final readNamesMap = Map<String, String>.from(readNamesMapRaw);
 
           final chatMessage = ChatMessage(
               id: id,
@@ -347,7 +359,7 @@ class MessagesDictionary {
               imagePath: imagePath,
               imageURL: imageURL,
               audioPath: audioPath,
-              audioURL: audioURL, readBy: readBy);
+              audioURL: audioURL, readBy: readBy, readTimes: readTimesMap, readNames: readNamesMap);
 
           if (diff.type == DocumentChangeType.added) {
             //Add the message to the associated chat partner ID in the dictionary
@@ -366,6 +378,10 @@ class MessagesDictionary {
             // update the list of people who read the message
             directMessagesDict.value[chatPartnerID]?.where((element) => element.id == chatMessage.id).first.readBy =
                 readBy;
+            directMessagesDict.value[chatPartnerID]?.where((element) => element.id == chatMessage.id).first.readNames =
+                readNamesMap;
+            directMessagesDict.value[chatPartnerID]?.where((element) => element.id == chatMessage.id).first.readTimes =
+                readTimesMap;
             directMessagesDict.notifyListeners();
           }
 
@@ -516,6 +532,10 @@ class MessagesDictionary {
           final text = diff.doc.get("text") as String;
           final readByRaw = data?["readBy"] as List<dynamic>?;
           final readBy = List<String>.from(readByRaw ?? []);
+          final readTimesMapRaw = data?["readTime"] as Map<String, dynamic>? ?? {};
+          final readTimesMap = Map<String, num>.from(readTimesMapRaw);
+          final readNamesMapRaw = data?["readName"] as Map<String, dynamic>? ?? {};
+          final readNamesMap = Map<String, String>.from(readNamesMapRaw);
 
           final podMessage = ChatMessage(
               id: messageID,
@@ -531,7 +551,7 @@ class MessagesDictionary {
               audioURL: audioURL,
               imagePath: imagePath,
               audioPath: audioPath,
-              podID: podID, readBy: readBy);
+              podID: podID, readBy: readBy, readTimes: readTimesMap, readNames: readNamesMap);
 
           if (diff.type == DocumentChangeType.added) {
             //Add the message to the associated chat partner ID in the dictionary
@@ -552,6 +572,8 @@ class MessagesDictionary {
 
             // update the list of people who read the messages so that I don't mark a message read multiple times
             podMessageDict.value[podID]?.where((element) => element.id == messageID).first.readBy = readBy;
+            podMessageDict.value[podID]?.where((element) => element.id == messageID).first.readTimes = readTimesMap;
+            podMessageDict.value[podID]?.where((element) => element.id == messageID).first.readNames = readNamesMap;
             podMessageDict.notifyListeners();
           } else if (diff.type == DocumentChangeType.removed) {
             final messageID = diff.doc.get("id") as String;
@@ -622,6 +644,10 @@ class MessagesDictionary {
           final text = diff.doc.get("text") as String;
           final readByRaw = data?["readBy"] as List<dynamic>?;
           final readBy = List<String>.from(readByRaw ?? []);
+          final readTimesMapRaw = data?["readTime"] as Map<String, dynamic>? ?? {};
+          final readTimesMap = Map<String, num>.from(readTimesMapRaw);
+          final readNamesMapRaw = data?["readName"] as Map<String, dynamic>? ?? {};
+          final readNamesMap = Map<String, String>.from(readNamesMapRaw);
 
           final podMessage = ChatMessage(
               id: messageID,
@@ -637,7 +663,7 @@ class MessagesDictionary {
               audioURL: audioURL,
               imagePath: imagePath,
               audioPath: audioPath,
-              podID: podID, readBy: readBy);
+              podID: podID, readBy: readBy, readTimes: readTimesMap, readNames: readNamesMap);
 
           if (diff.type == DocumentChangeType.added) {
               //Add the message to the associated chat partner ID in the dictionary
@@ -663,6 +689,8 @@ class MessagesDictionary {
             // list of people who read it. This is important, as it ensures we don't mark messages as ready multiple
             // times.
             podMessageDict.value[podID]?.where((element) => element.id == messageID).first.readBy = readBy;
+            podMessageDict.value[podID]?.where((element) => element.id == messageID).first.readTimes = readTimesMap;
+            podMessageDict.value[podID]?.where((element) => element.id == messageID).first.readNames = readNamesMap;
             podMessageDict.notifyListeners();
           } else if (diff.type == DocumentChangeType.removed)
             podMessageDict.value[podID]?.removeWhere((message) => message.id == messageID);

@@ -58,7 +58,7 @@ class TimeAndDateFunctions {
 
     // if the message was read yesterday
     else if (midnightToday.difference(midnightOnReadDay).inDays < 2) {
-      return "${capitalized ? "Y" : "y"} yesterday ${includeFillerWords ? "at" : ""} $hoursMinutes";
+      return "${capitalized ? "Y" : "y"}esterday ${includeFillerWords ? "at" : ""} $hoursMinutes";
     }
 
     // if the message was read earlier this year

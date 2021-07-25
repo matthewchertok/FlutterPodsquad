@@ -16,6 +16,7 @@ import 'package:podsquad/BackendFunctions/PushNotificationSender.dart';
 import 'package:podsquad/BackendFunctions/ResizeAndUploadImage.dart';
 import 'package:podsquad/BackendFunctions/UploadAudio.dart';
 import 'package:podsquad/BackendFunctions/TimeAndDateFunctions.dart';
+import 'package:podsquad/CommonlyUsedClasses/AlertDialogs.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/ViewPodDetails.dart';
 import 'package:podsquad/DatabasePaths/BlockedUsersDatabasePaths.dart';
@@ -100,6 +101,9 @@ class _MessagingViewState extends State<MessagingView> {
   /// Check whether I blocked the other user
   bool _didIBlockThem = false;
 
+  /// Check whether I am a member of the pod (if pod mode)
+  bool _amMemberOfPod = true;
+
   /// Use this to track whether I hid the conversation from my messaging tab
   bool didIHideTheConversation = false;
 
@@ -161,30 +165,37 @@ class _MessagingViewState extends State<MessagingView> {
         final firstTypingMember = typingMembers.first.name;
         return Padding(
           padding: EdgeInsets.all(5),
-          child: CupertinoButton(padding: EdgeInsets.zero, alignment: Alignment.bottomLeft, child: Text(
-            "${firstTypingMember.firstName()} and "
+          child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              alignment: Alignment.bottomLeft,
+              child: Text(
+                "${firstTypingMember.firstName()} and "
                 "${typingMembersCount - 1} ${typingMembersCount - 1 == 1 ? "other is" : "others are"} typing...",
-            style: TextStyle(fontSize: 12, color: CupertinoColors.inactiveGray),
-          ), onPressed: (){
-            final infoSheet = CupertinoActionSheet(
-              title: Text("Currently typing:"),
-              actions: [
-                for (var typingMember in typingMembers)
-                Padding(padding: EdgeInsets.all(5), child: Text(
-                  "${typingMember.name}",
-                  style: TextStyle(color: CupertinoColors.inactiveGray),
-                ),),
-                CupertinoActionSheetAction(
-                  onPressed: () {
-                    dismissAlert(context: context);
-                  },
-                  child: Text("OK"),
-                  isDefaultAction: true,
-                )
-              ],
-            );
-            showCupertinoModalPopup(context: context, builder: (context) => infoSheet);
-          }),
+                style: TextStyle(fontSize: 12, color: CupertinoColors.inactiveGray),
+              ),
+              onPressed: () {
+                final infoSheet = CupertinoActionSheet(
+                  title: Text("Currently typing:"),
+                  actions: [
+                    for (var typingMember in typingMembers)
+                      Padding(
+                        padding: EdgeInsets.all(5),
+                        child: Text(
+                          "${typingMember.name}",
+                          style: TextStyle(color: CupertinoColors.inactiveGray),
+                        ),
+                      ),
+                    CupertinoActionSheetAction(
+                      onPressed: () {
+                        dismissAlert(context: context);
+                      },
+                      child: Text("OK"),
+                      isDefaultAction: true,
+                    )
+                  ],
+                );
+                showCupertinoModalPopup(context: context, builder: (context) => infoSheet);
+              }),
         );
       }
 
@@ -238,10 +249,13 @@ class _MessagingViewState extends State<MessagingView> {
                 final infoSheet = CupertinoActionSheet(
                   title: Text("Read by:"),
                   actions: [
-                    Padding(padding: EdgeInsets.all(5), child: Text(
-                      "$nameOfTheMemberWhoReadIt: ${TimeAndDateFunctions.timeStampText(timeTheyReadIt.toDouble(), capitalized: false, includeFillerWords: true)}",
-                      style: TextStyle(color: CupertinoColors.inactiveGray),
-                    ),),
+                    Padding(
+                      padding: EdgeInsets.all(5),
+                      child: Text(
+                        "$nameOfTheMemberWhoReadIt: ${TimeAndDateFunctions.timeStampText(timeTheyReadIt.toDouble(), capitalized: false, includeFillerWords: true)}",
+                        style: TextStyle(color: CupertinoColors.inactiveGray),
+                      ),
+                    ),
                     CupertinoActionSheetAction(
                       onPressed: () {
                         dismissAlert(context: context);
@@ -282,10 +296,13 @@ class _MessagingViewState extends State<MessagingView> {
                   actions: [
                     for (var memberID in readByMemberIDs)
                       if (memberID != myFirebaseUserId)
-                        Padding(padding: EdgeInsets.all(5), child: Text(
-                          "${readByMemberNames[memberID]}: ${TimeAndDateFunctions.timeStampText((readAtTimes[memberID] ?? 0).toDouble(), capitalized: false, includeFillerWords: true)}",
-                          style: TextStyle(color: CupertinoColors.inactiveGray),
-                        ),),
+                        Padding(
+                          padding: EdgeInsets.all(5),
+                          child: Text(
+                            "${readByMemberNames[memberID]}: ${TimeAndDateFunctions.timeStampText((readAtTimes[memberID] ?? 0).toDouble(), capitalized: false, includeFillerWords: true)}",
+                            style: TextStyle(color: CupertinoColors.inactiveGray),
+                          ),
+                        ),
                     CupertinoActionSheetAction(
                       onPressed: () {
                         dismissAlert(context: context);
@@ -483,7 +500,9 @@ class _MessagingViewState extends State<MessagingView> {
     else if (messageText.isEmpty && imageFile != null)
       message.text = "Image";
     else if (messageText.isEmpty && isRecordingAudio) message.text = "Voice Message";
-    final canSendMessage = message.text.isNotEmpty && !_amIBlocked && !_didIBlockThem;
+    final meetsPodMembershipsRequirements = isPodMode && _amMemberOfPod || !isPodMode;
+    final canSendMessage =
+        message.text.isNotEmpty && !_amIBlocked && !_didIBlockThem && meetsPodMembershipsRequirements;
 
     // Show a warning if I'm blocked by the person or pod
     if (_amIBlocked) {
@@ -518,6 +537,14 @@ class _MessagingViewState extends State<MessagingView> {
       );
       showCupertinoDialog(context: context, builder: (context) => alert);
     }
+
+    // Show a warning if I'm not a member of the pod (only applicable in pod mode)
+    else if (!meetsPodMembershipsRequirements)
+      showSingleButtonAlert(
+          context: context,
+          title: "Sending Failed",
+          content: "You must be a member of $chatPartnerOrPodName to send a message.",
+          dismissButtonLabel: "OK");
 
     // don't proceed if the message is empty or if I blocked the other person or they blocked me
     if (!canSendMessage) {
@@ -882,6 +909,9 @@ class _MessagingViewState extends State<MessagingView> {
         setState(() {
           this._amIBlocked = event.docs.length > 0; // I'm blocked from the pod if this query returns any documents
         });
+
+        // don't show an alert if I'm blocked, because if I'm blocked then I'm also no longer a member, so I'll let
+        // that alert take precedence. We don't want to get stuck showing two alerts by accident.
       });
       _streamSubscriptions.add(subscription);
     }
@@ -897,20 +927,59 @@ class _MessagingViewState extends State<MessagingView> {
         setState(() {
           this._didIBlockThem = peopleIBlocked.memberIDs().contains(chatPartnerOrPodID);
         });
+      });
 
-        /// Must directly read in the people who blocked me, because listeners do not automatically get
-        /// notified when a widget appears - a change must occur while the widget is open in order for it to get
-        /// notified.
+      /// Must directly read in the people who blocked me, because listeners do not automatically get
+      /// notified when a widget appears - a change must occur while the widget is open in order for it to get
+      /// notified.
+      final peopleWhoBlockedMe = ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.value;
+      this._amIBlocked = peopleWhoBlockedMe.memberIDs().contains(chatPartnerOrPodID);
+      ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.addListener(() {
         final peopleWhoBlockedMe = ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.value;
-        this._amIBlocked = peopleWhoBlockedMe.memberIDs().contains(chatPartnerOrPodID);
-        ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.addListener(() {
-          final peopleWhoBlockedMe = ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.value;
-          setState(() {
-            this._amIBlocked = peopleWhoBlockedMe.memberIDs().contains(chatPartnerOrPodID);
-          });
+        setState(() {
+          this._amIBlocked = peopleWhoBlockedMe.memberIDs().contains(chatPartnerOrPodID);
         });
+        if (this._amIBlocked)
+          showSingleButtonAlert(
+              context: context,
+              title: "Permission Denied",
+              content: "$chatPartnerOrPodName "
+                  "blocked you.",
+              dismissButtonLabel: "OK")
+              .then((value) {
+            Navigator.of(context, rootNavigator: true).pop(); // go back
+          });
       });
     }
+  }
+
+  /// Checks if I'm a member of the pod
+  void _checkIfImAMemberOfThePod() {
+    if (!isPodMode) return; // no need if not in pod mode
+    final listener = PodsDatabasePaths(podID: chatPartnerOrPodID)
+        .podDocument
+        .collection("members")
+        .where("userID", isEqualTo: myFirebaseUserId)
+        .where("blocked", isEqualTo: false)
+        .snapshots()
+        .listen((event) {
+      final amMemberOfPod = event.docs.length == 1; // I'm a member if there's a document with my ID, and I'm not
+      // blocked
+      setState(() {
+        this._amMemberOfPod = amMemberOfPod;
+      });
+
+      if (!_amMemberOfPod)
+        showSingleButtonAlert(
+                context: context,
+                title: "Permission Denied",
+                content: "You must be a member of $chatPartnerOrPodName to send a message.",
+                dismissButtonLabel: "OK")
+            .then((value) {
+          Navigator.of(context, rootNavigator: true).pop(); // go back
+        });
+    });
+    _streamSubscriptions.add(listener);
   }
 
   /// Block or unblock the chat partner (only applicable in DM mode, not pod mode)
@@ -1032,6 +1101,7 @@ class _MessagingViewState extends State<MessagingView> {
     });
 
     _checkIfIAmBlocked();
+    if (isPodMode) _checkIfImAMemberOfThePod();
 
     // Update in real time when the chat log changes (for direct messages)
     MessagesDictionary.shared.directMessagesDict.addListener(() {
@@ -1492,7 +1562,8 @@ class _MessagingViewState extends State<MessagingView> {
               },
               duration: Duration(milliseconds: 250),
               child: this.showReadReceiptsRow
-                  ? Row(crossAxisAlignment: CrossAxisAlignment.end,
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         // the typing presence text ("someone is typing...")
                         AnimatedSwitcher(

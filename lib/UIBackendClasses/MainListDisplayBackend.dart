@@ -36,22 +36,25 @@ abstract class MainListDisplayBackend {
 
   //Important variable!
   ///The list of pods to be displayed in the specified view, if the view type is myPods.
-  ValueNotifier<List<PodData>> sortedListOfPods  = ValueNotifier([]);
+  ValueNotifier<List<PodData>> sortedListOfPods = ValueNotifier([]);
 
   /// Use this essentially as a setter for sortedListOfPods. Update this value, and sortedListOfPods will
   /// automatically return the sorted results.
   List<PodData> listOfPods = [];
 
   /// Use this to convert listOfPods into sortedListOfPods
-  void sortListOfPods(){
+  void sortListOfPods() {
     // For a custom list, there is no need to sort it (although this case isn't used yet so don't worry about it)
-    if (this.viewMode == MainListDisplayViewModes.customList)
+    if (this.viewMode == MainListDisplayViewModes.customList) {
       sortedListOfPods.value = listOfPods;
+      sortedListOfPods.notifyListeners();
+    }
 
     // When viewing the members of a pod or viewing the list of pods I'm in, sort the list alphabetically by name.
     else {
       listOfPods.sort((a, b) => a.name.compareTo(b.name));
       sortedListOfPods.value = listOfPods;
+      sortedListOfPods.notifyListeners();
     }
   }
 
@@ -158,7 +161,10 @@ abstract class MainListDisplayBackend {
 
     // if querying for pods I'm in (be sure to call doc.parent.parent)
     else if (collectionName == "pods")
-      query = firestoreDatabase.collectionGroup("members").where("userID", isEqualTo: myFirebaseUserId);
+      query = firestoreDatabase
+          .collectionGroup("members")
+          .where("userID", isEqualTo: myFirebaseUserId)
+          .where("blocked", isEqualTo: false);
 
     // if querying for anything else (i.e. likes, friends, blocks)
     else

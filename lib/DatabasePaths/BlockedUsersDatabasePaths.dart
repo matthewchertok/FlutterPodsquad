@@ -28,38 +28,42 @@ class BlockedUsersDatabasePaths {
           // stored in seconds since epoch.
 
           //now we can properly block them
-          firestoreDatabase.collection("blocked-users").doc(documentID).set(blockDictionary).then((value) => () {
-                if (onCompletion != null) onCompletion(); // execute the completion handler if there is one
+          firestoreDatabase.collection("blocked-users").doc(documentID).set(blockDictionary).then((value) {
+            if (onCompletion != null) onCompletion(); // execute the completion handler if there is one
 
-                // remove friendship if I block someone
-                final theirDocID = otherPersonsUserID + myFirebaseUserId;
-                firestoreDatabase.collection("friends").doc(documentID).delete();
-                firestoreDatabase.collection("friends").doc(theirDocID).delete();
+            // remove friendship if I block someone
+            final theirDocID = otherPersonsUserID + myFirebaseUserId;
+            firestoreDatabase.collection("friends").doc(documentID).delete();
+            firestoreDatabase.collection("friends").doc(theirDocID).delete();
 
-                // remove likes if I block someone
-                firestoreDatabase.collection("likes").doc(documentID).delete();
-                firestoreDatabase.collection("likes").doc(theirDocID).delete();
+            // remove likes if I block someone
+            firestoreDatabase.collection("likes").doc(documentID).delete();
+            firestoreDatabase.collection("likes").doc(theirDocID).delete();
 
-                // un-meet someone if I block them
-                // nearby-people documents are identified as an alphabetical combination of user IDs, so we need to find the
-                // ID of the document corresponding to me and the other user.
-                final alphabeticalID = otherPersonsUserID < myFirebaseUserId
-                    ? otherPersonsUserID + myFirebaseUserId
-                    : myFirebaseUserId + otherPersonsUserID;
-                firestoreDatabase.collection("nearby-people").doc(alphabeticalID).delete();
+            // un-meet someone if I block them
+            // nearby-people documents are identified as an alphabetical combination of user IDs, so we need to find the
+            // ID of the document corresponding to me and the other user.
+            final alphabeticalID = otherPersonsUserID < myFirebaseUserId
+                ? otherPersonsUserID + myFirebaseUserId
+                : myFirebaseUserId + otherPersonsUserID;
+            firestoreDatabase.collection("nearby-people").doc(alphabeticalID).delete();
 
-                // Delete the messaging conversation using a cloud function if I block someone
-                MessagingDatabasePaths(userID: myFirebaseUserId, interactingWithUserWithID: otherPersonsUserID)
-                    .deleteConversation(conversationID: alphabeticalID);
-              });
+            // Delete the messaging conversation using a cloud function if I block someone
+            MessagingDatabasePaths(userID: myFirebaseUserId, interactingWithUserWithID: otherPersonsUserID)
+                .deleteConversation(conversationID: alphabeticalID);
+          }).catchError((error) {
+            print("Error blocking someone: $error");
+          });
         });
   }
 
   ///Unblocks a user by removing them from the blocked-users collection
   static void unBlockUser({required String otherPersonsUserID, Function? onCompletion}) {
     final documentID = myFirebaseUserId + otherPersonsUserID;
-    firestoreDatabase.collection("blocked-users").doc(documentID).delete().then((value) => {
-          if (onCompletion != null) {onCompletion()}
-        });
+    firestoreDatabase.collection("blocked-users").doc(documentID).delete().then((value) {
+      if (onCompletion != null) {
+        onCompletion();
+      }
+    });
   }
 }

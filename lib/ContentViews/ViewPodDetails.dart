@@ -6,6 +6,7 @@ import 'package:podsquad/BackendDataHolders/PodMembersDictionary.dart';
 import 'package:podsquad/BackendDataclasses/MainListDisplayViewModes.dart';
 import 'package:podsquad/BackendDataclasses/PodData.dart';
 import 'package:podsquad/BackendDataclasses/PodMemberInfoDict.dart';
+import 'package:podsquad/CommonlyUsedClasses/AlertDialogs.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/MainListDisplayView.dart';
 import 'package:podsquad/ContentViews/MessagingView.dart';
@@ -122,6 +123,11 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
 
       setState(() {
         this._amBlockedFromPod = _podBlockedUsersList.map((person) => person.userID).contains(myFirebaseUserId);
+      });
+
+      if (this._amBlockedFromPod) showSingleButtonAlert(context: context, title: "Permission Denied", content: "You "
+          "are blocked from ${podData.name}.", dismissButtonLabel: "OK").then((_){
+            Navigator.of(context, rootNavigator: true).pop();
       });
     });
     _streamSubs.add(blockedListener);

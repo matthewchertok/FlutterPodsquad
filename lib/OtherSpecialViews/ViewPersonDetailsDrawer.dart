@@ -72,7 +72,10 @@ Widget viewPersonDetailsDrawer(
           },
         ),
 
-        // add them to a pod (as long as I'm not viewing my own profile)
+        // add them to a pod (as long as I'm not viewing my own profile). Disable this option if I blocked the user,
+        // to prevent a possible situation where someone might block someone else and then add them to pods they
+        // don't want to be added to.
+        if (!didBlockUser)
         if (personData.userID != myFirebaseUserId)
           ListTile(
             title: Text("Add ${personData.name.firstName()} to a pod"),
@@ -93,11 +96,15 @@ Widget viewPersonDetailsDrawer(
               // "Are you sure you want to like [NAME]?"
               final likeAlert = CupertinoAlertDialog(
                 title: Text("Like ${personData.name.firstName()}?"),
-                content: Text(didFriendUser
+                content: Text(didBlockUser ? "Are you sure you want to send ${personData.name.firstName()} a like? "
+                    "This will unblock ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun,
+                    pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)}!":
+                (didFriendUser
                     ? "Are you sure you want to send ${personData.name.firstName()} a like? This will "
                         "remove ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)} from "
                         "the list of people you friended."
-                    : "Are you sure you want to send ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)} a like?"),
+                    : "Are you sure you want to send ${PronounFormatter.makePronoun(preferredPronouns: personData
+                    .preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)} a like?")),
                 actions: [
                   // cancel button
                   CupertinoButton(
@@ -190,12 +197,16 @@ Widget viewPersonDetailsDrawer(
               // "Are you sure you want to friend [NAME]?"
               final friendAlert = CupertinoAlertDialog(
                 title: Text("Friend ${personData.name.firstName()}?"),
-                content: Text(didLikeUser
+                content: Text(didBlockUser ? "Are you sure you want to add ${personData.name.firstName()} to your "
+                    "list of friends? This will unblock${PronounFormatter.makePronoun(preferredPronouns: personData
+                    .preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)}!":
+                (didLikeUser
                     ? "Are you sure you want to add "
                         "${personData.name.firstName()} to your "
                         "friends? This will remove ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)} from the list "
                         "of people you liked."
-                    : "Are you sure you want to add ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)} to your friends?"),
+                    : "Are you sure you want to add ${PronounFormatter.makePronoun(preferredPronouns: personData
+                    .preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)} to your friends?")),
                 actions: [
                   // cancel button
                   CupertinoButton(

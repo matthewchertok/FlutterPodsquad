@@ -41,7 +41,7 @@ class MessagesDictionary {
   var shouldChatLogScroll = Map<String, bool>();
 
   /// Update the list of all pods I've hidden. Call this every time I modify _podsIveHiddenDict.
-  void updateListOfPodsIveHidden({required Map<String, bool> newValue}){
+  void updateListOfPodsIveHidden({required Map<String, bool> newValue}) {
     listOfPodChatsIveHidden.value = newValue.keys.toList();
     listOfPodChatsIveHidden.notifyListeners();
   }
@@ -50,7 +50,7 @@ class MessagesDictionary {
   Map<String, bool> _podsIveHiddenDict = {};
 
   /// Update the list of all DMs I've hidden. Call this every time I modify _dmsIveHiddenDict.
-  void updateListOfDMsIveHidden({required Map<String, bool> newValue}){
+  void updateListOfDMsIveHidden({required Map<String, bool> newValue}) {
     listOfDMConversationsIveHidden.value = newValue.keys.toList();
     listOfDMConversationsIveHidden.notifyListeners();
   }
@@ -243,7 +243,10 @@ class MessagesDictionary {
               imagePath: imagePath,
               imageURL: imageURL,
               audioPath: audioPath,
-              audioURL: audioURL, readBy: readBy, readTimes: readTimesMap, readNames: readNamesMap);
+              audioURL: audioURL,
+              readBy: readBy,
+              readTimes: readTimesMap,
+              readNames: readNamesMap);
 
           if (diff.type == DocumentChangeType.added) {
             //Add the message to the associated chat partner ID in the dictionary
@@ -258,7 +261,7 @@ class MessagesDictionary {
                 }
               }
             }
-          } else if (diff.type == DocumentChangeType.modified){
+          } else if (diff.type == DocumentChangeType.modified) {
             // update the list of people who read the message
             directMessagesDict.value[chatPartnerID]?.where((element) => element.id == chatMessage.id).first.readBy =
                 readBy;
@@ -267,9 +270,7 @@ class MessagesDictionary {
             directMessagesDict.value[chatPartnerID]?.where((element) => element.id == chatMessage.id).first.readTimes =
                 readTimesMap;
             directMessagesDict.notifyListeners();
-          }
-
-          else if (diff.type == DocumentChangeType.removed) {
+          } else if (diff.type == DocumentChangeType.removed) {
             final messageID = diff.doc.get("id") as String;
             directMessagesDict.value[chatPartnerID]?.removeWhere((message) => message.id == messageID);
             directMessagesDict.notifyListeners(); // it's required here because otherwise Dart doesn't know to
@@ -359,7 +360,10 @@ class MessagesDictionary {
               imagePath: imagePath,
               imageURL: imageURL,
               audioPath: audioPath,
-              audioURL: audioURL, readBy: readBy, readTimes: readTimesMap, readNames: readNamesMap);
+              audioURL: audioURL,
+              readBy: readBy,
+              readTimes: readTimesMap,
+              readNames: readNamesMap);
 
           if (diff.type == DocumentChangeType.added) {
             //Add the message to the associated chat partner ID in the dictionary
@@ -372,9 +376,7 @@ class MessagesDictionary {
                 directMessagesDict.notifyListeners();
               }
             }
-          }
-
-          else if (diff.type == DocumentChangeType.modified){
+          } else if (diff.type == DocumentChangeType.modified) {
             // update the list of people who read the message
             directMessagesDict.value[chatPartnerID]?.where((element) => element.id == chatMessage.id).first.readBy =
                 readBy;
@@ -394,15 +396,17 @@ class MessagesDictionary {
         });
         print(
             "Loaded in ${snapshot.docs.length} new messages! The total conversation is ${directMessagesDict.value[chatPartnerID]?.length ?? 0} messages long!");
-      completer.complete(snapshot.docs.length); // initial loading is complete; return the future
-          });
+        if (!completer.isCompleted) completer.complete(snapshot.docs.length); // initial loading is complete; return
+        // the future
+      });
 
       final randomListenerID = Uuid().v1();
       _listenerRegistrationsDict[chatPartnerID + "$randomListenerID"] = olderDMsListener;
     }
 
     // otherwise return;
-    else return 0;
+    else
+      return 0;
     return completer.future;
   }
 
@@ -551,7 +555,10 @@ class MessagesDictionary {
               audioURL: audioURL,
               imagePath: imagePath,
               audioPath: audioPath,
-              podID: podID, readBy: readBy, readTimes: readTimesMap, readNames: readNamesMap);
+              podID: podID,
+              readBy: readBy,
+              readTimes: readTimesMap,
+              readNames: readNamesMap);
 
           if (diff.type == DocumentChangeType.added) {
             //Add the message to the associated chat partner ID in the dictionary
@@ -565,7 +572,6 @@ class MessagesDictionary {
               }
             }
           } else if (diff.type == DocumentChangeType.modified) {
-
             // change the sender name and/or thumbnail URL, if necessary
             podMessageDict.value[podID]?.changeSenderNameAndOrThumbnailURL(
                 forMessageWithID: messageID, toNewName: senderName, toNewThumbnailURL: senderThumbnailURL);
@@ -663,20 +669,22 @@ class MessagesDictionary {
               audioURL: audioURL,
               imagePath: imagePath,
               audioPath: audioPath,
-              podID: podID, readBy: readBy, readTimes: readTimesMap, readNames: readNamesMap);
+              podID: podID,
+              readBy: readBy,
+              readTimes: readTimesMap,
+              readNames: readNamesMap);
 
           if (diff.type == DocumentChangeType.added) {
-              //Add the message to the associated chat partner ID in the dictionary
-              if (podMessage.text.trim().isNotEmpty) {
-                if (podMessageDict.value[podID] == null) podMessageDict.value[podID] = []; // initialize a list
-                if (podMessageDict.value[podID] != null) {
-                  if (!podMessageDict.value[podID]!.contains(podMessage)) {
-                    podMessageDict.value[podID]?.add(podMessage);
-                    podMessageDict.notifyListeners();
-                  }
+            //Add the message to the associated chat partner ID in the dictionary
+            if (podMessage.text.trim().isNotEmpty) {
+              if (podMessageDict.value[podID] == null) podMessageDict.value[podID] = []; // initialize a list
+              if (podMessageDict.value[podID] != null) {
+                if (!podMessageDict.value[podID]!.contains(podMessage)) {
+                  podMessageDict.value[podID]?.add(podMessage);
+                  podMessageDict.notifyListeners();
                 }
               }
-
+            }
           }
 
           // listen for messages removed from the conversation
@@ -705,7 +713,8 @@ class MessagesDictionary {
     }
 
     // otherwise return 0
-    else return 0;
+    else
+      return 0;
     return completer.future;
   }
 }

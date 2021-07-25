@@ -109,16 +109,16 @@ class NearbyScanner {
     // find out if I blocked the user
     final didIBlockThemTask = firestoreDatabase
         .collection("blocked-users")
-        .where("blocker", isEqualTo: myFirebaseUserId)
-        .where("blockee", isEqualTo: receivedUserID)
+        .where("blocker.userID", isEqualTo: myFirebaseUserId)
+        .where("blockee.userID", isEqualTo: receivedUserID)
         .get();
     final didIBlockThemResult = await didIBlockThemTask;
     final didIBlockThem = didIBlockThemResult.docs.length > 0; // I blocked them if a document exists
 
     final didTheyBlockMeTask = firestoreDatabase
         .collection("blocked-users")
-        .where("blocker", isEqualTo: receivedUserID)
-        .where("blockee", isEqualTo: myFirebaseUserId)
+        .where("blocker.userID", isEqualTo: receivedUserID)
+        .where("blockee.userID", isEqualTo: myFirebaseUserId)
         .get();
     final didTheyBlockMeResult = await didTheyBlockMeTask;
     final didTheyBlockMe = didTheyBlockMeResult.docs.length > 0; // They blocked me if a document exists

@@ -20,6 +20,7 @@ import 'package:podsquad/DatabasePaths/PodsDatabasePaths.dart';
 import 'package:podsquad/DatabasePaths/ReportUsersDatabasePaths.dart';
 import 'package:podsquad/OtherSpecialViews/DecoratedImage.dart';
 import 'package:podsquad/OtherSpecialViews/MultiImagePageViewer.dart';
+import 'package:podsquad/OtherSpecialViews/ViewPersonDetailsDrawer.dart';
 import 'package:podsquad/UIBackendClasses/MainListDisplayBackend.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
@@ -191,435 +192,35 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
     });
   }
 
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
+    return Localizations(locale: Locale('en', 'US'), delegates: [
+      DefaultWidgetsLocalizations.delegate, DefaultMaterialLocalizations.delegate
+    ], child: Scaffold(key: _scaffoldKey,
+        appBar: CupertinoNavigationBar(
           padding: EdgeInsetsDirectional.all(5),
           middle: Text(personID == myFirebaseUserId ? "My Profile" : "${personData.name.firstName()}'s Profile"),
           trailing: personID == myFirebaseUserId
               ? Container(width: 0, height: 0)
               : CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  child: Icon(CupertinoIcons.line_horizontal_3),
-                  onPressed: () {
-                    // show the action sheet to like/friend/block/report
-                    final sheet = CupertinoActionSheet(
-                      title: Text("Interact with ${personData.name.firstName()}!"),
-                      actions: [
-                        // like or unlike button
-                        if (!didLikeUser)
-                          CupertinoActionSheetAction(
-                              onPressed: () {
-                                // dismiss the action sheet
-                                dismissAlert(context: context);
-                                // "Are you sure you want to like [NAME]?"
-                                final likeAlert = CupertinoAlertDialog(
-                                  title: Text("Like ${personData.name.firstName()}?"),
-                                  content: Text(didFriendUser
-                                      ? "Are you sure you want to send ${personData.name.firstName()} a like? This will "
-                                          "remove ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)} from "
-                                          "the list of people you friended."
-                                      : "Are you sure you want to send ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)} a like?"),
-                                  actions: [
-                                    // cancel button
-                                    CupertinoButton(
-                                        child: Text("No"),
-                                        onPressed: () {
-                                          dismissAlert(context: context);
-                                        }),
-
-                                    // send like button
-                                    CupertinoButton(
-                                      child: Text("Yes"),
-                                      onPressed: () {
-                                        dismissAlert(context: context);
-                                        LikesDatabasePaths.sendLike(
-                                            otherPersonsUserID: personData.userID,
-                                            onCompletion: () {
-                                              final successAlert = CupertinoAlertDialog(
-                                                title: Text("${personData.name.firstName()} Liked"),
-                                                content: Text("You liked ${personData.name.firstName()}!"),
-                                                actions: [
-                                                  CupertinoButton(
-                                                      child: Text("OK"),
-                                                      onPressed: () {
-                                                        dismissAlert(context: context);
-                                                      })
-                                                ],
-                                              );
-                                              showCupertinoDialog(context: context, builder: (context) => successAlert);
-                                            });
-                                      },
-                                    )
-                                  ],
-                                );
-                                showCupertinoDialog(context: context, builder: (context) => likeAlert);
-                              },
-                              child: Text("Like ${personData.name.firstName()}")),
-                        if (didLikeUser)
-                          CupertinoActionSheetAction(
-                              onPressed: () {
-                                // dismiss the action sheet
-                                dismissAlert(context: context);
-                                // "Are you sure you want to un-like [NAME]?"
-                                final unLikeAlert = CupertinoAlertDialog(
-                                  title: Text("Remove Like?"),
-                                  content: Text("Are you sure you want to un-like ${personData.name.firstName()}?"),
-                                  actions: [
-                                    // cancel button
-                                    CupertinoButton(
-                                        child: Text("No"),
-                                        onPressed: () {
-                                          dismissAlert(context: context);
-                                        }),
-
-                                    // remove like button
-                                    CupertinoButton(
-                                      child: Text("Yes"),
-                                      onPressed: () {
-                                        dismissAlert(context: context);
-                                        LikesDatabasePaths.removeLike(
-                                            otherPersonsUserID: personData.userID,
-                                            onCompletion: () {
-                                              final successAlert = CupertinoAlertDialog(
-                                                title: Text("Like Unsent"),
-                                                content: Text("You no longer like ${personData.name.firstName()}."),
-                                                actions: [
-                                                  CupertinoButton(
-                                                      child: Text("OK"),
-                                                      onPressed: () {
-                                                        dismissAlert(context: context);
-                                                      })
-                                                ],
-                                              );
-                                              showCupertinoDialog(context: context, builder: (context) => successAlert);
-                                            });
-                                      },
-                                    )
-                                  ],
-                                );
-                                showCupertinoDialog(context: context, builder: (context) => unLikeAlert);
-                              },
-                              child: Text("Un-like ${personData.name.firstName()}")),
-
-                        // friend or unfriend button
-                        if (!didFriendUser)
-                          CupertinoActionSheetAction(
-                              onPressed: () {
-                                // dismiss the action sheet
-                                dismissAlert(context: context);
-                                // "Are you sure you want to friend [NAME]?"
-                                final friendAlert = CupertinoAlertDialog(
-                                  title: Text("Friend ${personData.name.firstName()}?"),
-                                  content: Text(didLikeUser
-                                      ? "Are you sure you want to add "
-                                          "${personData.name.firstName()} to your "
-                                          "friends? This will remove ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)} from the list "
-                                          "of people you liked."
-                                      : "Are you sure you want to add ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)} to your friends?"),
-                                  actions: [
-                                    // cancel button
-                                    CupertinoButton(
-                                        child: Text("No"),
-                                        onPressed: () {
-                                          dismissAlert(context: context);
-                                        }),
-
-                                    // send friend button
-                                    CupertinoButton(
-                                      child: Text("Yes"),
-                                      onPressed: () {
-                                        dismissAlert(context: context);
-                                        FriendsDatabasePaths.friendUser(
-                                            otherPersonsUserID: personData.userID,
-                                            onCompletion: () {
-                                              final successAlert = CupertinoAlertDialog(
-                                                title: Text("Friend Added"),
-                                                content: Text("You friended ${personData.name.firstName()}!"),
-                                                actions: [
-                                                  CupertinoButton(
-                                                      child: Text("OK"),
-                                                      onPressed: () {
-                                                        dismissAlert(context: context);
-                                                      })
-                                                ],
-                                              );
-                                              showCupertinoDialog(context: context, builder: (context) => successAlert);
-                                            });
-                                      },
-                                    )
-                                  ],
-                                );
-                                showCupertinoDialog(context: context, builder: (context) => friendAlert);
-                              },
-                              child: Text("Friend ${personData.name.firstName()}")),
-                        if (didFriendUser)
-                          CupertinoActionSheetAction(
-                              onPressed: () {
-                                // dismiss the action sheet
-                                dismissAlert(context: context);
-                                // "Are you sure you want to unfriend [NAME]?"
-                                final unFriendAlert = CupertinoAlertDialog(
-                                  title: Text("Remove Friend?"),
-                                  content: Text("Are you sure you want to unfriend ${personData.name.firstName()}?"),
-                                  actions: [
-                                    // cancel button
-                                    CupertinoButton(
-                                        child: Text("No"),
-                                        onPressed: () {
-                                          dismissAlert(context: context);
-                                        }),
-
-                                    // remove friend button
-                                    CupertinoButton(
-                                      child: Text("Yes"),
-                                      onPressed: () {
-                                        dismissAlert(context: context);
-                                        FriendsDatabasePaths.unFriendUser(
-                                            otherPersonsUserID: personData.userID,
-                                            onCompletion: () {
-                                              final successAlert = CupertinoAlertDialog(
-                                                title: Text("Friend Removed"),
-                                                content: Text(
-                                                    "You removed ${personData.name.firstName()} from your friends."),
-                                                actions: [
-                                                  CupertinoButton(
-                                                      child: Text("OK"),
-                                                      onPressed: () {
-                                                        dismissAlert(context: context);
-                                                      })
-                                                ],
-                                              );
-                                              showCupertinoDialog(context: context, builder: (context) => successAlert);
-                                            });
-                                      },
-                                    )
-                                  ],
-                                );
-                                showCupertinoDialog(context: context, builder: (context) => unFriendAlert);
-                              },
-                              child: Text("Unfriend ${personData.name.firstName()}")),
-
-                        // block or unblock button
-                        if (!didBlockUser)
-                          CupertinoActionSheetAction(
-                              isDestructiveAction: true,
-                              onPressed: () {
-                                // dismiss the action sheet
-                                dismissAlert(context: context);
-                                // "Are you sure you want to block [NAME]?"
-                                final blockAlert = CupertinoAlertDialog(
-                                  title: Text("Block ${personData.name.firstName()}?"),
-                                  content: Text(
-                                      "Are you sure you want to block ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)}? ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: true)} will "
-                                      "no longer be able to interact with you."),
-                                  actions: [
-                                    // cancel button
-                                    CupertinoButton(
-                                        child: Text("No"),
-                                        onPressed: () {
-                                          dismissAlert(context: context);
-                                        }),
-
-                                    // block button
-                                    CupertinoButton(
-                                      child: Text(
-                                        "Yes",
-                                        style: TextStyle(color: CupertinoColors.destructiveRed),
-                                      ),
-                                      onPressed: () {
-                                        dismissAlert(context: context);
-                                        BlockedUsersDatabasePaths.blockUser(
-                                            otherPersonsUserID: personData.userID,
-                                            onCompletion: () {
-                                              final successAlert = CupertinoAlertDialog(
-                                                title: Text("Block Successful"),
-                                                content: Text("You blocked ${personData.name.firstName()}."),
-                                                actions: [
-                                                  CupertinoButton(
-                                                      child: Text("OK"),
-                                                      onPressed: () {
-                                                        dismissAlert(context: context);
-                                                      })
-                                                ],
-                                              );
-                                              showCupertinoDialog(context: context, builder: (context) => successAlert);
-                                            });
-                                      },
-                                    )
-                                  ],
-                                );
-                                showCupertinoDialog(context: context, builder: (context) => blockAlert);
-                              },
-                              child: Text("Block ${personData.name.firstName()}")),
-                        if (didBlockUser)
-                          CupertinoActionSheetAction(
-                              onPressed: () {
-                                // dismiss the action sheet
-                                dismissAlert(context: context);
-                                // "Are you sure you want to unblock [NAME]?"
-                                final unBlockAlert = CupertinoAlertDialog(
-                                  title: Text("Unblock ${personData.name.firstName()}?"),
-                                  content: Text(
-                                      "Are you sure you want to block ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)}? ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: true)} will "
-                                      "be able to interact with you again."),
-                                  actions: [
-                                    // cancel button
-                                    CupertinoButton(
-                                        child: Text("No"),
-                                        onPressed: () {
-                                          dismissAlert(context: context);
-                                        }),
-
-                                    // unblock button
-                                    CupertinoButton(
-                                      child: Text("Yes"),
-                                      onPressed: () {
-                                        dismissAlert(context: context);
-                                        BlockedUsersDatabasePaths.unBlockUser(
-                                            otherPersonsUserID: personData.userID,
-                                            onCompletion: () {
-                                              final successAlert = CupertinoAlertDialog(
-                                                title: Text("Unblock Successful"),
-                                                content: Text("You unblocked ${personData.name.firstName()}!"),
-                                                actions: [
-                                                  CupertinoButton(
-                                                      child: Text("OK"),
-                                                      onPressed: () {
-                                                        dismissAlert(context: context);
-                                                      })
-                                                ],
-                                              );
-                                              showCupertinoDialog(context: context, builder: (context) => successAlert);
-                                            });
-                                      },
-                                    )
-                                  ],
-                                );
-                                showCupertinoDialog(context: context, builder: (context) => unBlockAlert);
-                              },
-                              child: Text("Unblock ${personData.name.firstName()}")),
-
-                        // report or unreport button
-                        if (!didReportUser)
-                          CupertinoActionSheetAction(
-                              isDestructiveAction: true,
-                              onPressed: () {
-                                // dismiss the action sheet
-                                dismissAlert(context: context);
-                                // "Are you sure you want to report [NAME]?"
-                                final reportAlert = CupertinoAlertDialog(
-                                  title: Text("Report ${personData.name.firstName()}?"),
-                                  content: Text(
-                                      "Are you sure you want to report ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)} for inappropriate content?"),
-                                  actions: [
-                                    // cancel button
-                                    CupertinoButton(
-                                        child: Text("No"),
-                                        onPressed: () {
-                                          dismissAlert(context: context);
-                                        }),
-
-                                    // report button
-                                    CupertinoButton(
-                                      child: Text(
-                                        "Yes",
-                                        style: TextStyle(color: CupertinoColors.destructiveRed),
-                                      ),
-                                      onPressed: () {
-                                        dismissAlert(context: context);
-                                        ReportUserPaths.reportUser(
-                                            otherPersonsUserID: personData.userID,
-                                            onCompletion: () {
-                                              final successAlert = CupertinoAlertDialog(
-                                                title: Text("Report Successful"),
-                                                content: Text(
-                                                    "Thank you for reporting ${personData.name.firstName()} for inappropriate "
-                                                    "content."),
-                                                actions: [
-                                                  CupertinoButton(
-                                                      child: Text("OK"),
-                                                      onPressed: () {
-                                                        dismissAlert(context: context);
-                                                      })
-                                                ],
-                                              );
-                                              showCupertinoDialog(context: context, builder: (context) => successAlert);
-                                            });
-                                      },
-                                    )
-                                  ],
-                                );
-                                showCupertinoDialog(context: context, builder: (context) => reportAlert);
-                              },
-                              child: Text("Report ${personData.name.firstName()}")),
-                        if (didReportUser)
-                          CupertinoActionSheetAction(
-                              onPressed: () {
-                                // dismiss the action sheet
-                                dismissAlert(context: context);
-                                // "Are you sure you want to report [NAME]?"
-                                final reportAlert = CupertinoAlertDialog(
-                                  title: Text("Un-report ${personData.name.firstName()}?"),
-                                  content: Text(
-                                      "Are you sure you want to un-report ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)}?"),
-                                  actions: [
-                                    // cancel button
-                                    CupertinoButton(
-                                        child: Text("No"),
-                                        onPressed: () {
-                                          dismissAlert(context: context);
-                                        }),
-
-                                    // un-report button
-                                    CupertinoButton(
-                                      child: Text(
-                                        "Yes",
-                                      ),
-                                      onPressed: () {
-                                        dismissAlert(context: context);
-                                        ReportUserPaths.unReportUser(
-                                            otherPersonsUserID: personData.userID,
-                                            onCompletion: () {
-                                              final successAlert = CupertinoAlertDialog(
-                                                title: Text("${personData.name.firstName()} "
-                                                    "Unreported"),
-                                                content: Text(
-                                                    "You successfully unreported ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)}"),
-                                                actions: [
-                                                  CupertinoButton(
-                                                      child: Text("OK"),
-                                                      onPressed: () {
-                                                        dismissAlert(context: context);
-                                                      })
-                                                ],
-                                              );
-                                              showCupertinoDialog(context: context, builder: (context) => successAlert);
-                                            });
-                                      },
-                                    )
-                                  ],
-                                );
-                                showCupertinoDialog(context: context, builder: (context) => reportAlert);
-                              },
-                              child: Text("Un-report ${personData.name.firstName()}")),
-
-                        // cancel button
-                        CupertinoActionSheetAction(
-                          onPressed: () {
-                            dismissAlert(context: context);
-                          },
-                          child: Text("Cancel"),
-                          isDefaultAction: true,
-                        )
-                      ],
-                    );
-                    showCupertinoModalPopup(context: context, builder: (context) => sheet);
-                  },
-                ),
+            padding: EdgeInsets.zero,
+            child: Icon(CupertinoIcons.line_horizontal_3),
+            onPressed: () {
+              // show the action sheet to like/friend/block/report
+             _scaffoldKey.currentState?.openEndDrawer();
+            },
+          ),
         ),
-        child: SafeArea(
+        endDrawer: viewPersonDetailsDrawer(
+            context: context,
+            didLikeUser: didLikeUser,
+            didFriendUser: didFriendUser,
+            didBlockUser: didBlockUser,
+            didReportUser: didReportUser,
+            personData: personData, personsPodMemberships: this._personsPodMemberships),
+        body: SafeArea(
           child: SingleChildScrollView(
             physics: AlwaysScrollableScrollPhysics(),
             child: Padding(
@@ -663,152 +264,104 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                   // Name, age, school, relationship type, bio on the left, Message and Say Hi buttons on the right
                   Card(
                       child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Contains name, age, school, lookingFor, Message button, and Say Hi button
-                        Row(
+                        padding: EdgeInsets.all(10),
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // name, age, school, relationship type, and bio column
-                            Column(
+                            // Contains name, age, school, lookingFor, Message button, and Say Hi button
+                            Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // The name field should be a button that opens an action sheet that will show the user's podScore
-                                // and an option to view their pods
-                                CupertinoButton(padding: EdgeInsets.zero, minSize: 35,
-                                    alignment: Alignment.topCenter,
-                                    child: Text(
+                                // name, age, school, relationship type, and bio column
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // The name field should be a button that opens an action sheet that will show the user's podScore
+                                    // and an option to view their pods
+                                    Text(
                                       personData.name,
                                       style: TextStyle(
-                                          fontSize: 18.scaledForScreenSize(context: context), color: isDarkMode ?
-                                      CupertinoColors.white : CupertinoColors.black, fontWeight:
-                                      FontWeight
-                                          .bold),
+                                          fontSize: 18.scaledForScreenSize(context: context),
+                                          color: isDarkMode ? CupertinoColors.white : CupertinoColors.black,
+                                          fontWeight: FontWeight.bold),
+                                    ), SizedBox(height: 15),
+
+                                    // The person's age
+                                    Text(
+                                      TimeAndDateFunctions.getAgeFromBirthday(birthday: personData.birthday).toString(),
+                                      style: TextStyle(fontSize: 15.scaledForScreenSize(context: context)),
                                     ),
-                                    onPressed: () {
-                                      // show the action sheet with their podScore and button to view pods or add
-                                      // them to a pod
-                                      final sheet = CupertinoActionSheet(
-                                        message: Text("Podscore: ${personData.podScore}"),
-                                        actions: [
-                                          // view their pods
-                                          CupertinoActionSheetAction(
-                                              onPressed: () {
-                                                dismissAlert(context: context);
-                                                Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
-                                                    builder: (context) => MainListDisplayView(
-                                                          viewMode: MainListDisplayViewModes.podMemberships,
-                                                          podMemberships: this._personsPodMemberships,
-                                                          personId: personData.userID,
-                                                          personName: personData.name,
-                                                        )));
-                                              },
-                                              child: Text(personData.userID == myFirebaseUserId
-                                                  ? "My Pods"
-                                                  : "${personData.name.firstName()}'s Pods")),
+                                    SizedBox(
+                                      height: 15,
+                                    ),
 
-                                          // add them to a pod (as long as I'm not viewing my own profile)
-                                          if (personID != myFirebaseUserId)
-                                          CupertinoActionSheetAction(
-                                              onPressed: () {
-                                                dismissAlert(context: context);
-                                                Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
-                                                    builder: (context) => MainListDisplayView(
-                                                        viewMode: MainListDisplayViewModes.addPersonToPod,
-                                                        personData: personData)));
-                                              },
-                                              child: Text("Add ${personData.name.firstName()} to a pod")),
+                                    // The person's school
+                                    Text(
+                                      personData.school,
+                                      style: TextStyle(fontSize: 15.scaledForScreenSize(context: context)),
+                                    ),
+                                    SizedBox(
+                                      height: 15,
+                                    ),
 
-                                          // cancel button
-                                          CupertinoActionSheetAction(
-                                            onPressed: () {
-                                              dismissAlert(context: context);
-                                            },
-                                            child: Text("Cancel"),
-                                            isDefaultAction: true,
-                                          )
-                                        ],
-                                      );
-                                      showCupertinoModalPopup(context: context, builder: (context) => sheet);
-                                    }),
+                                    // Who they're looking for
+                                    Text(
+                                      _preferredRelationshipTypeText(lookingFor: personData.preferredRelationshipType),
+                                      style: TextStyle(fontSize: 15.scaledForScreenSize(context: context)),
+                                    ),
+                                  ],
+                                ),
+                                Spacer(),
 
-                                // The person's age
-                                Text(
-                                  TimeAndDateFunctions.getAgeFromBirthday(birthday: personData.birthday).toString(),
-                                  style: TextStyle(fontSize: 15.scaledForScreenSize(context: context)),
-                                ),
-                                SizedBox(
-                                  height: 15,
-                                ),
-
-                                // The person's school
-                                Text(
-                                  personData.school,
-                                  style: TextStyle(fontSize: 15.scaledForScreenSize(context: context)),
-                                ),
-                                SizedBox(
-                                  height: 15,
-                                ),
-
-                                // Who they're looking for
-                                Text(
-                                  _preferredRelationshipTypeText(lookingFor: personData.preferredRelationshipType),
-                                  style: TextStyle(fontSize: 15.scaledForScreenSize(context: context)),
-                                ),
+                                // Message and "Say Hi" button (don't show if I'm viewing my own profile)
+                                if (personID != myFirebaseUserId && messagingEnabled)
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      CupertinoButton(
+                                          alignment: Alignment.topCenter,
+                                          padding: EdgeInsets.zero,
+                                          child: Row(
+                                            children: [
+                                              Text("Message"),
+                                              SizedBox(
+                                                width: 5,
+                                              ),
+                                              Icon(CupertinoIcons.paperplane),
+                                            ],
+                                          ),
+                                          onPressed: () {
+                                            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                                                builder: (context) => MessagingView(
+                                                    chatPartnerOrPodID: personData.userID,
+                                                    chatPartnerOrPodName: personData.name,
+                                                    chatPartnerThumbnailURL: personData.thumbnailURL,
+                                                    isPodMode: false)));
+                                          })
+                                    ],
+                                  )
                               ],
                             ),
-                            Spacer(),
 
-                            // Message and "Say Hi" button (don't show if I'm viewing my own profile)
-                            if (personID != myFirebaseUserId && messagingEnabled)
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  CupertinoButton(alignment: Alignment.topCenter,
-                                      padding: EdgeInsets.zero,
-                                      child: Row(
-                                        children: [
-                                          Text("Message"),
-                                          SizedBox(
-                                            width: 5,
-                                          ),
-                                          Icon(CupertinoIcons.paperplane),
-                                        ],
-                                      ),
-                                      onPressed: () {
-                                        Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
-                                            builder: (context) => MessagingView(
-                                                chatPartnerOrPodID: personData.userID,
-                                                chatPartnerOrPodName: personData.name, chatPartnerThumbnailURL:
-                                            personData.thumbnailURL,
-                                                isPodMode: false)));
-                                      })
-                                ],
-                              )
+                            // The person's bio
+                            SizedBox(
+                              height: 15,
+                            ),
+
+                            Text(
+                              personData.bio.isNotEmpty
+                                  ? personData.bio
+                                  : "${personData.name.firstName()} has not "
+                                  "written a bio!",
+                              style: TextStyle(fontSize: 15.scaledForScreenSize(context: context)),
+                            )
                           ],
                         ),
-
-                        // The person's bio
-                        SizedBox(
-                          height: 15,
-                        ),
-
-                        Text(
-                          personData.bio.isNotEmpty
-                              ? personData.bio
-                              : "${personData.name.firstName()} has not "
-                                  "written a bio!",
-                          style: TextStyle(fontSize: 15.scaledForScreenSize(context: context)),
-                        )
-                      ],
-                    ),
-                  ))
+                      ))
                 ],
               ),
             ),
           ),
-        ));
+        )),);
   }
 }

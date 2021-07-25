@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:podsquad/BackendDataHolders/UserAuth.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:form_field_validator/form_field_validator.dart';
+import 'package:podsquad/OtherSpecialViews/TutorialSheets.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
@@ -299,6 +300,10 @@ class _LoginViewState extends State<LoginView> {
   @override
   void initState() {
     super.initState();
+    showLoginTutorialIfNecessary(context: context).then((_) {
+      showEULAIfNecessary(context: context);
+    });
+
     _emailFieldController.addListener(() {
       final String emailAddress = _emailFieldController.text.toLowerCase().trim();
 

@@ -15,7 +15,11 @@ class MyProfileTabBackendFunctions {
   static final shared = MyProfileTabBackendFunctions();
 
   /// Access this property on the shared instance of the class to determine whether my profile is complete.
-  bool isProfileComplete = true; // default to true, but set to false immediately if it turns out profile is not
+  ValueNotifier<bool> isProfileComplete = ValueNotifier(true); // default to true, but set to false immediately if it
+  // turns
+  // out
+  // profile is
+  // not
   // complete.
 
   ///Stores my profile data. ONLY ACCESS THIS ON THE .shared INSTANCE! (Otherwise it'll be empty). Listen using a ValueListenerBuilder widget.
@@ -174,7 +178,7 @@ class MyProfileTabBackendFunctions {
           String? myThumbnailURL = value["photoThumbnailURL"];
           String? myFullPhotoURL = value["fullPhotoURL"];
 
-          this.isProfileComplete = myName != null &&
+          this.isProfileComplete.value = myName != null &&
               myBirthday != null &&
               myThumbnailURL != null &&
               myFullPhotoURL != null &&

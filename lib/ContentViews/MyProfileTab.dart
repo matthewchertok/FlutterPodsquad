@@ -12,13 +12,13 @@ import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/BackendFunctions/NearbyScanner.dart';
 import 'package:podsquad/BackendFunctions/PushNotificationStatus.dart';
 import 'package:podsquad/BackendFunctions/ResizeAndUploadImage.dart';
-import 'package:podsquad/BackendFunctions/ShowLikesFriendsBlocksActionSheet.dart';
 import 'package:podsquad/CommonlyUsedClasses/AlertDialogs.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/ViewPersonDetails.dart';
 import 'package:podsquad/OtherSpecialViews/DecoratedImage.dart';
 import 'package:podsquad/OtherSpecialViews/MultiImageUploader.dart';
+import 'package:podsquad/OtherSpecialViews/TutorialSheets.dart';
 import 'package:podsquad/TabLayoutViews/WelcomeView.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 
@@ -109,7 +109,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
         showSingleButtonAlert(
             context: context,
             title:
-                MyProfileTabBackendFunctions.shared.isProfileComplete ? "Profile Changes Saved!" : "Profile Created!",
+                MyProfileTabBackendFunctions.shared.isProfileComplete.value ? "Profile Changes Saved!" : "Profile Created!",
             dismissButtonLabel: "OK");
       }).catchError((error) {
         print("An error occurred while setting my profile data: $error");
@@ -323,9 +323,12 @@ class _MyProfileTabState extends State<MyProfileTab> {
             CupertinoSliverNavigationBar(
               padding: EdgeInsetsDirectional.all(5),
               leading: CupertinoButton(
-                child: Icon(CupertinoIcons.line_horizontal_3),
+                child: MyProfileTabBackendFunctions.shared.isProfileComplete.value ? Icon(CupertinoIcons
+                  .line_horizontal_3) : Icon(CupertinoIcons.question_circle),
                 onPressed: () {
-                  drawerKey.currentState?.toggle(); // open the likes/friends/blocks drawer;
+                  MyProfileTabBackendFunctions.shared.isProfileComplete.value ? drawerKey.currentState?.openDrawer() :
+                  showWelcomeTutorialIfNecessary(context: context, userPressedHelp: true); // open the 
+                  // likes/friends/blocks drawer;
                 },
                 padding: EdgeInsets.zero,
               ),
@@ -356,7 +359,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                         ),
                                         onPressed: () {
                                           // Navigate to view my profile (if it's complete)
-                                          if (MyProfileTabBackendFunctions.shared.isProfileComplete)
+                                          if (MyProfileTabBackendFunctions.shared.isProfileComplete.value)
                                           Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                                               builder: (context) => ViewPersonDetails(personID: myFirebaseUserId)));
 
@@ -628,7 +631,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                             alignment: Alignment.centerLeft,
                             child: CupertinoButton(
                                 child: Center(
-                                    child: Text(MyProfileTabBackendFunctions.shared.isProfileComplete
+                                    child: Text(MyProfileTabBackendFunctions.shared.isProfileComplete.value
                                         ? "Update Profile"
                                         : "Create Profile")),
                                 onPressed: _setMyProfileData)),

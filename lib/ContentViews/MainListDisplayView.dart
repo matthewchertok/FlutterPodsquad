@@ -1032,7 +1032,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
       return CupertinoButton(
         child: Icon(CupertinoIcons.line_horizontal_3),
         onPressed: () {
-          drawerKey.currentState?.toggle(); // open the likes/friends/blocks drawer;
+          drawerKey.currentState?.openDrawer(); // open the likes/friends/blocks drawer;
         },
         padding: EdgeInsets.zero,
       );

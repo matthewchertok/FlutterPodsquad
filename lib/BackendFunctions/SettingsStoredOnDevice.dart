@@ -7,7 +7,7 @@ class SettingsStoredOnDevice {
   Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   ///Save an integer, boolean, double, string, or list of strings to UserDefaults (iOS) or SharedPreferences (Android).
-  void saveValueForKey({required String key, required dynamic value}) async {
+  Future<void> saveValueForKey({required String key, required dynamic value}) async {
     final SharedPreferences prefs = await _prefs;
 
     // now set the value depending on the type that was passed in for value
@@ -19,9 +19,10 @@ class SettingsStoredOnDevice {
   }
 
   ///Read a value from UserDefaults (iOS) or SharedPreferences (Android)
-  void readValueForKey({required String key}) async {
+  Future<dynamic> readValueForKey({required String key}) async {
     final SharedPreferences prefs = await _prefs;
-    prefs.get(key);
+    final value = prefs.get(key);
+    return value;
   }
 
   ///The key to determine if I already read the Welcome tutorial

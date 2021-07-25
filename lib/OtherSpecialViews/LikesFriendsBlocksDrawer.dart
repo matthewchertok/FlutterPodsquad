@@ -10,7 +10,7 @@ import 'package:podsquad/TabLayoutViews/LikesFriendsBlocksTabView.dart';
 /// The drawer that opens from the left side of the screen to allow the user to navigate to view their
 /// likes/friends/blocks
 Widget likesFriendsBlocksDrawer({required BuildContext context}) => Drawer(
-        child: ListView(
+        child: SafeArea(child: ListView(
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
@@ -81,4 +81,4 @@ Widget likesFriendsBlocksDrawer({required BuildContext context}) => Drawer(
               showWelcomeTutorialIfNecessary(context: context, userPressedHelp: true);
             },)
           ],
-        ));
+        )));

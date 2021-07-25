@@ -76,19 +76,19 @@ class _WelcomeViewState extends State<WelcomeView> {
             switch (_tabController.index) {
               case 0:
                 {
-                  return MainListDisplayView(viewMode: MainListDisplayViewModes.peopleIMet);
+                  return MainListDisplayView(key: ValueKey<int>(0),viewMode: MainListDisplayViewModes.peopleIMet);
                 }
               case 1:
                 {
-                  return MessagingTab();
+                  return MessagingTab(key: ValueKey<int>(1));
                 }
               case 2:
                 {
-                  return MainListDisplayView(viewMode: MainListDisplayViewModes.myPods);
+                  return MainListDisplayView(key: ValueKey<int>(2),viewMode: MainListDisplayViewModes.myPods);
                 }
               case 3:
                 {
-                  return MyProfileTab();
+                  return MyProfileTab(key: ValueKey<int>(3));
                 }
               default:
                 {

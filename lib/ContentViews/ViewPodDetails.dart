@@ -7,7 +7,6 @@ import 'package:podsquad/BackendDataclasses/MainListDisplayViewModes.dart';
 import 'package:podsquad/BackendDataclasses/PodData.dart';
 import 'package:podsquad/BackendDataclasses/PodMemberInfoDict.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
-import 'package:podsquad/ContentViews/CreateAPodView.dart';
 import 'package:podsquad/ContentViews/MainListDisplayView.dart';
 import 'package:podsquad/ContentViews/MessagingView.dart';
 import 'package:podsquad/ContentViews/ViewFullImage.dart';
@@ -15,6 +14,7 @@ import 'package:podsquad/DatabasePaths/PodsDatabasePaths.dart';
 import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
 import 'package:podsquad/OtherSpecialViews/DecoratedImage.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';
+import 'package:podsquad/OtherSpecialViews/TutorialSheets.dart';
 import 'package:podsquad/OtherSpecialViews/ViewPodDetailsDrawer.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 
@@ -57,12 +57,15 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
       podScore: 0);
 
   /// Get the pod data
-  void _getPodData() {
+  Future<void> _getPodData() async {
+    final completer = Completer();
     PodsDatabasePaths(podID: podID).getPodData(onCompletion: (podData) {
       setState(() {
         this.podData = podData;
       });
+      completer.complete();
     });
+    return completer.future;
   }
 
   /// Get the number of members in the pod and check if I'm a member
@@ -291,7 +294,9 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
   @override
   void initState() {
     super.initState();
-    this._getPodData();
+    this._getPodData().then((_) {
+      showViewPodDetailsTutorialIfNecessary(context: context, podData: podData, amMember: this._amMemberOfPod);
+    });
     this._getMembersInPod();
     this._getBlockedUsers();
   }

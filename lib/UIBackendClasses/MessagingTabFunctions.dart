@@ -144,6 +144,7 @@ class MessagingTabFunctions {
 
               // Remove the pod from my list of pod conversations
               latestMessagesDict.removeWhere((key, value) => key == podID);
+              refreshLatestMessagesList(newDict: latestMessagesDict);
             });
           }
         }
@@ -244,16 +245,20 @@ class MessagingTabFunctions {
         isShowingNoMessages.value = false;
 
       snapshot.docChanges.forEach((diff) {
+        // find out who the chat partner is in the list of either [myId, theirId] or [theirId, myId]
+        final participantIDs = diff.doc.get("participants") as List<dynamic>;
+        final String chatPartnerID =
+        participantIDs.first == myFirebaseUserId ? participantIDs.last : participantIDs.first;
 
         if (diff.type == DocumentChangeType.added) {
-          // find out who the chat partner is in the list of either [myId, theirId] or [theirId, myId]
-          final participantIDs = diff.doc.get("participants") as List<dynamic>;
-          final String chatPartnerID =
-              participantIDs.first == myFirebaseUserId ? participantIDs.last : participantIDs.first;
-
           // the path where the messages in the conversation are stored
           final collectionRef = diff.doc.reference.collection("messages");
           _observeLatestMessageInConversation(collectionRef: collectionRef, chatPartnerID: chatPartnerID);
+        }
+        else if (diff.type == DocumentChangeType.removed){
+          // Remove the conversation from my list of conversations
+          latestMessagesDict.removeWhere((key, value) => key == chatPartnerID);
+          refreshLatestMessagesList(newDict: latestMessagesDict);
         }
       });
     });

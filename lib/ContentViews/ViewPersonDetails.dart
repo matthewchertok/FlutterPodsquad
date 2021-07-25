@@ -20,6 +20,7 @@ import 'package:podsquad/DatabasePaths/PodsDatabasePaths.dart';
 import 'package:podsquad/DatabasePaths/ReportUsersDatabasePaths.dart';
 import 'package:podsquad/OtherSpecialViews/DecoratedImage.dart';
 import 'package:podsquad/OtherSpecialViews/MultiImagePageViewer.dart';
+import 'package:podsquad/OtherSpecialViews/TutorialSheets.dart';
 import 'package:podsquad/OtherSpecialViews/ViewPersonDetailsDrawer.dart';
 import 'package:podsquad/UIBackendClasses/MainListDisplayBackend.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
@@ -68,14 +69,17 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
       fullPhotoURL: "fullPhotoURL");
 
   /// Get the person's profile data from Firestore
-  void _getProfileData() {
+  Future _getProfileData() async {
+    final completer = Completer();
     MyProfileTabBackendFunctions.shared.getPersonsProfileData(
         userID: personID,
         onCompletion: (profileData) {
           setState(() {
             this.personData = profileData;
           });
+          completer.complete();
         });
+    return completer.future;
   }
 
   /// Get the person's pod memberships
@@ -138,7 +142,9 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
   @override
   void initState() {
     super.initState();
-    this._getProfileData();
+    this._getProfileData().then((_) {
+      showViewPersonDetailsTutorialIfNecessary(context: context, personData: personData);
+    });
     this._getPodMemberships();
 
     // Determine if I already liked/friended/blocked/reported the user

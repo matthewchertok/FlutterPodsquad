@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_nearby_messages_api/flutter_nearby_messages_api.dart';
 import 'package:podsquad/BackendDataclasses/NotificationTypes.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
-import 'dart:io';
 import 'dart:async';
 import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';

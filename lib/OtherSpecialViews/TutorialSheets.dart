@@ -1,9 +1,12 @@
 import 'dart:async';
-
+import 'package:podsquad/BackendDataclasses/PodData.dart';
+import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:focus_detector/focus_detector.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:podsquad/BackendDataclasses/ProfileData.dart';
+import 'package:podsquad/BackendFunctions/PronounFormatter.dart';
 import 'package:podsquad/BackendFunctions/SettingsStoredOnDevice.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
@@ -186,8 +189,7 @@ Future<void> showWelcomeTutorialIfNecessary({required BuildContext context, user
     child: CustomScrollView(
       slivers: [
         CupertinoSliverNavigationBar(
-          largeTitle:
-              Text("Features"),
+          largeTitle: Text("Features"),
           trailing: CupertinoButton(
               padding: EdgeInsets.zero,
               alignment: Alignment.centerRight,
@@ -245,6 +247,198 @@ Future<void> showWelcomeTutorialIfNecessary({required BuildContext context, user
   ));
   final didReadTutorial = await SettingsStoredOnDevice.shared
           .readValueForKey(key: SettingsStoredOnDevice.didReadWelcomeTutorial) as bool? ??
+      false;
+
+  // show the tutorial sheet, and complete the future once that sheet is dismissed
+  if (!didReadTutorial || userPressedHelp)
+    showCupertinoModalBottomSheet(context: context, builder: (context) => sheet, useRootNavigator: true);
+  else
+    return; // return without showing the sheet if I've already seen it
+  return completer.future;
+}
+
+/// Show the ViewPodDetails tutorial sheet if the user hasn't seen it yet or if the user pressed Help
+Future<void> showViewPodDetailsTutorialIfNecessary(
+    {required BuildContext context, userPressedHelp = false, required PodData podData, required bool amMember}) async {
+  final completer = Completer();
+  final sheet = Scaffold(
+      body: FocusDetector(
+    child: CustomScrollView(
+      slivers: [
+        CupertinoSliverNavigationBar(
+          largeTitle: Text("Pod Options"),
+          trailing: CupertinoButton(
+              padding: EdgeInsets.zero,
+              alignment: Alignment.centerRight,
+              child: Icon(CupertinoIcons.check_mark),
+              onPressed: () {
+                dismissAlert(context: context);
+              }),
+        ),
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: 10,
+          ),
+        ),
+        SliverList(
+            delegate: SliverChildListDelegate([
+          if (!amMember)
+            ListTile(
+              title: Text("Join ${podData.name}"),
+              subtitle: Text("If the Join button isn't visible, tap the icon in the top right corner, then "
+                  "tap Join Pod for more information."),
+              leading: Icon(CupertinoIcons.line_horizontal_3),
+            ),
+          if (amMember)
+            ListTile(
+              title: Text("Leave ${podData.name}"),
+              subtitle: Text("Tap the icon in the top right corner, then tap Leave Pod."),
+              leading: Icon(CupertinoIcons.hand_raised),
+            ),
+          ListTile(
+            title: Text("Message ${podData.name}"),
+            subtitle: Text(amMember
+                ? "Message other members through the pod chat!"
+                : "Pod members can message each "
+                    "other through the pod chat. Join ${podData.name} to unlock this feature!"),
+            leading: Icon(CupertinoIcons.paperplane),
+          ),
+          ListTile(
+            title: Text("View Members"),
+            subtitle: Text("Tap on the number of members below the pod name to view members of ${podData.name}. Any "
+                "member can remove or block another member (besides the pod creator) from that screen."),
+            leading: Icon(CupertinoIcons.person_3),
+          ),
+          if (amMember)
+            ListTile(
+              title: Text("Blocked Users"),
+              subtitle:
+                  Text("Tap the icon in the top right corner, then Blocked Users to unblock someone from the pod."),
+              leading: Icon(CupertinoIcons.person_crop_circle_badge_xmark),
+            ),
+        ]))
+      ],
+    ),
+    onFocusLost: () async {
+      // mark the tutorial as read when dismissed
+      await SettingsStoredOnDevice.shared
+          .saveValueForKey(key: SettingsStoredOnDevice.didReadViewPodDetailsTutorial, value: true);
+      completer.complete();
+    },
+  ));
+  final didReadTutorial = await SettingsStoredOnDevice.shared
+          .readValueForKey(key: SettingsStoredOnDevice.didReadViewPodDetailsTutorial) as bool? ??
+      false;
+
+  // show the tutorial sheet, and complete the future once that sheet is dismissed
+  if (!didReadTutorial || userPressedHelp)
+    showCupertinoModalBottomSheet(context: context, builder: (context) => sheet, useRootNavigator: true);
+  else
+    return; // return without showing the sheet if I've already seen it
+  return completer.future;
+}
+
+/// Show the ViewPersonDetails tutorial sheet if the user hasn't seen it yet or if the user pressed Help
+Future<void> showViewPersonDetailsTutorialIfNecessary(
+    {required BuildContext context, userPressedHelp = false, required ProfileData personData}) async {
+  final completer = Completer();
+  final sheet = Scaffold(
+      body: FocusDetector(
+    child: CustomScrollView(
+      slivers: [
+        CupertinoSliverNavigationBar(
+          largeTitle: Text("User Options"),
+          trailing: CupertinoButton(
+              padding: EdgeInsets.zero,
+              alignment: Alignment.centerRight,
+              child: Icon(CupertinoIcons.check_mark),
+              onPressed: () {
+                dismissAlert(context: context);
+              }),
+        ),
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: 10,
+          ),
+        ),
+        SliverList(
+            delegate: SliverChildListDelegate([
+          ListTile(
+            title: Text("Interact with ${personData.name}"),
+            subtitle: Text("Tap the icon in the top right corner for options!"),
+            leading: Icon(CupertinoIcons.line_horizontal_3),
+          ),
+          ListTile(
+            title: Text("Message ${personData.name}"),
+            subtitle: Text(
+                "Send ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)} a message! Alternatively, you can tap the Say "
+                "Hi button and Podsquad will send an automatic introduction for you."),
+            leading: Icon(CupertinoIcons.paperplane),
+          ),
+          ListTile(
+            title: Text("Like ${personData.name}"),
+            subtitle: Text(
+                "Choose this if ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun,
+                    pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: false)} ${PronounFormatter.isOrAre
+                  (pronoun: personData.preferredPronoun, shouldBeCapitalized: false)} attractive!"),
+            leading: Icon(CupertinoIcons.heart),
+          ),
+            ListTile(
+              title: Text("Friend ${personData.name}"),
+              subtitle:
+              Text(
+                  "Choose this if ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun,
+                      pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: false)} ${PronounFormatter.isOrAre
+                    (pronoun: personData.preferredPronoun, shouldBeCapitalized: false)} cool."), leading: Icon
+              (CupertinoIcons.person_badge_plus),
+            ),
+              ListTile(
+                title: Text("Likes And Friends Are Exclusive"),
+                subtitle:
+                Text(
+                    "Just like in real life, you cannot Like and Friend ${personData.name.firstName()} "
+                        "simultaneously. You must pick one!"),
+                leading:
+              Icon
+                (CupertinoIcons.hand_point_right),
+              ),
+
+              ListTile(
+                title: Text("View ${personData.name.firstName()}'s Pods"),
+                subtitle:
+                Text(
+                    "Select this option to view the pods ${PronounFormatter.makePronoun(preferredPronouns:
+                    personData.preferredPronoun, pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: false)} "
+                        "${PronounFormatter.isOrAre(pronoun: personData.preferredPronoun, shouldBeCapitalized: false)
+                    } in."),
+                leading:
+                Icon
+                  (CupertinoIcons.person_2_square_stack),
+              ),
+
+              ListTile(
+                title: Text("Add ${personData.name.firstName()} To Pod"),
+                subtitle:
+                Text(
+                    "Additionally, you may add ${PronounFormatter.makePronoun(preferredPronouns:
+                    personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)}"
+                        " to a pod that you are in."),
+                leading:
+                Icon
+                  (CupertinoIcons.plus),
+              ),
+        ]))
+      ],
+    ),
+    onFocusLost: () async {
+      // mark the tutorial as read when dismissed
+      await SettingsStoredOnDevice.shared
+          .saveValueForKey(key: SettingsStoredOnDevice.didReadViewPersonDetailsTutorial, value: true);
+      completer.complete();
+    },
+  ));
+  final didReadTutorial = await SettingsStoredOnDevice.shared
+          .readValueForKey(key: SettingsStoredOnDevice.didReadViewPersonDetailsTutorial) as bool? ??
       false;
 
   // show the tutorial sheet, and complete the future once that sheet is dismissed

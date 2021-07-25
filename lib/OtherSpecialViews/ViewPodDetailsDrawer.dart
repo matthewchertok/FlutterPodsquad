@@ -6,6 +6,7 @@ import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/CreateAPodView.dart';
 import 'package:podsquad/ContentViews/MainListDisplayView.dart';
+import 'package:podsquad/OtherSpecialViews/TutorialSheets.dart';
 
 Widget viewPodDetailsDrawer({required BuildContext context, required bool amMemberOfPod, required bool
 amBlockedFromPod, required List<ProfileData> podMembersList, required List<ProfileData> podBlockedUsersList, required
@@ -107,7 +108,7 @@ SafeArea(child: ListView(padding: EdgeInsets
 
   // Leave the pod, if I'm a member
   if (amMemberOfPod)
-    ListTile(title: Text("Leave Pod"), leading: Icon(CupertinoIcons.hand_raised_fill), onTap: (){
+    ListTile(title: Text("Leave Pod"), leading: Icon(CupertinoIcons.hand_raised), onTap: (){
       leavePodFunction();
     },),
 
@@ -117,5 +118,11 @@ SafeArea(child: ListView(padding: EdgeInsets
         .trash, color: CupertinoColors.destructiveRed,), onTap: (){
       deletePodFunction();
     },),
+
+  //Help tile
+  ListTile(title: Text("Help"), leading: Icon(CupertinoIcons.question_circle), onTap: (){
+    showViewPodDetailsTutorialIfNecessary(context: context, podData: podData, userPressedHelp: true, amMember:
+    podMembersList.map((member) => member.userID).contains(myFirebaseUserId));
+  },)
   // If I'm the pod creator
 ],)),);

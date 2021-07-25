@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_nearby_messages_api/flutter_nearby_messages_api.dart';
 import 'package:podsquad/BackendDataclasses/NotificationTypes.dart';
+import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'dart:async';
 import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
@@ -50,8 +51,18 @@ class NearbyScanner {
     // This callback gets the message when an a nearby device sends one
     nearbyMessagesApi.onFound = (message) {
       print("MESSAGE FOUND $message");
-      _meetSomeone(personID: message).then((_) => this._sendTheOtherPersonAPushNotificationIfWeHaveNotMetRecently(
-          toPersonWithID: message)); // the message contains the person's ID
+      _meetSomeone(personID: message).then((otherPersonsProfileData) {
+        if (otherPersonsProfileData != null) {
+          final tokens = otherPersonsProfileData.fcmTokens;
+          this._sendTheOtherPersonAPushNotificationIfWeHaveNotMetRecently(
+              recipientID: otherPersonsProfileData.userID, toDeviceTokens: tokens);
+        }
+      }); // the message
+      // contains the person's ID
+    };
+
+    nearbyMessagesApi.onLost = (message) {
+      print("MESSAGE LOST: $message");
     };
 
     // Listen status when publish and subscribe
@@ -131,8 +142,9 @@ class NearbyScanner {
   /// and represent the number of minutes that must pass before it's worth updating the document in the database. For
   /// example, if I meet someone now, then don't update the database if I meet them again in less than 10 minutes.
   /// The purpose of this is to save reads and writes, as Flutter defaults to continuous subscribing (unlike iOS),
-  /// which would quickly run up costs in database reads and writes.
-  Future<void> _meetSomeone({required String personID, int breakInterval = 10}) async {
+  /// which would quickly run up costs in database reads and writes. Returns the recipient's profile data so I can
+  /// send them a push notification directly.
+  Future<ProfileData?> _meetSomeone({required String personID, int breakInterval = 10}) async {
     print("I met a user with ID $personID");
     // If I never met the person before, pretend I met them long enough ago that the function can execute.
     if (this._peopleIMetAndTimeMap[personID] == null)
@@ -141,18 +153,18 @@ class NearbyScanner {
     // If I met the person less than the specified breakInterval number of minutes ago, then don't bother to update
     // the data - I met them too recently for anything to have changed, so there's no need to spend reads and writes.
     final minutesSinceILastMetThem = DateTime.now().difference(this._peopleIMetAndTimeMap[personID]!).inMinutes;
-    if (minutesSinceILastMetThem < breakInterval) return;
+    if (minutesSinceILastMetThem < breakInterval) return null;
 
     this._peopleIMetAndTimeMap[personID] = DateTime.now(); // If I met them awhile ago, then update the time to now
     print('Discovered user with ID : $personID'); // for debugging
 
     final didEitherOfUseBlockTheOther = await _didEitherOfUsBlockTheOther(receivedUserID: personID);
-    if (didEitherOfUseBlockTheOther) return; // don't proceed if either of us blocked the other
+    if (didEitherOfUseBlockTheOther) return null; // don't proceed if either of us blocked the other
 
     final myProfileData = MyProfileTabBackendFunctions.shared.myProfileData.value;
 
     // get the other person's profile data
-    final completer = Completer<void>(); // use this to mark when the function is complete
+    final completer = Completer<ProfileData?>(); // use this to mark when the function is complete
     final profileGetter = MyProfileTabBackendFunctions();
     profileGetter.getPersonsProfileData(
         userID: personID,
@@ -201,20 +213,21 @@ class NearbyScanner {
               .collection("nearby-people")
               .doc(documentID)
               .set(documentData, SetOptions(merge: true))
-              .then((_) => completer.complete());
+              .then((_) => completer.complete(otherPersonsData));
         });
     return completer.future;
   }
 
   ///Send the other person a push notification indicating that they met me
-  void _sendTheOtherPersonAPushNotificationIfWeHaveNotMetRecently({required String toPersonWithID}) {
-    final recipientID = toPersonWithID;
+  void _sendTheOtherPersonAPushNotificationIfWeHaveNotMetRecently(
+      {required String recipientID, required List<String> toDeviceTokens}) {
+    final recipientTokens = toDeviceTokens;
 
     // Don't send a push notification if we previously met (in the last 21 days).
     if (this._peopleIMetAndTimeMap.keys.contains(recipientID)) return;
     final myName = MyProfileTabBackendFunctions.shared.myProfileData.value.name;
     this._pushSender.sendPushNotification(
-        recipientID: recipientID,
+        recipientDeviceTokens: recipientTokens,
         title: "You Met Someone!",
         body: myName,
         notificationType: NotificationTypes.personDetails);

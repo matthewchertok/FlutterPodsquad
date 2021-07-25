@@ -14,10 +14,7 @@ import 'package:podsquad/ContentViews/CreateAPodView.dart';
 import 'package:podsquad/ContentViews/ViewPersonDetails.dart';
 import 'package:podsquad/ContentViews/ViewPodDetails.dart';
 import 'package:podsquad/DatabasePaths/PodsDatabasePaths.dart';
-import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
 import 'package:podsquad/ListRowViews/PersonOrPodListRow.dart';
-import 'package:podsquad/BackendFunctions/ShowLikesFriendsBlocksActionSheet.dart';
-import 'package:podsquad/OtherSpecialViews/PodModeButton.dart';
 import 'package:podsquad/OtherSpecialViews/SearchTextField.dart';
 import 'package:podsquad/TabLayoutViews/WelcomeView.dart';
 import 'package:podsquad/UIBackendClasses/MainListDisplayBackend.dart';
@@ -635,7 +632,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                     birthday: personData.birthday,
                     joinedAt: timeSinceEpochInSeconds,
                     name: personData.name,
-                    thumbnailURL: personData.thumbnailURL);
+                    thumbnailURL: personData.thumbnailURL, fcmTokens: personData.fcmTokens);
                 PodsDatabasePaths(podID: podData.podID, userID: personData.userID).joinPod(
                     personData: infoDict,
                     onSuccess: () {
@@ -907,8 +904,11 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
     else if (viewMode == MainListDisplayViewModes.searchUsers) {
       query.docs.forEach((document) {
         final String userID = document.id;
-        final data = document.get("profileData");
-        final profileData = _extractPersonData(profileData: data, userID: userID);
+        final profileDataRaw = document.get("profileData");
+        final docData = document.data();
+        final tokensRaw = docData["fcmTokens"] as List<dynamic>? ?? [];
+        final tokens = List<String>.from(tokensRaw);
+        final profileData = _extractPersonData(profileData: profileDataRaw, userID: userID, fcmTokens: tokens);
         if (!listOfPeopleResults.contains(profileData)) listOfPeopleResults.add(profileData);
       });
     }
@@ -939,7 +939,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   }
 
   /// Get a person's data given a map of type <String, dynamic>
-  ProfileData _extractPersonData({required Map profileData, required String userID}) {
+  ProfileData _extractPersonData({required Map profileData, required List<String> fcmTokens, required String userID}) {
     final String thumbnailURL = profileData["photoThumbnailURL"];
     final String fullPhotoURL = profileData["fullPhotoURL"];
     final String name = profileData["name"];
@@ -962,7 +962,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         bio: bio ?? "",
         podScore: podScore ?? 0,
         thumbnailURL: thumbnailURL,
-        fullPhotoURL: fullPhotoURL);
+        fullPhotoURL: fullPhotoURL, fcmTokens: fcmTokens);
     return personData;
   }
 

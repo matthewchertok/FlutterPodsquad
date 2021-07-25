@@ -5,12 +5,13 @@ class BasicProfileInfoDict {
   double birthday;
   String bio;
   String thumbnailURL;
+  List<String> fcmTokens;
 
   BasicProfileInfoDict({required this.userID,
     required this.name,
     required this.birthday,
     required this.bio,
-    required this.thumbnailURL});
+    required this.thumbnailURL, required this.fcmTokens});
 
   ///Convert the object into a dictionary that can be uploaded to a Firestore document.
   Map<String, dynamic> toDatabaseFormat() =>
@@ -19,6 +20,7 @@ class BasicProfileInfoDict {
         "birthday": this.birthday,
         "name": this.name,
         "thumbnailURL": this.thumbnailURL,
-        "userID": this.userID
+        "userID": this.userID,
+        "fcmTokens": this.fcmTokens
       };
 }

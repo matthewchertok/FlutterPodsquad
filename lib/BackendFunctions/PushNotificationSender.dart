@@ -8,7 +8,7 @@ class PushNotificationSender {
   ///parameter, pass in a static constant from the
   ///NotificationTypes class.
   void sendPushNotification(
-      {required String recipientID,
+      {required List<String> recipientDeviceTokens,
       required String title,
       required String body,
       String? senderName,
@@ -25,7 +25,7 @@ class PushNotificationSender {
 
     // call the cloud function, which will send the push notification from a secure server environment
     firebaseFunctions.httpsCallable("sendPushNotification").call({
-      "recipientID": recipientID,
+      "recipientDeviceTokens": recipientDeviceTokens,
       "title": title,
       "body": body,
       "clickAction": notificationType, // this is required so that the Android app launches on

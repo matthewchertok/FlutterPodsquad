@@ -8,10 +8,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:podsquad/BackendDataHolders/PodMembersDictionary.dart';
 import 'package:podsquad/BackendDataclasses/ChatMessageDataclasses.dart';
 import 'package:podsquad/BackendDataclasses/NotificationTypes.dart';
 import 'package:podsquad/BackendDataclasses/PodMemberIDNameAndTypingStatus.dart';
+import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/BackendFunctions/PushNotificationSender.dart';
 import 'package:podsquad/BackendFunctions/ResizeAndUploadImage.dart';
 import 'package:podsquad/BackendFunctions/UploadAudio.dart';
@@ -89,6 +89,10 @@ class _MessagingViewState extends State<MessagingView> {
   final String? chatPartnerThumbnailURL;
   final bool isPodMode;
 
+  /// Get the chat partner's profile data (if in DM mode) so I can access their device tokens to send them a push
+  /// notification
+  ProfileData? _chatPartnerProfileData;
+
   /// Displays the chat log for a DM conversation
   List<ChatMessage> displayedChatLog = [];
 
@@ -120,8 +124,8 @@ class _MessagingViewState extends State<MessagingView> {
   /// Track all my stream subscriptions
   List<StreamSubscription> _streamSubscriptions = [];
 
-  /// Keep track of all the pod active members and update in real time
-  List<String> _podActiveMemberIDsList = [];
+  /// Keep track of all the pod active members and their FCM tokens (for push notifications) and update in real time
+  Map<String, List<String>> _podActiveMemberIDsMap = {};
 
   /// Track whether the chat log is up to date (no more messages to load)
   bool _noMoreMessagesToLoad = false;
@@ -141,6 +145,16 @@ class _MessagingViewState extends State<MessagingView> {
 
   /// Hide the read receipts if I scroll up to see older messages, and re-show them if I scroll back down to the bottom
   bool _didScrollToHideReadReceipts = false;
+
+  /// Get the chat partner's profile data if in DM mode
+  Future _getChatPartnerProfileData() async {
+    if (isPodMode) return;
+    MyProfileTabBackendFunctions().getPersonsProfileData(userID: chatPartnerOrPodID, onCompletion: (profileData){
+      setState(() {
+        this._chatPartnerProfileData = profileData;
+      });
+    });
+  }
 
   /// Make the text to display when someone else is typing
   Widget someoneTypingText() {
@@ -382,12 +396,6 @@ class _MessagingViewState extends State<MessagingView> {
     var differences = List<ChatMessage>.from(dynamicDifferences);
     // That way, we can loop through the list and add each message sequentially, and it will work out that the oldest
     // message we be at the start of the list.
-
-    // Only scroll to the bottom if a new message is added. I have to do some null checks though in case one of the
-    // lists is empty. Otherwise it would cause a crash that would stop new messages from displaying
-    final lastMessageTimeInNewList = newList.length > 0 ? newList.last.timeStamp : 0;
-    final lastMessageTimeInOldList = displayedChatLog.length > 0 ? displayedChatLog.last.timeStamp : -1;
-    final shouldScrollToBottom = lastMessageTimeInNewList > lastMessageTimeInOldList;
 
     // For each differences, insert or remove items
     differences.forEach((difference) {
@@ -694,8 +702,10 @@ class _MessagingViewState extends State<MessagingView> {
               .doc(documentID)
               .update({"$myFirebaseUserId.didHideChat": false, "$chatPartnerOrPodID.didHideChat": false});
 
+        final tokens = _chatPartnerProfileData?.fcmTokens;
+        if (tokens != null)
         pushSender.sendPushNotification(
-            recipientID: chatPartnerOrPodID,
+            recipientDeviceTokens: tokens,
             title: "New message from $myName",
             body: message.text,
             notificationType: NotificationTypes.message);
@@ -703,9 +713,9 @@ class _MessagingViewState extends State<MessagingView> {
 
       // Send every active member a push notification if I just sent a pod message
       else {
-        _podActiveMemberIDsList.forEach((memberID) {
+        this._podActiveMemberIDsMap.forEach((memberID, memberTokens) {
           pushSender.sendPushNotification(
-              recipientID: memberID,
+              recipientDeviceTokens: memberTokens,
               title: chatPartnerOrPodName,
               body: "$myName: "
                   "${message.text}",
@@ -792,12 +802,15 @@ class _MessagingViewState extends State<MessagingView> {
         .where("active", isEqualTo: true)
         .snapshots()
         .listen((snapshot) {
-      final List<String> activeMemberIDsList = [];
+      final Map<String, List<String>> activeMemberIDsMap = {};
       snapshot.docs.forEach((member) {
+        final memberData = member.data();
         final memberID = member.get("userID") as String;
-        if (!activeMemberIDsList.contains(memberID)) activeMemberIDsList.add(memberID);
+        final memberTokensRaw = memberData["fcmTokens"] as List<dynamic>? ?? [];
+        final memberTokens = List<String>.from(memberTokensRaw);
+        if (!activeMemberIDsMap.keys.contains(memberID)) activeMemberIDsMap[memberID] = memberTokens;
       });
-      this._podActiveMemberIDsList = activeMemberIDsList;
+      this._podActiveMemberIDsMap = activeMemberIDsMap;
     });
     this._streamSubscriptions.add(streamSubscription);
   }
@@ -1189,6 +1202,9 @@ class _MessagingViewState extends State<MessagingView> {
     this._amCurrentlyTyping.addListener(() {
       this._updateTypingStatusInDatabase();
     });
+
+    // Get the chat partner's data so I can have their tokens to send a push notification when I send a message
+    if (!isPodMode) this._getChatPartnerProfileData();
   }
 
   @override

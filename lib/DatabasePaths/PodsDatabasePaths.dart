@@ -62,7 +62,7 @@ class PodsDatabasePaths {
   void _addMemberToPod({required PodMemberInfoDict personData, Function? onSuccess, Function(Error)? onError}) {
     podDocument.collection("members").doc(personData.userID).set(personData.toDatabaseFormat()).then((value) {
       if (onSuccess != null) onSuccess();
-    }).catchError((error){
+    }).catchError((error) {
       if (onError != null) onError(error);
     });
   }
@@ -104,7 +104,7 @@ class PodsDatabasePaths {
             final myName = MyProfileTabBackendFunctions.shared.myProfileData.value.name;
             this.getPodNameAndDescription(completion: () {
               this._sender.sendPushNotification(
-                  recipientID: this.userID,
+                  recipientDeviceTokens: profileData.fcmTokens,
                   title: "$myName Added You To $podName",
                   podID: this.podID,
                   podName: this.podName,
@@ -115,7 +115,8 @@ class PodsDatabasePaths {
 
           this.sendJoinLeavePodMessage(action: _AddedRemovedBlockedUnblocked.added, personName: personData.name);
           if (onSuccess != null) onSuccess();
-        }, onError: onError);
+        },
+        onError: onError);
   }
 
   ///Make a person (or myself) leave a pod. Pass in the person's user ID into the constructor when creating a
@@ -128,8 +129,7 @@ class PodsDatabasePaths {
       // if I'm the last person in the pod, delete it
       if (memberCount == 1) {
         this.deletePod(podName: podName, onCompletion: onSuccess);
-      }
-      else {
+      } else {
         this.removeMemberFromPod(onCompletion: () {
           // if requested, send a message to the pod saying that I left
           if (shouldTextPodMembers)
@@ -144,13 +144,20 @@ class PodsDatabasePaths {
           if (this.userID != myFirebaseUserId) {
             final myName = MyProfileTabBackendFunctions.shared.myProfileData.value.name;
             this.getPodNameAndDescription(completion: () {
-              this._sender.sendPushNotification(
-                  recipientID: this.userID,
-                  title: "Sorry To Tell You...",
-                  body: "$myName removed you from $podName",
-                  podID: this.podID,
-                  podName: this.podName,
-                  notificationType: NotificationTypes.podDetails);
+              // get the person's FCM tokens
+              MyProfileTabBackendFunctions().getPersonsProfileData(
+                  userID: this.userID,
+                  onCompletion: (profileData) {
+                    final tokens = profileData.fcmTokens;
+                    if (tokens != null)
+                      this._sender.sendPushNotification(
+                          recipientDeviceTokens: tokens,
+                          title: "Sorry To Tell You...",
+                          body: "$myName removed you from $podName",
+                          podID: this.podID,
+                          podName: this.podName,
+                          notificationType: NotificationTypes.podDetails);
+                  });
             });
           }
 
@@ -177,15 +184,19 @@ class PodsDatabasePaths {
         // notify all pod members (except myself) that the pod was deleted
         for (final memberID in this._podMembersIDsList) {
           if (memberID != myFirebaseUserId) {
-            this._sender.sendPushNotification(
-                recipientID: memberID,
-                title: "$podName Was Deleted",
-                body: "$myName "
-                    "decided it wasn't fun anymore, so ${PronounFormatter.makePronoun(preferredPronouns: myPronouns, pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: false)} decided to delete the pod.",
-                podID: this.podID,
-                podName: this.podName,
-                notificationType: NotificationTypes.personDetails); // direct the recipient to open the profile of
-            // the person who deleted the pod
+            // get the person's profile data so I can get their device tokens and send them a push notification
+            MyProfileTabBackendFunctions().getPersonsProfileData(userID: memberID, onCompletion: (profileData){
+              final tokens = profileData.fcmTokens;
+              if (tokens != null)
+              this._sender.sendPushNotification(
+                  recipientDeviceTokens: tokens,
+                  title: "$podName Was Deleted",
+                  body: "$myName "
+                      "decided it wasn't fun anymore, so ${PronounFormatter.makePronoun(preferredPronouns: myPronouns, pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: false)} decided to delete the pod.",
+                  podID: this.podID,
+                  podName: this.podName,
+                  notificationType: NotificationTypes.personDetails);
+            });
           }
 
           // clear the local dictionary values for this pod to save a small amount of memory
@@ -199,8 +210,8 @@ class PodsDatabasePaths {
 
           // Delete the latest message preview for the pod
           LatestPodMessagesDictionary.shared.latestMessagesDict.remove(this.podID);
-          LatestPodMessagesDictionary.shared.refreshLatestMessagesList(newDict: LatestPodMessagesDictionary.shared
-              .latestMessagesDict);
+          LatestPodMessagesDictionary.shared
+              .refreshLatestMessagesList(newDict: LatestPodMessagesDictionary.shared.latestMessagesDict);
 
           // delete all messages in the pod
           MessagesDictionary.shared.podMessageDict.value.remove(this.podID);
@@ -284,13 +295,19 @@ class PodsDatabasePaths {
         firebaseFunctions.httpsCallable("deletePodConversationMessages").call({"podID": this.podID}).then((value) {
           // send a push notification to everyone active in the pod letting them know that the chat was deleted
           this._podMembersIDsList.forEach((personID) {
-            if (personID != myFirebaseUserId && !podInactiveMembersIDsList.contains(personID))
-              this._sender.sendPushNotification(
-                  recipientID: personID,
-                  title: "Pod Chat Deleted",
-                  body: "$myName deleted the "
-                      "$podName chat",
-                  notificationType: NotificationTypes.podDetails);
+            if (personID != myFirebaseUserId && !podInactiveMembersIDsList.contains(personID)) {
+              // get their profile data so I can get their device tokens to send a push notification
+              MyProfileTabBackendFunctions().getPersonsProfileData(userID: personID, onCompletion: (profileData){
+                final tokens = profileData.fcmTokens;
+                if (tokens != null)
+                this._sender.sendPushNotification(
+                    recipientDeviceTokens: tokens,
+                    title: "Pod Chat Deleted",
+                    body: "$myName deleted the "
+                        "$podName chat",
+                    notificationType: NotificationTypes.podDetails);
+              });
+            }
           });
 
           if (onCompletion != null) onCompletion();
@@ -442,8 +459,10 @@ class PodsDatabasePaths {
           anyoneCanJoin: anyoneCanJoin,
           podID: podID,
           podCreatorID: podCreatorID,
-          thumbnailURL: thumbnailURL, thumbnailPath: thumbnailPath,
-          fullPhotoURL: fullPhotoURL, fullPhotoPath: fullPhotoPath,
+          thumbnailURL: thumbnailURL,
+          thumbnailPath: thumbnailPath,
+          fullPhotoURL: fullPhotoURL,
+          fullPhotoPath: fullPhotoPath,
           podScore: podScore);
 
       onCompletion(podData);
@@ -451,7 +470,7 @@ class PodsDatabasePaths {
   }
 
   /// Gets all the required profile data for a pod (continuous listener)
-  StreamSubscription podDataStream({required Function(PodData) onCompletion}){
+  StreamSubscription podDataStream({required Function(PodData) onCompletion}) {
     return podDocument.snapshots().listen((docSnapshot) {
       final profileInfo = docSnapshot.get("profileData") as Map<String, dynamic>;
       final name = profileInfo["name"] as String;
@@ -482,8 +501,10 @@ class PodsDatabasePaths {
           anyoneCanJoin: anyoneCanJoin,
           podID: podID,
           podCreatorID: podCreatorID,
-          thumbnailURL: thumbnailURL, thumbnailPath: thumbnailPath,
-          fullPhotoURL: fullPhotoURL, fullPhotoPath: fullPhotoPath,
+          thumbnailURL: thumbnailURL,
+          thumbnailPath: thumbnailPath,
+          fullPhotoURL: fullPhotoURL,
+          fullPhotoPath: fullPhotoPath,
           podScore: podScore);
 
       onCompletion(podData);

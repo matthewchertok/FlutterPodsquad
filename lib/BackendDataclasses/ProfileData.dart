@@ -9,7 +9,7 @@ class ProfileData {
   static final blank = ProfileData(userID: "", name: "", preferredPronoun: "", preferredRelationshipType: "",
   birthday: (DateTime.now().millisecondsSinceEpoch - 662709600 * 1000)*0.001, school: "", bio: "", podScore:
   0, thumbnailURL:
-  "", fullPhotoURL: "");
+  "", fullPhotoURL: "", fcmTokens: []);
 
   String name;
   String preferredPronoun;
@@ -30,6 +30,7 @@ class ProfileData {
   String userID;
   double? timeIMetThePerson;
   List<IdentifiableImage>? extraImagesList;
+  List<String> fcmTokens;
 
   MatchSurveyData? matchSurveyData;
 
@@ -45,7 +46,7 @@ class ProfileData {
       required this.thumbnailURL,
       required this.fullPhotoURL,
       this.timeIMetThePerson,
-      this.matchSurveyData, this.extraImagesList});
+      this.matchSurveyData, this.extraImagesList, required this.fcmTokens});
 
   ///Convert the object into a dictionary that can be set to Firestore. Format is {"bio: "...", "birthday: 123, name: "...", thumbnailURL: "...", userID: "..."}
   Map<String, dynamic> toDatabaseFormat() {
@@ -54,7 +55,8 @@ class ProfileData {
       "birthday": birthday,
       "name": name,
       "thumbnailURL": thumbnailURL,
-      "userID": userID
+      "userID": userID,
+      "fcmTokens": fcmTokens
     };
   }
 

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:podsquad/BackendFunctions/ReportedPeopleBackendFunctions.dart';
+import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/LoginView.dart';
 import 'package:podsquad/OtherSpecialViews/LoadingView.dart';
 import 'package:podsquad/TabLayoutViews/WelcomeView.dart';
@@ -55,11 +57,41 @@ class _AppState extends State<MyApp> {
       Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
   }
 
+  /// Save the Firebase Messaging token when a users signs in, then upload it to Firestore to allow us to directly
+  /// message a user. Users
+  /// can be signed in on multiple devices, so we can use an array in the user's document to store all their tokens.
+  Future _saveDeviceToken() async {
+    final userID = firebaseAuth.currentUser?.uid;
+    final fcmToken = await _messaging.getToken();
+    if (userID != null && fcmToken != null){
+      await firestoreDatabase.collection("users").doc(userID).set({
+        // remember, this must be an array because a user can be
+        // signed in (and therefore receive notifications) on multiple devices
+        "fcmTokens": FieldValue.arrayUnion([fcmToken])
+      }, SetOptions(merge: true));
+    }
+    return;
+  }
+
+  /// Delete a messaging token from the database when a user signs out, so that they don't receive notifications on
+  /// devices where they aren't signed in
+  Future _removeDeviceToken() async {
+    final userID = firebaseAuth.currentUser?.uid;
+    final fcmToken = await _messaging.getToken();
+    if (userID != null && fcmToken != null){
+      await firestoreDatabase.collection("users").doc(userID).set({
+        // remember, this must be an array because a user can be
+        // signed in (and therefore receive notifications) on multiple devices
+        "fcmTokens": FieldValue.arrayRemove([fcmToken])
+      }, SetOptions(merge: true));
+    }
+    return;
+  }
+
   @override
   void initState() {
     super.initState();
     if (Platform.isIOS) _messaging.requestPermission();
-    _messaging.subscribeToTopic("TEST_TOPIC");
     respondToPushNotification();
   }
 
@@ -95,6 +127,9 @@ class _AppState extends State<MyApp> {
                 ReportedPeopleBackendFunctions.shared.observeReportedPeople();
                 ShowMyPodsBackendFunctions.shared.addDataToListView();
                 PeopleIMetBackendFunctions.shared.addDataToListView();
+                NearbyScanner.shared.publishAndSubscribe();
+                _saveDeviceToken(); // upload my messaging token to Firestore for more secure device-to-device messaging
+
                 // Must wait until profile data is ready; otherwise we'll run into the issue of profile data not
                 // loading. The reason I can't just put snapshots on profile data is that Flutter can behave weirdly,
                 // such that opening a text field can cause the widget to think it disappeared, which causes the view
@@ -102,13 +137,12 @@ class _AppState extends State<MyApp> {
                 // was. Using a FutureBuilder guarantees that my profile data will be available when the app opens.
                 return FutureBuilder(future: MyProfileTabBackendFunctions.shared.getMyProfileData(), builder:
                     (context, snapshot){
-                      if (isLoggedIn) NearbyScanner.shared.publishAndSubscribe(); // start listening for people
-                      // nearby over Bluetooth
                       return WelcomeView();
                 });
               }
               else {
                 NearbyScanner.shared.stopPublishAndSubscribe();
+                _removeDeviceToken();
                 MyProfileTabBackendFunctions.shared.reset();
                 LatestPodMessagesDictionary.shared.reset();
                 LatestDirectMessagesDictionary.shared.reset();

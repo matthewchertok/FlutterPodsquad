@@ -164,7 +164,7 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
                   birthday: myProfile.birthday,
                   joinedAt: joinedTimeInSeconds,
                   name: myProfile.name,
-                  thumbnailURL: myProfile.thumbnailURL);
+                  thumbnailURL: myProfile.thumbnailURL, fcmTokens: myProfile.fcmTokens);
               PodsDatabasePaths(podID: podID).joinPod(
                   personData: myJoinData,
                   onSuccess: () {

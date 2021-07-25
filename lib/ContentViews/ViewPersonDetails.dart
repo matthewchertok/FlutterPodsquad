@@ -55,17 +55,7 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
   List<StreamSubscription> _streamSubsList = [];
 
   /// This will store the user's profile data. It gets updated inside initState.
-  ProfileData personData = ProfileData(
-      userID: "userID",
-      name: "Name N/A",
-      preferredPronoun: UsefulValues.nonbinaryPronouns,
-      preferredRelationshipType: UsefulValues.lookingForFriends,
-      birthday: 0,
-      school: "School N/A",
-      bio: "",
-      podScore: 0,
-      thumbnailURL: "thumbnailURL",
-      fullPhotoURL: "fullPhotoURL");
+  ProfileData personData = ProfileData.blank;
 
   /// Get the person's profile data from Firestore
   Future _getProfileData() async {

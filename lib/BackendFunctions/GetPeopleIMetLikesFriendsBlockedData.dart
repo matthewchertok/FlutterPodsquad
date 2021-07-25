@@ -16,17 +16,7 @@ class GetPeopleIMetLikesFriendsBlockedData {
   ///changes on the parent document.
   Map<String, StreamSubscription> streamSubscriptionRegistrations = {};
 
-  var profileData = ProfileData(
-      userID: "userID",
-      name: "name",
-      preferredPronoun: "preferredPronoun",
-      preferredRelationshipType: "preferredRelationshipType",
-      birthday: 0,
-      school: "school",
-      bio: "bio",
-      podScore: 0,
-      thumbnailURL: "thumbnailURL",
-      fullPhotoURL: "fullPhotoURL");
+  var profileData = ProfileData.blank;
 
   var podData = PodData(
       name: "name",
@@ -95,14 +85,18 @@ class GetPeopleIMetLikesFriendsBlockedData {
         final timestampRaw = diff.doc.get("time") as num;
         final timestamp = timestampRaw.toDouble();
 
+        final docData = diff.doc.data() as Map?;
+        final fcmTokensRaw = docData?["fcmTokens"] as List<dynamic>? ?? [];
+        final fcmTokens = List<String>.from(fcmTokensRaw);
+
         if (diff.type == DocumentChangeType.added || diff.type == DocumentChangeType.modified) {
           this._extractDataForUser(
-              value: otherPersonsData,
+              profileData: otherPersonsData,
               timestamp: timestamp, isGettingDataForPeopleIMet: isGettingDataForPeopleIMetList,
               onProfileDataReady: () {
                 if(diff.type == DocumentChangeType.modified) changedChildID = otherPersonsData["userID"];
                 diff.type == DocumentChangeType.added ? onChildAdded() : onChildChanged();
-              });
+              }, fcmTokens: fcmTokens);
         } else if (diff.type == DocumentChangeType.removed) {
           final otherPersonsID = otherPersonsData["userID"];
           this.removedChildID = otherPersonsID;
@@ -154,13 +148,15 @@ class GetPeopleIMetLikesFriendsBlockedData {
   /// If isGettingDataForPeopleIMet is set to true, then check if I met the person more than 21 days ago. If so,
   /// delete them from the database both to save space and ensure relevance for users
   void _extractDataForUser(
-      {required Map<String, dynamic> value, required double timestamp, required Function onProfileDataReady, bool
+      {required Map<String, dynamic> profileData, required List<String> fcmTokens, required double timestamp, required
+      Function
+      onProfileDataReady, bool
       isGettingDataForPeopleIMet = false}) {
-    final userID = value["userID"] as String;
-    final name = value["name"] as String;
-    final birthday = value["birthday"] as num;
-    final bio = value["bio"] as String?;
-    final thumbnailURL = value["thumbnailURL"] as String;
+    final userID = profileData["userID"] as String;
+    final name = profileData["name"] as String;
+    final birthday = profileData["birthday"] as num;
+    final bio = profileData["bio"] as String?;
+    final thumbnailURL = profileData["thumbnailURL"] as String;
 
     // Preferred pronouns, preferred relationship type, school, podScore, and fullPhotoURL will be unknown here since
     // that data is not stored in user interaction documents. That doesn't matter because that data is only needed if
@@ -175,7 +171,7 @@ class GetPeopleIMetLikesFriendsBlockedData {
         bio: bio ?? "",
         podScore: 0,
         thumbnailURL: thumbnailURL,
-        fullPhotoURL: "fullPhotoURL", timeIMetThePerson: timestamp);
+        fullPhotoURL: "fullPhotoURL", timeIMetThePerson: timestamp, fcmTokens: fcmTokens);
     onProfileDataReady();
 
     // delete the person if I met them more than 21 days ago. This is to save space in the database, reduce reads,

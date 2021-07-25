@@ -9,6 +9,7 @@ class PodMemberInfoDict {
   String name;
   String thumbnailURL;
   bool typing;
+  List<String> fcmTokens;
 
   PodMemberInfoDict(
       {required this.userID,
@@ -19,7 +20,8 @@ class PodMemberInfoDict {
       required this.joinedAt,
       required this.name,
       required this.thumbnailURL,
-      this.typing = false});
+      this.typing = false,
+      required this.fcmTokens});
 
   ///Convert the object into a dictionary that can be uploaded to a Firestore document.
   Map<String, dynamic> toDatabaseFormat() => {
@@ -31,6 +33,7 @@ class PodMemberInfoDict {
         "name": this.name,
         "thumbnailURL": this.thumbnailURL,
         "typing": this.typing,
-        "userID": this.userID
+        "userID": this.userID,
+        "fcmTokens": this.fcmTokens
       };
 }

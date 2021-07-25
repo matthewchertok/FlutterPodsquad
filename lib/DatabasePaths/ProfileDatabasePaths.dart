@@ -59,6 +59,8 @@ class ProfileDatabasePaths {
     String fullPhotoURLString = snapshotValue["fullPhotoURL"] ?? "";
     num? podScoreRaw = snapshotValue["podScore"];
     int podScore = podScoreRaw?.toInt() ?? 0;
+    List<dynamic>? fcmTokensRaw = snapshotValue["fcmTokens"];
+    final fcmTokens = List<String>.from(fcmTokensRaw ?? []);
 
     return ProfileData(userID: userID,
         name: name,
@@ -69,6 +71,6 @@ class ProfileDatabasePaths {
         bio: bio,
         thumbnailURL: thumbnailURLString,
         fullPhotoURL: fullPhotoURLString,
-        podScore: podScore);
+        podScore: podScore, fcmTokens: fcmTokens);
   }
 }

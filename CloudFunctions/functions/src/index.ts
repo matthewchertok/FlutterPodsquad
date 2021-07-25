@@ -225,11 +225,11 @@ export const deleteUserData = functions.https.onCall(data => {
     storage().bucket().file(fullPhotoPath).delete(); // delete the user's full photo
 
     // now delete all the extra images from storage
-    const extraImages = document.get("extraImages") as Map<String, Map<String, any>> | null;
+    const extraImages = document.get("extraImages") as Map<string, any> | null;
     if(extraImages != null){
-      extraImages.forEach((image) => {
-        const imagePath = image["imagePath"] as string;
-
+      extraImages.forEach((imageData, _imageID) => {
+        const imagePath = imageData.get("imagePath") as string;
+        storage().bucket().file(imagePath).delete(); // delete the extra image (there can be up to 5 right now)
       })
     }
 
@@ -1071,7 +1071,7 @@ async function uploadPodMessage(podID: string, podName: string, senderId: string
 
 // cloud function to send a push notification the right way
 export const sendPushNotification = functions.https.onCall(async data => {
-  let recipientID = data.recipientID as string;
+  let recipientDeviceTokens = data.recipientID as Array<string>;
   let title = data.title as string;
   let body = data.body as string;
   let clickAction = data.clickAction as string;
@@ -1086,6 +1086,8 @@ export const sendPushNotification = functions.https.onCall(async data => {
   let payload = { notification: notificationPayload, data: dataPayload };
 
   // send the push notification to the topic equal to the recipient ID
-  messaging().sendToTopic(recipientID, payload);
+  recipientDeviceTokens.forEach((token) => {
+    messaging().sendToDevice(token, payload);
+  })
 });
 

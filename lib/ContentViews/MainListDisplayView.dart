@@ -307,7 +307,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                                       ],
                                     );
                                     showCupertinoDialog(context: context, builder: (context) => successAlert);
-                                  });
+                                  }, personTokens: person.fcmTokens);
                             })
                       ],
                     );

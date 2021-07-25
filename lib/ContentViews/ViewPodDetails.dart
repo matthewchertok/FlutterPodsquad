@@ -240,7 +240,7 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
                       ],
                     );
                     showCupertinoDialog(context: context, builder: (context) => successAlert);
-                  });
+                  }, personTokens: MyProfileTabBackendFunctions.shared.myProfileData.value.fcmTokens);
             })
       ],
     );

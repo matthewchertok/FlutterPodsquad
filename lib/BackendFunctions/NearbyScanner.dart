@@ -54,8 +54,9 @@ class NearbyScanner {
       _meetSomeone(personID: message).then((otherPersonsProfileData) {
         if (otherPersonsProfileData != null) {
           final tokens = otherPersonsProfileData.fcmTokens;
-          this._sendTheOtherPersonAPushNotificationIfWeHaveNotMetRecently(
-              recipientID: otherPersonsProfileData.userID, toDeviceTokens: tokens);
+          if (tokens != null)
+            this._sendTheOtherPersonAPushNotificationIfWeHaveNotMetRecently(
+                recipientID: otherPersonsProfileData.userID, toDeviceTokens: tokens);
         }
       }); // the message
       // contains the person's ID

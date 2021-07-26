@@ -127,7 +127,6 @@ class _AppState extends State<MyApp> {
                 ReportedPeopleBackendFunctions.shared.observeReportedPeople();
                 ShowMyPodsBackendFunctions.shared.addDataToListView();
                 PeopleIMetBackendFunctions.shared.addDataToListView();
-                NearbyScanner.shared.publishAndSubscribe();
                 _saveDeviceToken(); // upload my messaging token to Firestore for more secure device-to-device messaging
 
                 // Must wait until profile data is ready; otherwise we'll run into the issue of profile data not

@@ -226,11 +226,11 @@ export const deleteUserData = functions.https.onCall(data => {
 
     // now delete all the extra images from storage
     const extraImages = document.get("extraImages") as Map<string, any> | null;
-    if(extraImages != null){
+    if (extraImages != null) {
       extraImages.forEach((imageData, _imageID) => {
         const imagePath = imageData.get("imagePath") as string;
         storage().bucket().file(imagePath).delete(); // delete the extra image (there can be up to 5 right now)
-      })
+      });
     }
 
     document.ref.delete(); // delete the document containing the user's profile data
@@ -240,7 +240,7 @@ export const deleteUserData = functions.https.onCall(data => {
   return Promise.all(promises);
 });
 
-// change a user's name, birthday, bio, and/or thumbnail URL everywhere if they change any of those fields.
+// change a user's name, birthday, bio, fcmTokens, and/or thumbnail URL everywhere if they change any of those fields.
 export const updateProfileDataEverywhere = functions.firestore.document("users/{userID}")
   .onUpdate(snapshot => {
     const userID = snapshot.before.id; //  equal to the user's ID
@@ -713,7 +713,7 @@ export const updateProfileDataEverywhere = functions.firestore.document("users/{
       promises.push(likeesThumbnailChange);
 
       // updates all references to people the user friended
-      let friendersBioChange = firestore().collection("friends").where("friender.userID", "==", userID)
+      let friendersThumbnailChange = firestore().collection("friends").where("friender.userID", "==", userID)
         .get().then((querySnapshot) => {
           querySnapshot.docs.forEach(doc => {
             doc.ref.update({
@@ -721,10 +721,10 @@ export const updateProfileDataEverywhere = functions.firestore.document("users/{
             });
           });
         });
-      promises.push(friendersBioChange);
+      promises.push(friendersThumbnailChange);
 
       // updates all references to people who friended the user
-      let friendeesBioChange = firestore().collection("friends").where("friendee.userID", "==", userID)
+      let friendeesThumbnailChange = firestore().collection("friends").where("friendee.userID", "==", userID)
         .get().then((querySnapshot) => {
           querySnapshot.docs.forEach(doc => {
             doc.ref.update({
@@ -732,7 +732,7 @@ export const updateProfileDataEverywhere = functions.firestore.document("users/{
             });
           });
         });
-      promises.push(friendeesBioChange);
+      promises.push(friendeesThumbnailChange);
 
       // updates all references to people the user blocked
       let blockersThumbnailChange = firestore().collection("blocked-users").where("blocker.userID", "==", userID)
@@ -837,6 +837,139 @@ export const updateProfileDataEverywhere = functions.firestore.document("users/{
           });
         });
       promises.push(membersThumbnailChange);
+    };
+
+    // if the user changes their fcmTokens, update them everywhere in the database.
+    const previousFCMTokens = snapshot.before
+      .get("fcmTokens") as Array<string> | null;
+    const newFCMTOkens = snapshot.after
+      .get("fcmTokens") as Array<string> | null;
+
+    //  if the user"s name changed, update it everywhere
+    if (newFCMTOkens != previousFCMTokens) {
+      // updates all references to people the user liked
+      let likersTokenChange = firestore().collection("likes").where("liker.userID", "==", userID)
+        .get().then((querySnapshot) => {
+          querySnapshot.docs.forEach(doc => {
+            doc.ref.update({
+              "liker.fcmTokens": newFCMTOkens
+            });
+          });
+        });
+      promises.push(likersTokenChange);
+
+      // updates all references to people who liked the user
+      let likeesTokenChange = firestore().collection("likes").where("likee.userID", "==", userID)
+        .get().then((querySnapshot) => {
+          querySnapshot.docs.forEach(doc => {
+            doc.ref.update({
+              "likee.fcmTokens": newFCMTOkens
+            });
+          });
+        });
+      promises.push(likeesTokenChange);
+
+      // updates all references to people the user friended
+      let friendersTokenChange = firestore().collection("friends").where("friender.userID", "==", userID)
+        .get().then((querySnapshot) => {
+          querySnapshot.docs.forEach(doc => {
+            doc.ref.update({
+              "friender.fcmTokens": newFCMTOkens
+            });
+          });
+        });
+      promises.push(friendersTokenChange);
+
+      // updates all references to people who friended the user
+      let friendeesTokenChange = firestore().collection("friends").where("friendee.userID", "==", userID)
+        .get().then((querySnapshot) => {
+          querySnapshot.docs.forEach(doc => {
+            doc.ref.update({
+              "friendee.fcmTokens": newFCMTOkens
+            });
+          });
+        });
+      promises.push(friendeesTokenChange);
+
+      // updates all references to people the user blocked
+      let blockerTokenChange = firestore().collection("blocked-users").where("blocker.userID", "==", userID)
+        .get().then((querySnapshot) => {
+          querySnapshot.docs.forEach(doc => {
+            doc.ref.update({
+              "blocker.fcmTokens": newFCMTOkens
+            });
+          });
+        });
+      promises.push(blockerTokenChange);
+
+      // updates all references to people who the user was blocked by
+      let blockeesTokenChange = firestore().collection("blocked-users").where("blockee.userID", "==", userID)
+        .get().then((querySnapshot) => {
+          querySnapshot.docs.forEach(doc => {
+            doc.ref.update({
+              "blockee.fcmTokens": newFCMTOkens
+            });
+          });
+        });
+      promises.push(blockeesTokenChange);
+
+      // updates all references to people the user reported
+      let reportersTokenChange = firestore().collection("inappropriate-content-reports")
+        .where("reporter.userID", "==", userID).get().then((querySnapshot) => {
+          querySnapshot.docs.forEach(doc => {
+            doc.ref.update({
+              "reporter.fcmTokens": newFCMTOkens
+            });
+          });
+        });
+      promises.push(reportersTokenChange);
+
+      // updates all references to people the user was reported by
+      let reporteesTokenChange = firestore().collection("inappropriate-content-reports")
+        .where("reportee.userID", "==", userID).get().then((querySnapshot) => {
+          querySnapshot.docs.forEach(doc => {
+            doc.ref.update({
+              "reportee.fcmTokens": newFCMTOkens
+            });
+          });
+        });
+      promises.push(reporteesTokenChange);
+
+      // updates all references to people the user met
+      let nearbyPeoplePerson1TokenChange = firestore().collection("nearby-people")
+        .where("person1.userID", "==", userID).get().then((querySnapshot) => {
+          querySnapshot.docs.forEach(doc => {
+            doc.ref.update({
+              "person1.fcmTokens": newFCMTOkens
+            });
+          });
+        });
+      promises.push(nearbyPeoplePerson1TokenChange);
+
+      // updates all references to people the user met
+      let nearbyPeoplePerson2TokenChange = firestore().collection("nearby-people")
+        .where("person2.userID", "==", userID).get().then((querySnapshot) => {
+          querySnapshot.docs.forEach(doc => {
+            doc.ref.update({
+              "person2.fcmTokens": newFCMTOkens
+            });
+          });
+        });
+      promises.push(nearbyPeoplePerson2TokenChange);
+
+      // Don"t need to do anything with documents containing DM conversations with the user.
+      // They don"t contain FCM tokens.
+
+      // updates the users pod memberships
+      let membersTokenChange = firestore().collectionGroup("members")
+        .where("userID", "==", userID).get().then((querySnapshot) => {
+          querySnapshot.docs.forEach(doc => {
+            doc.ref.update({
+              "fcmTokens": newFCMTOkens
+            });
+          });
+        });
+      promises.push(membersTokenChange);
     };
 
     return Promise.all(promises); // execute all the promises (promises are async functions)
@@ -1088,6 +1221,6 @@ export const sendPushNotification = functions.https.onCall(async data => {
   // send the push notification to the topic equal to the recipient ID
   recipientDeviceTokens.forEach((token) => {
     messaging().sendToDevice(token, payload);
-  })
+  });
 });
 

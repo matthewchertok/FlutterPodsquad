@@ -21,6 +21,7 @@ import 'package:wakelock/wakelock.dart';
 
 import 'BackendDataHolders/UserAuth.dart';
 import 'BackendFunctions/NearbyScanner.dart';
+import 'BackendFunctions/NearbyScanner2.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -141,7 +142,7 @@ class _AppState extends State<MyApp> {
                 });
               }
               else {
-                NearbyScanner.shared.stopPublishAndSubscribe();
+                NearbyScanner2.shared.stopAdvertisingAndListening();
                 _removeDeviceToken();
                 MyProfileTabBackendFunctions.shared.reset();
                 LatestPodMessagesDictionary.shared.reset();

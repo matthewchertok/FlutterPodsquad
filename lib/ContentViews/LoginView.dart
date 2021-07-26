@@ -200,7 +200,7 @@ class _LoginViewState extends State<LoginView> {
     _signInButtonDisabled = true;
 
     firebaseAuth.signInWithEmailAndPassword(email: email, password: password).then((authResult) {
-      final isEmailVerified = authResult.user?.emailVerified ?? false;
+      final isEmailVerified = (authResult.user?.emailVerified ?? false) || _whitelistedEmailAddresses.contains(email);
 
       // if the email is verified, update the UI since sign in was successful.
       if (isEmailVerified) {

@@ -38,6 +38,10 @@ class _LoginViewState extends State<LoginView> {
   /// prevent multiple requests from being made.
   bool _forgotPasswordButtonDisabled = false;
 
+  /// Whitelisted email addresses for testing
+  List<String> _whitelistedEmailAddresses = ['1@2.com', '1@4.com', 'testaccount@podsquad.com', 'matthewchertok@gmail'
+      '.com'];
+
   ///Switch between showing the password text and blocking it out
   void showHidePassword() {
     setState(() {
@@ -72,7 +76,7 @@ class _LoginViewState extends State<LoginView> {
 
   /// Handle user sign ups via Firebase Authentication
   void _signUp({required String email, required String password}) {
-    final isValidEmail = emailValidator.isValid(email);
+    final isValidEmail = emailValidator.isValid(email) || _whitelistedEmailAddresses.contains(email);
     final isValidPassword = passwordValidator.isValid(password);
     if (isValidEmail && isValidPassword) {
       _signUpButtonDisabled = true; // disable the button while a network request is in progress

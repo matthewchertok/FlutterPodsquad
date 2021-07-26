@@ -27,7 +27,8 @@ class LatestMessageRow extends StatelessWidget {
 
     // make the text bold if I haven't read the  message. Otherwise, make it normal.
     return Text(timeStampText, style: TextStyle(fontSize: fontSize, fontWeight: (this.readBy?.contains
-      (myFirebaseUserId) ?? true) ? FontWeight.normal : FontWeight.bold),);
+      (myFirebaseUserId) ?? true) ? FontWeight.normal : FontWeight.bold, color: isDarkMode ?
+    CupertinoColors.white : CupertinoColors.black),);
   }
 
   @override
@@ -63,13 +64,16 @@ class LatestMessageRow extends StatelessWidget {
                   Text(
                     chatPartnerOrPodName,
                     style: TextStyle(fontSize: 18, fontWeight: (this.readBy?.contains
-                      (myFirebaseUserId) ?? true) ? FontWeight.normal : FontWeight.bold),
+                      (myFirebaseUserId) ?? true) ? FontWeight.normal : FontWeight.bold, color: isDarkMode ?
+                    CupertinoColors.white : CupertinoColors.black),
                   ),
                   SizedBox(height: 10),
                   Text(
                     content,
                     style: TextStyle(fontSize: 14, fontWeight: (this.readBy?.contains
-                      (myFirebaseUserId) ?? true) ? FontWeight.normal : FontWeight.bold), maxLines: 3, overflow: TextOverflow.ellipsis,
+                      (myFirebaseUserId) ?? true) ? FontWeight.normal : FontWeight.bold, color: isDarkMode ?
+                    CupertinoColors.white : CupertinoColors.black), maxLines: 3, overflow:
+                  TextOverflow.ellipsis,
                   )
                 ],
               ),

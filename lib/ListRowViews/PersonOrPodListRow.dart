@@ -36,7 +36,8 @@ class PersonOrPodListRow extends StatelessWidget {
                 children: [
                   Text(
                     this.personOrPodName,
-                    style: TextStyle(fontSize: 18),
+                    style: TextStyle(fontSize: 18, color: isDarkMode ?
+                    CupertinoColors.white : CupertinoColors.black),
                   ),
                   SizedBox(height: 10),
                   if (this.personOrPodBio.isNotEmpty)
@@ -59,7 +60,8 @@ class PersonOrPodListRow extends StatelessWidget {
           if (timeIMetThePerson != null)
             Container(
               width: 50,
-              child: Text(TimeAndDateFunctions.timeStampText(timeIMetThePerson!), style: TextStyle(fontSize: 10),),
+              child: Text(TimeAndDateFunctions.timeStampText(timeIMetThePerson!), style: TextStyle(fontSize: 10, color: isDarkMode ?
+              CupertinoColors.white : CupertinoColors.black),),
             )
         ],
       ),

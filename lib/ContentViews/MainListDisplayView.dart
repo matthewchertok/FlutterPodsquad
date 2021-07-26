@@ -173,7 +173,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
           child: Card(
             color: _selectedIndex == _listOfPeople.indexWhere((element) => element == person)
                 ? Colors.white60
-                : CupertinoColors.systemBackground,
+                : (isDarkMode ? CupertinoColors.darkBackgroundGray : CupertinoColors.systemBackground),
             child: Padding(
               padding: EdgeInsets.all(8),
               child: PersonOrPodListRow(
@@ -246,7 +246,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
           child: Card(
             color: _selectedIndex == _listOfPeople.indexWhere((element) => element == person)
                 ? Colors.white60
-                : CupertinoColors.systemBackground,
+                : (isDarkMode ? CupertinoColors.darkBackgroundGray : CupertinoColors.systemBackground),
             child: Padding(
               padding: EdgeInsets.all(8),
               child: PersonOrPodListRow(
@@ -420,7 +420,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
           child: Card(
             color: _selectedIndex == _listOfPeople.indexWhere((element) => element == person)
                 ? Colors.white60
-                : CupertinoColors.systemBackground,
+                : (isDarkMode ? CupertinoColors.darkBackgroundGray : CupertinoColors.systemBackground),
             child: Padding(
               padding: EdgeInsets.all(8),
               child: PersonOrPodListRow(
@@ -1178,7 +1178,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                           child: Card(
                             color: _selectedIndex == _listOfPods.indexWhere((element) => element == pod)
                                 ? Colors.white60
-                                : CupertinoColors.systemBackground,
+                                : (isDarkMode ? CupertinoColors.darkBackgroundGray : CupertinoColors.systemBackground),
                             child: Padding(
                               padding: EdgeInsets.all(8),
                               child: PersonOrPodListRow(

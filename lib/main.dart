@@ -7,6 +7,7 @@ import 'dart:io';
 // Import the firebase_core plugin
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:podsquad/BackendFunctions/ReportedPeopleBackendFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/LoginView.dart';
@@ -92,6 +93,7 @@ class _AppState extends State<MyApp> {
   void initState() {
     super.initState();
     if (Platform.isIOS) _messaging.requestPermission();
+    Permission.bluetooth.request();
     respondToPushNotification();
   }
 

@@ -28,8 +28,8 @@ class PushNotificationSender {
       "recipientDeviceTokens": recipientDeviceTokens,
       "title": title,
       "body": body,
-      "clickAction": notificationType, // this is required so that the Android app launches on
-      // notification tap. Might need to replace with "FLUTTER_NOTIFICATION_CLICK"
+      "clickAction": "FLUTTER_NOTIFICATION_CLICK", // this is required so that the Android app launches on
+      // notification tap.
       "senderID": nonOptionalSenderID,
       "senderName": nonOptionalSenderName,
       "notificationType": notificationType,

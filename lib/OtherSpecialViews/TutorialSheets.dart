@@ -150,7 +150,7 @@ Future<void> showEULAIfNecessary({required BuildContext context}) async {
         actions: [
           CupertinoButton(
               child: Text(
-                "I Don't Agree",
+                "Disagree",
                 style: TextStyle(color: CupertinoColors.destructiveRed),
               ),
               onPressed: () {
@@ -158,7 +158,7 @@ Future<void> showEULAIfNecessary({required BuildContext context}) async {
                 showEULAIfNecessary(context: context); // show the terms and conditions again until the user agrees
               }),
           CupertinoButton(
-              child: Text("I Agree"),
+              child: Text("Agree"),
               onPressed: () async {
                 dismissAlert(context: context);
                 await SettingsStoredOnDevice.shared

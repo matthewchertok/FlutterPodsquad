@@ -36,10 +36,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _AppState extends State<MyApp> {
-  /// The future is part of the state of our widget. We should not call `initializeApp`
-  /// directly inside [build].
-  FirebaseMessaging _messaging = FirebaseMessaging.instance;
-
   ///This function can read push notification payload data and open a specified view.
   void respondToPushNotification() async {
     // Also handle any interaction when the app is in the background via a
@@ -64,7 +60,7 @@ class _AppState extends State<MyApp> {
   /// can be signed in on multiple devices, so we can use an array in the user's document to store all their tokens.
   Future _saveDeviceToken() async {
     final userID = firebaseAuth.currentUser?.uid;
-    final fcmToken = await _messaging.getToken();
+    final fcmToken = await firebaseMessaging.getToken();
     if (userID != null && fcmToken != null){
       await firestoreDatabase.collection("users").doc(userID).set({
         // remember, this must be an array because a user can be
@@ -75,25 +71,10 @@ class _AppState extends State<MyApp> {
     return;
   }
 
-  /// Delete a messaging token from the database when a user signs out, so that they don't receive notifications on
-  /// devices where they aren't signed in
-  Future _removeDeviceToken() async {
-    final userID = firebaseAuth.currentUser?.uid;
-    final fcmToken = await _messaging.getToken();
-    if (userID != null && fcmToken != null){
-      await firestoreDatabase.collection("users").doc(userID).set({
-        // remember, this must be an array because a user can be
-        // signed in (and therefore receive notifications) on multiple devices
-        "fcmTokens": FieldValue.arrayRemove([fcmToken])
-      }, SetOptions(merge: true));
-    }
-    return;
-  }
-
   @override
   void initState() {
     super.initState();
-    if (Platform.isIOS) _messaging.requestPermission();
+    if (Platform.isIOS) firebaseMessaging.requestPermission();
     respondToPushNotification();
     Permission.bluetooth.request();
   }
@@ -144,7 +125,6 @@ class _AppState extends State<MyApp> {
               }
               else {
                 NearbyScanner2.shared.stopAdvertisingAndListening();
-                _removeDeviceToken();
                 MyProfileTabBackendFunctions.shared.reset();
                 LatestPodMessagesDictionary.shared.reset();
                 LatestDirectMessagesDictionary.shared.reset();

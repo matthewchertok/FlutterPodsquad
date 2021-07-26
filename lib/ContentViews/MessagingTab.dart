@@ -460,7 +460,7 @@ class _MessagingTabState extends State<MessagingTab> {
                             child: Card(
                               color: _selectedIndex == messagesList.indexWhere((element) => element == message)
                                   ? Colors.white60
-                                  : CupertinoColors.systemBackground,
+                                  : (isDarkMode ? CupertinoColors.darkBackgroundGray : CupertinoColors.systemBackground),
                               child: Padding(
                                 padding: EdgeInsets.all(8),
                                 child: LatestMessageRow(

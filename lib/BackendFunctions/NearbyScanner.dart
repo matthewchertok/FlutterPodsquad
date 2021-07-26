@@ -8,6 +8,7 @@ import 'dart:async';
 import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'PushNotificationSender.dart';
 
@@ -34,6 +35,7 @@ class NearbyScanner {
 
     nearbyMessagesApi.setPermissionAlert('Allow Bluetooth Permission?',
         'Podsquad requires Bluetooth permission to discover nearby users.', 'Deny', 'Grant');
+    await Permission.bluetooth.request();
 
     // first, get the list of people I already met (so that I don't create repeated notifications if I meet the same
     // person multiple times)
@@ -54,9 +56,8 @@ class NearbyScanner {
       _meetSomeone(personID: message).then((otherPersonsProfileData) {
         if (otherPersonsProfileData != null) {
           final tokens = otherPersonsProfileData.fcmTokens;
-          if (tokens != null)
-            this._sendTheOtherPersonAPushNotificationIfWeHaveNotMetRecently(
-                recipientID: otherPersonsProfileData.userID, toDeviceTokens: tokens);
+          this._sendTheOtherPersonAPushNotificationIfWeHaveNotMetRecently(
+              recipientID: otherPersonsProfileData.userID, toDeviceTokens: tokens);
         }
       }); // the message
       // contains the person's ID

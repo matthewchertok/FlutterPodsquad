@@ -35,7 +35,6 @@ class NearbyScanner {
 
     nearbyMessagesApi.setPermissionAlert('Allow Bluetooth Permission?',
         'Podsquad requires Bluetooth permission to discover nearby users.', 'Deny', 'Grant');
-    await Permission.bluetooth.request();
 
     // first, get the list of people I already met (so that I don't create repeated notifications if I meet the same
     // person multiple times)

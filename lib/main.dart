@@ -93,7 +93,6 @@ class _AppState extends State<MyApp> {
   void initState() {
     super.initState();
     if (Platform.isIOS) _messaging.requestPermission();
-    Permission.bluetooth.request();
     respondToPushNotification();
   }
 

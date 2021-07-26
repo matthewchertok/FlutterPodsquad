@@ -1204,7 +1204,7 @@ async function uploadPodMessage(podID: string, podName: string, senderId: string
 
 // cloud function to send a push notification the right way
 export const sendPushNotification = functions.https.onCall(async data => {
-  let recipientDeviceTokens = data.recipientID as Array<string>;
+  let recipientDeviceTokens = data.recipientDeviceTokens as Array<string>;
   let title = data.title as string;
   let body = data.body as string;
   let clickAction = data.clickAction as string;

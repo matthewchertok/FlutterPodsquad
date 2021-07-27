@@ -7,6 +7,7 @@ import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 
 import 'PushNotificationSender.dart';
 
@@ -24,7 +25,11 @@ class NearbyScanner2 {
 
   final _pushSender = PushNotificationSender();
 
+  FlutterBlue flutterBlue = FlutterBlue.instance;
   void advertiseAndListen() async {
+    // Start scanning
+    flutterBlue.startScan(timeout: Duration(seconds: 4));
+
     // first, get the list of people I already met (so that I don't create repeated notifications if I meet the same
     // person multiple times)
     this._peopleIMetAndTimeMap = await _getListOfPeopleIAlreadyMet();

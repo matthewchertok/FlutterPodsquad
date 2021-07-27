@@ -13,7 +13,7 @@ import 'PushNotificationSender.dart';
 
 class NearbyScanner2 {
   static final shared = NearbyScanner2();
-  final AdvertiseData _data = AdvertiseData();
+  AdvertiseData _data = AdvertiseData();
   final FlutterBlePeripheral _blePeripheral = FlutterBlePeripheral();
 
   final userName = myFirebaseUserId;
@@ -41,6 +41,7 @@ class NearbyScanner2 {
       for (ScanResult r in results) {
         print('Device ID: ${r.device.id} found! service UUIDs: ${r.advertisementData.serviceUuids}, localName: ${r
             .advertisementData.localName}');
+        return;
         _meetSomeone(personID: r.advertisementData.localName).then((profileData) {
           final tokens = profileData?.fcmTokens;
           final userID = profileData?.userID;

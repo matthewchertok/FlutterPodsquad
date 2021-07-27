@@ -30,8 +30,10 @@ class _WelcomeViewState extends State<WelcomeView> {
     if (MyProfileTabBackendFunctions.shared.isProfileComplete.value) {
       print("Profile Complete!");
       NearbyScanner2.shared.advertiseAndListen();
-    } else
+    } else {
+      print("Profile Not Complete");
       NearbyScanner2.shared.stopAdvertisingAndListening();
+    }
     MyProfileTabBackendFunctions.shared.isProfileComplete.addListener(() {
       final isComplete = MyProfileTabBackendFunctions.shared.isProfileComplete.value;
       setState(() {
@@ -40,8 +42,10 @@ class _WelcomeViewState extends State<WelcomeView> {
       if (isComplete) {
         print("Profile Complete!");
         NearbyScanner2.shared.advertiseAndListen();
-      } else
+      } else {
+        print("Profile Not Complete");
         NearbyScanner2.shared.stopAdvertisingAndListening();
+      }
     });
 
     // Listen to when I switch the tab. If my profile isn't complete, don't let me switch tabs, and show an alert.

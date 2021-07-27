@@ -52,7 +52,7 @@ class NearbyScanner2 {
     });
 
     // publish
-    _data.uuid = myFirebaseUserId;
+   // _data.uuid = myFirebaseUserId;
     _data.serviceDataUuid = myFirebaseUserId;
     _data.localName = myFirebaseUserId;
     _blePeripheral.start(_data);

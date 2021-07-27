@@ -56,7 +56,7 @@ class NearbyScanner2 {
    // _data.uuid = myFirebaseUserId;
     _data.serviceDataUuid = myFirebaseUserId;
     _data.localName = myFirebaseUserId;
-    _blePeripheral.start(_data);
+  //  _blePeripheral.start(_data);
   }
 
   void stopAdvertisingAndListening() {

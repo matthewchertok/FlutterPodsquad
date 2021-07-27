@@ -32,8 +32,8 @@ class _WelcomeViewState extends State<WelcomeView> {
       setState(() {
         if (!isComplete) this._tabController.index = 3;
       });
-      if (isComplete) NearbyScanner2.shared.advertiseAndListen();
-      else NearbyScanner2.shared.stopAdvertisingAndListening();
+      if (isComplete) NearbyScanner.shared.publishAndSubscribe();
+      else NearbyScanner.shared.publishAndSubscribe();
     });
 
     // Listen to when I switch the tab. If my profile isn't complete, don't let me switch tabs, and show an alert.

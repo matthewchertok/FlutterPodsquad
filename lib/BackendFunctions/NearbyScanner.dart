@@ -9,6 +9,7 @@ import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 
 import 'PushNotificationSender.dart';
 
@@ -19,6 +20,10 @@ class NearbyScanner {
 
   // initialize the API
   FlutterNearbyMessagesApi nearbyMessagesApi = FlutterNearbyMessagesApi();
+
+  // Using this for no reason other than to get the Bluetooth permission request to pop up
+  FlutterBlue flutterBlue = FlutterBlue.instance;
+
 
   /// Stores the user ID of everyone I met, along with the time that I met them. The time is needed because Flutter's
   /// version of Google Nearby continuously publishes and subscribes, meaning that I'll use up reads far too quickly

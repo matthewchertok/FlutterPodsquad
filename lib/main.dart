@@ -124,7 +124,7 @@ class _AppState extends State<MyApp> {
                 });
               }
               else {
-                NearbyScanner2.shared.stopAdvertisingAndListening();
+                NearbyScanner.shared.stopPublishAndSubscribe();
                 MyProfileTabBackendFunctions.shared.reset();
                 LatestPodMessagesDictionary.shared.reset();
                 LatestDirectMessagesDictionary.shared.reset();

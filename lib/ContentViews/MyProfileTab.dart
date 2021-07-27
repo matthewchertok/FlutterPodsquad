@@ -239,7 +239,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
 
   /// Delete the user's account by calling a cloud function
   void _deleteAccount() {
-    NearbyScanner.shared.stopPublishAndSubscribe(); // stop listening for nearby users
+    NearbyScanner2.shared.stopAdvertisingAndListening(); // stop listening for nearby users
     final userIDForDeletedUser = myFirebaseUserId; // save the value for the cloud function, because once I delete my
     // account, I won't have access to it
     PushNotificationStatus.shared.unsubscribe(); // unsubscribe from push notifications

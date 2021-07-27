@@ -8,13 +8,14 @@ import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-
+import 'package:flutter_ble_peripheral/flutter_ble_peripheral.dart';
 import 'PushNotificationSender.dart';
 
 class NearbyScanner2 {
   static final shared = NearbyScanner2();
+  final AdvertiseData _data = AdvertiseData();
+  final FlutterBlePeripheral _blePeripheral = FlutterBlePeripheral();
 
-  final Strategy strategy = Strategy.P2P_CLUSTER;
   final userName = myFirebaseUserId;
 
   /// Stores the user ID of everyone I met, along with the time that I met them. The time is needed because Flutter's
@@ -24,64 +25,44 @@ class NearbyScanner2 {
   Map<String, DateTime> _peopleIMetAndTimeMap = {};
 
   final _pushSender = PushNotificationSender();
+  StreamSubscription? _bluetoothSubListener;
 
   FlutterBlue flutterBlue = FlutterBlue.instance;
   void advertiseAndListen() async {
-    // Start scanning
-    flutterBlue.startScan(timeout: Duration(seconds: 4));
-
     // first, get the list of people I already met (so that I don't create repeated notifications if I meet the same
     // person multiple times)
     this._peopleIMetAndTimeMap = await _getListOfPeopleIAlreadyMet();
 
-    // publish
-    try {
-      await Nearby().startAdvertising(
-        userName,
-        strategy,
-        onConnectionInitiated: (String id, ConnectionInfo info) {
-          // Called whenever a discoverer requests connection
-        },
-        onConnectionResult: (String id, Status status) {
-          // Called when connection is accepted/rejected
-        },
-        onDisconnected: (String id) {
-          // Called whenever a discoverer disconnects from advertiser
-        },
-        serviceId: "com.coldex.podsquad", // uniquely identifies your app
-      );
-    } catch (exception) {
-      // platform exceptions like unable to start bluetooth or insufficient permissions
-    }
+    // Start scanning
+    flutterBlue.startScan(timeout: null);
+    // Listen to scan results
+    this._bluetoothSubListener = flutterBlue.scanResults.listen((results) {
+      // do something with scan results
+      for (ScanResult r in results) {
+        print('Device ID: ${r.device.id} found! service UUIDs: ${r.advertisementData.serviceUuids}, localName: ${r
+            .advertisementData.localName}');
+        _meetSomeone(personID: r.advertisementData.localName).then((profileData) {
+          final tokens = profileData?.fcmTokens;
+          final userID = profileData?.userID;
+          if (tokens != null && userID != null)
+          _sendTheOtherPersonAPushNotificationIfWeHaveNotMetRecently(recipientID: userID, toDeviceTokens:
+          tokens);
+        });
+      }
+    });
 
-    // subscribe
-    try {
-      await Nearby().startDiscovery(
-        userName,
-        strategy,
-        onEndpointFound: (String id, String personID, String serviceId) {
-          print("Found user with ID: $personID");
-          _meetSomeone(personID: personID).then((otherPersonsProfileData) {
-            if (otherPersonsProfileData != null) {
-              final tokens = otherPersonsProfileData.fcmTokens;
-              this._sendTheOtherPersonAPushNotificationIfWeHaveNotMetRecently(
-                  recipientID: otherPersonsProfileData.userID, toDeviceTokens: tokens);
-            }
-          });
-        },
-        onEndpointLost: (String? id) {
-          //called when an advertiser is lost (only if we weren't connected to it )
-        },
-        serviceId: "com.coldex.podsquad", // uniquely identifies your app
-      );
-    } catch (e) {
-      // platform exceptions like unable to start bluetooth or insufficient permissions
-    }
+    // publish
+    _data.uuid = myFirebaseUserId;
+    _data.serviceDataUuid = myFirebaseUserId;
+    _data.localName = myFirebaseUserId;
+    _blePeripheral.start(_data);
   }
 
   void stopAdvertisingAndListening() {
     Nearby().stopAdvertising();
     Nearby().stopDiscovery();
+    this._bluetoothSubListener?.cancel();
+    _blePeripheral.stop();
 // endpoints already discovered will still be available to connect
 // even after stopping discovery
 // You should stop discovery once you have found the intended advertiser

@@ -60,6 +60,7 @@ dependencies:
   permission_handler: ^8.1.4+1
   nearby_connections: ^3.1.0
   flutter_blue: ^0.8.0
+  flutter_ble_peripheral: ^0.5.0+1
 
 
 dev_dependencies:

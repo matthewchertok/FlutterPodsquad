@@ -27,13 +27,21 @@ class _WelcomeViewState extends State<WelcomeView> {
     showWelcomeTutorialIfNecessary(context: context);
 
     // Listen to check if my profile is complete. If it isn't, switch the tab to My Profile to make me fill one out.
+    if (MyProfileTabBackendFunctions.shared.isProfileComplete.value) {
+      print("Profile Complete!");
+      NearbyScanner2.shared.advertiseAndListen();
+    } else
+      NearbyScanner2.shared.stopAdvertisingAndListening();
     MyProfileTabBackendFunctions.shared.isProfileComplete.addListener(() {
       final isComplete = MyProfileTabBackendFunctions.shared.isProfileComplete.value;
       setState(() {
         if (!isComplete) this._tabController.index = 3;
       });
-      if (isComplete) NearbyScanner2.shared.advertiseAndListen();
-      else NearbyScanner2.shared.stopAdvertisingAndListening();
+      if (isComplete) {
+        print("Profile Complete!");
+        NearbyScanner2.shared.advertiseAndListen();
+      } else
+        NearbyScanner2.shared.stopAdvertisingAndListening();
     });
 
     // Listen to when I switch the tab. If my profile isn't complete, don't let me switch tabs, and show an alert.
@@ -63,44 +71,52 @@ class _WelcomeViewState extends State<WelcomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return Localizations(locale: Locale('en', 'US'), delegates: [
-      DefaultWidgetsLocalizations.delegate,
-      DefaultMaterialLocalizations.delegate,
-      DefaultCupertinoLocalizations.delegate
-    ], child: Scaffold(key: drawerKey, drawer: likesFriendsBlocksDrawer(context: context),body: CupertinoTabScaffold(
-        controller: _tabController,
-        tabBar: CupertinoTabBar(items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.person_3), label: "People I Met"),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.bubble_left_bubble_right), label: "Messages"),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.person_2_square_stack), label: "My Pods"),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.person), label: "My Profile")
-        ]),
-        tabBuilder: (context, index) {
-          return CupertinoTabView(builder: (context) {
-            switch (_tabController.index) {
-              case 0:
-                {
-                  return MainListDisplayView(key: ValueKey<int>(0),viewMode: MainListDisplayViewModes.peopleIMet);
+    return Localizations(
+      locale: Locale('en', 'US'),
+      delegates: [
+        DefaultWidgetsLocalizations.delegate,
+        DefaultMaterialLocalizations.delegate,
+        DefaultCupertinoLocalizations.delegate
+      ],
+      child: Scaffold(
+        key: drawerKey,
+        drawer: likesFriendsBlocksDrawer(context: context),
+        body: CupertinoTabScaffold(
+            controller: _tabController,
+            tabBar: CupertinoTabBar(items: const <BottomNavigationBarItem>[
+              BottomNavigationBarItem(icon: Icon(CupertinoIcons.person_3), label: "People I Met"),
+              BottomNavigationBarItem(icon: Icon(CupertinoIcons.bubble_left_bubble_right), label: "Messages"),
+              BottomNavigationBarItem(icon: Icon(CupertinoIcons.person_2_square_stack), label: "My Pods"),
+              BottomNavigationBarItem(icon: Icon(CupertinoIcons.person), label: "My Profile")
+            ]),
+            tabBuilder: (context, index) {
+              return CupertinoTabView(builder: (context) {
+                switch (_tabController.index) {
+                  case 0:
+                    {
+                      return MainListDisplayView(key: ValueKey<int>(0), viewMode: MainListDisplayViewModes.peopleIMet);
+                    }
+                  case 1:
+                    {
+                      return MessagingTab(key: ValueKey<int>(1));
+                    }
+                  case 2:
+                    {
+                      return MainListDisplayView(key: ValueKey<int>(2), viewMode: MainListDisplayViewModes.myPods);
+                    }
+                  case 3:
+                    {
+                      return MyProfileTab(key: ValueKey<int>(3));
+                    }
+                  default:
+                    {
+                      return MyProfileTab();
+                    }
                 }
-              case 1:
-                {
-                  return MessagingTab(key: ValueKey<int>(1));
-                }
-              case 2:
-                {
-                  return MainListDisplayView(key: ValueKey<int>(2),viewMode: MainListDisplayViewModes.myPods);
-                }
-              case 3:
-                {
-                  return MyProfileTab(key: ValueKey<int>(3));
-                }
-              default:
-                {
-                  return MyProfileTab();
-                }
-            }
-          });
-        }),),);
+              });
+            }),
+      ),
+    );
   }
 }
 

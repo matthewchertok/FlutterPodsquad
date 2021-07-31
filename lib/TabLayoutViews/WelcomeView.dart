@@ -29,10 +29,10 @@ class _WelcomeViewState extends State<WelcomeView> {
     // Listen to check if my profile is complete. If it isn't, switch the tab to My Profile to make me fill one out.
     if (MyProfileTabBackendFunctions.shared.isProfileComplete.value) {
       print("Profile Complete!");
-      NearbyScanner.shared.publishAndSubscribe();
+      NearbyScanner2.shared.advertiseAndListen();
     } else {
       print("Profile Not Complete");
-      NearbyScanner.shared.publishAndSubscribe();
+      NearbyScanner.shared.stopPublishAndSubscribe();
     }
     MyProfileTabBackendFunctions.shared.isProfileComplete.addListener(() {
       final isComplete = MyProfileTabBackendFunctions.shared.isProfileComplete.value;
@@ -41,10 +41,10 @@ class _WelcomeViewState extends State<WelcomeView> {
       });
       if (isComplete) {
         print("Profile Complete!");
-        NearbyScanner.shared.publishAndSubscribe();
+        NearbyScanner2.shared.advertiseAndListen();
       } else {
         print("Profile Not Complete");
-        NearbyScanner.shared.publishAndSubscribe();
+        NearbyScanner.shared.stopPublishAndSubscribe();
       }
     });
 
@@ -60,7 +60,7 @@ class _WelcomeViewState extends State<WelcomeView> {
             context: context,
             title: "Profile Not Complete",
             content:
-                "Complete a profile to begin using Podsquad! Not sure what's missing? Scroll down and tap Create Profile.",
+            "Complete a profile to begin using Podsquad! Not sure what's missing? Scroll down and tap Create Profile.",
             dismissButtonLabel: "OK");
       }
     });

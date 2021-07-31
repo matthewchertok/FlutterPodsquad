@@ -1,20 +1,16 @@
 import 'dart:async';
+import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:nearby_connections/nearby_connections.dart';
 import 'package:podsquad/BackendDataclasses/NotificationTypes.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
-import 'package:flutter_blue/flutter_blue.dart';
-import 'package:flutter_ble_peripheral/flutter_ble_peripheral.dart';
 import 'PushNotificationSender.dart';
 
 class NearbyScanner2 {
   static final shared = NearbyScanner2();
-  AdvertiseData _data = AdvertiseData();
-  final FlutterBlePeripheral _blePeripheral = FlutterBlePeripheral();
 
   final userName = myFirebaseUserId;
 
@@ -26,44 +22,36 @@ class NearbyScanner2 {
 
   final _pushSender = PushNotificationSender();
   StreamSubscription? _bluetoothSubListener;
+  NearbyService? _nearbyService;
 
-  FlutterBlue flutterBlue = FlutterBlue.instance;
   void advertiseAndListen() async {
     // first, get the list of people I already met (so that I don't create repeated notifications if I meet the same
     // person multiple times)
     this._peopleIMetAndTimeMap = await _getListOfPeopleIAlreadyMet();
 
-    // Start scanning
-    flutterBlue.startScan(timeout: null);
-    // Listen to scan results
-    this._bluetoothSubListener = flutterBlue.scanResults.listen((results) {
-      // do something with scan results
-      for (ScanResult r in results) {
-        print('Device ID: ${r.device.id} found! service UUIDs: ${r.advertisementData.serviceUuids}, localName: ${r
-            .advertisementData.localName}');
-        return;
-        _meetSomeone(personID: r.advertisementData.localName).then((profileData) {
-          final tokens = profileData?.fcmTokens;
-          final userID = profileData?.userID;
-          if (tokens != null && userID != null)
-          _sendTheOtherPersonAPushNotificationIfWeHaveNotMetRecently(recipientID: userID, toDeviceTokens:
-          tokens);
+    await this._nearbyService?.init(serviceType: 'mp-connection', strategy: Strategy.P2P_CLUSTER, deviceName: myFirebaseUserId,
+        callback:
+    (isRunning) async {
+      print("Starting advertising and listening!");
+      this._nearbyService?.startAdvertisingPeer();
+      this._bluetoothSubListener = _nearbyService?.stateChangedSubscription(callback: (devicesList){
+        devicesList.forEach((device) {
+          print("I just met a user with ID ${device.deviceName}");
+          _meetSomeone(personID: device.deviceName).then((personData){
+            final tokens = personData?.fcmTokens;
+            if (tokens != null)
+            _sendTheOtherPersonAPushNotificationIfWeHaveNotMetRecently(recipientID: device.deviceName,
+                toDeviceTokens: tokens);
+          });
         });
-      }
+      });
     });
-
-    // publish
-   // _data.uuid = myFirebaseUserId;
-    _data.serviceDataUuid = myFirebaseUserId;
-    _data.localName = myFirebaseUserId;
-  //  _blePeripheral.start(_data);
   }
 
   void stopAdvertisingAndListening() {
-    Nearby().stopAdvertising();
-    Nearby().stopDiscovery();
+    this._nearbyService?.stopAdvertisingPeer();
+    this._nearbyService?.stopBrowsingForPeers();
     this._bluetoothSubListener?.cancel();
-    _blePeripheral.stop();
 // endpoints already discovered will still be available to connect
 // even after stopping discovery
 // You should stop discovery once you have found the intended advertiser

@@ -7,6 +7,7 @@ import 'dart:io';
 // Import the firebase_core plugin
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:podsquad/BackendFunctions/ReportedPeopleBackendFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
@@ -74,6 +75,7 @@ class _AppState extends State<MyApp> {
   void initState() {
     super.initState();
     if (Platform.isIOS) firebaseMessaging.requestPermission();
+    FlutterAppBadger.removeBadge(); // clear the notification badge (if there is one)
     respondToPushNotification();
     Permission.bluetooth.request();
   }

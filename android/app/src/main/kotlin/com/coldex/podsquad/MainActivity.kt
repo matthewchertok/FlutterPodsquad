@@ -17,5 +17,7 @@ import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.*
 
 
-class MainActivity : FlutterActivity()
+class MainActivity : FlutterActivity(){
+    oncre
+}
 

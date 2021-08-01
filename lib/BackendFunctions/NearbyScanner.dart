@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_nearby_messages_api/flutter_nearby_messages_api.dart';
 import 'package:podsquad/BackendDataclasses/NotificationTypes.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';

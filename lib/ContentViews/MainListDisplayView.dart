@@ -524,7 +524,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         }
       case MainListDisplayViewModes.podMemberships:
         {
-          return personId == myFirebaseUserId ? "My Pods" : "${personName ?? "User"}'s Pods";
+          return personId == myFirebaseUserId ? "My Pods" : "${personName?.firstName() ?? "User"}'s Pods";
         }
       case MainListDisplayViewModes.addPersonToPod:
         {

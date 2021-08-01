@@ -12,7 +12,6 @@ import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 import 'dart:io';
 import 'PushNotificationSender.dart';
-import 'package:flutter_isolate/flutter_isolate.dart';
 
 
 ///Discovers users nearby

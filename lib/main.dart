@@ -20,6 +20,7 @@ import 'package:podsquad/ContentViews/MessagingView.dart';
 import 'package:podsquad/ContentViews/ViewPersonDetails.dart';
 import 'package:podsquad/ContentViews/ViewPodDetails.dart';
 import 'package:podsquad/OtherSpecialViews/LoadingView.dart';
+import 'package:podsquad/TabLayoutViews/LikesFriendsBlocksTabView.dart';
 import 'package:podsquad/TabLayoutViews/WelcomeView.dart';
 import 'package:podsquad/UIBackendClasses/MainListDisplayBackend.dart';
 import 'package:podsquad/UIBackendClasses/MessagesDictionary.dart';
@@ -66,13 +67,13 @@ class _AppState extends State<MyApp> {
     // navigate to view Likes
     if (message.data["notificationType"] == NotificationTypes.like) {
       Navigator.of(context, rootNavigator: true).push(
-          CupertinoPageRoute(builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.likes)));
+          CupertinoPageRoute(builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes.likes)));
     }
 
     // navigate to view Friends
     else if (message.data["notificationType"] == NotificationTypes.friend) {
       Navigator.of(context, rootNavigator: true).push(
-          CupertinoPageRoute(builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.friends)));
+          CupertinoPageRoute(builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes.friends)));
     }
 
     // navigate to Messaging if a DM is received

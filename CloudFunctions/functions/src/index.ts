@@ -1188,7 +1188,7 @@ async function uploadPodMessage(podID: string, podName: string, senderId: string
 
     // initialize a push notification
     let notificationPayload = { "title": podName, "body": `${senderName}: ${messageText}`, "sound": "notificationTone.wav", "badge": "1", "click_action": "message" };
-    let dataPayload = { "senderID": senderId, "senderName": senderName, "notificationType": "podMessage", "podID": podID, "podName": podName };
+    let dataPayload = { "senderID": senderId, "senderName": senderName, "notificationType": "pod_message", "podID": podID, "podName": podName };
     let payload = { notification: notificationPayload, data: dataPayload };
 
     // send the push notification to all members except myself.

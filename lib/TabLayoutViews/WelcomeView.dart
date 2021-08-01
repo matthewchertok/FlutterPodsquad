@@ -29,8 +29,7 @@ class _WelcomeViewState extends State<WelcomeView> {
     // Listen to check if my profile is complete. If it isn't, switch the tab to My Profile to make me fill one out.
     if (MyProfileTabBackendFunctions.shared.isProfileComplete.value) {
       print("Profile Complete!");
-      //NearbyScanner.shared.publishAndSubscribe();
-      NearbyScanner.shared.startBroadcasting();
+      NearbyScanner.shared.publishAndSubscribe();
     } else {
       print("Profile Not Complete");
       NearbyScanner.shared.stopPublishAndSubscribe();
@@ -42,8 +41,7 @@ class _WelcomeViewState extends State<WelcomeView> {
       });
       if (isComplete) {
         print("Profile Complete!");
-        //NearbyScanner.shared.publishAndSubscribe();
-        NearbyScanner.shared.startBroadcasting();
+        NearbyScanner.shared.publishAndSubscribe();
       } else {
         print("Profile Not Complete");
         NearbyScanner.shared.stopPublishAndSubscribe();

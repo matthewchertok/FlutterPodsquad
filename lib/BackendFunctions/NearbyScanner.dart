@@ -10,11 +10,8 @@ import 'dart:async';
 import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
-import 'package:uuid/uuid.dart';
 import 'dart:io';
 import 'PushNotificationSender.dart';
-import 'package:beacon_broadcast/beacon_broadcast.dart';
-import 'package:flutter_beacon/flutter_beacon.dart' as beacon;
 
 
 ///Discovers users nearby
@@ -34,48 +31,6 @@ class NearbyScanner {
   /// by default. This map stores {userID: timeIMetThePerson}. Thus, I can use it to check if I met the person less
   /// than 10 minutes ago, and if that's the case, don't meet them again.
   Map<String, DateTime> _peopleIMetAndTimeMap = {};
-
-  BeaconBroadcast beaconBroadcast = BeaconBroadcast();
-  StreamSubscription? _streamRanging;
-
-  /// try using beacons instead
-  void startBroadcasting() async {
-    beaconBroadcast.setUUID(Uuid().v1()).setMajorId(1).setMinorId(100);
-    if (Platform.isIOS) beaconBroadcast.setIdentifier(myFirebaseUserId);
-    else if (Platform.isAndroid) beaconBroadcast.setLayout(myFirebaseUserId);
-    beaconBroadcast.start();
-    try {
-     await beacon.flutterBeacon.initializeAndCheckScanning;
-    } catch (e) {
-      print("An error occurred when initializing the beacon: $e");
-    }
-
-    final regions = <beacon.Region>[];
-
-    if (Platform.isIOS) {
-      // iOS platform, at least set identifier and proximityUUID for region scanning
-      regions.add(beacon.Region(
-          identifier: 'Apple Airlocate',
-          proximityUUID: 'E2C56DB5-DFFB-48D2-B060-D0F5A71096E0'));
-    } else {
-      // android platform, it can ranging out of beacon that filter all of Proximity UUID
-      regions.add(beacon.Region(identifier: 'com.beacon'));
-    }
-
-// to start ranging beacons
-    this._streamRanging = beacon.flutterBeacon.ranging(regions).listen((beacon.RangingResult result) {
-      // result contains a region and list of beacons found
-      // list can be empty if no matching beacons were found in range
-      result.beacons.forEach((beacon) {
-        print("FOUND RANGING BEACON: $beacon");
-      });
-    });
-
-  }
-
-  void stopBroadcasting(){
-    this._streamRanging?.cancel();
-  }
 
   ///Begin searching for nearby users over Bluetooth
   Future<void> publishAndSubscribe() async {

@@ -22,10 +22,6 @@ class NearbyScanner {
   // initialize the API
   FlutterNearbyMessagesApi nearbyMessagesApi = FlutterNearbyMessagesApi();
 
-  // the only reason why I need this line is so that iOS recognizes the app as a Bluetooth app and requests
-  // permission automatically, allowing Nearby to work.
-  final flutterBlue = FlutterBlue.instance;
-
   /// Stores the user ID of everyone I met, along with the time that I met them. The time is needed because Flutter's
   /// version of Google Nearby continuously publishes and subscribes, meaning that I'll use up reads far too quickly
   /// by default. This map stores {userID: timeIMetThePerson}. Thus, I can use it to check if I met the person less
@@ -34,7 +30,7 @@ class NearbyScanner {
 
   ///Begin searching for nearby users over Bluetooth
   Future<void> publishAndSubscribe() async {
-    if (!Platform.isIOS) return; // for some reason, this package crashes on Android. So we can't use it.
+    //if (!Platform.isIOS) return; // for some reason, this package crashes on Android. So we can't use it.
     if (myFirebaseUserId.isEmpty) return; // don't proceed if I'm not signed in
 
     // config for iOS

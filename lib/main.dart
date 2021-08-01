@@ -61,7 +61,7 @@ class _AppState extends State<MyApp> {
 
   /// A function to push the correct route when a notification is received
   void _pushRoute({required RemoteMessage message}){
-    print("RECEIVED MESSAGE WITH DATA ${message.data}");
+    print("RECEIVED MESSAGE WITH DATA ${message.data}.\n\n\nThe message type is ${message.data["notificationType"]}");
     // navigate to view Likes
     if (message.data["notificationType"] == NotificationTypes.like){
       Navigator.push(context, CupertinoPageRoute(builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.likes)));
@@ -78,7 +78,7 @@ class _AppState extends State<MyApp> {
       final chatPartnerOrPodID = message.data["senderID"];
       final chatPartnerOrPodName = message.data["senderName"];
       final isPodMode = false;
-      Navigator.pushNamed(context, "/messaging");
+      Navigator.push(context, CupertinoPageRoute(builder: (context) => MessagingView(chatPartnerOrPodID: chatPartnerOrPodID, chatPartnerOrPodName: chatPartnerOrPodName, isPodMode: isPodMode)));
     }
 
     // navigate to Messaging if a pod message is received
@@ -140,10 +140,7 @@ class _AppState extends State<MyApp> {
     // is open)
     Wakelock.enable();
 
-    return CupertinoApp(routes: {
-      "/messaging": (context) => MessagingView(chatPartnerOrPodID: "null", chatPartnerOrPodName: "null", 
-          isPodMode: false)
-    },
+    return CupertinoApp(
         home: ValueListenableBuilder(
             valueListenable: UserAuth.shared.isLoggedIn,
             builder: (BuildContext context, bool isLoggedIn, Widget? child) {

@@ -39,7 +39,8 @@ class NearbyScanner {
 
   /// try using beacons instead
   void startBroadcasting() async {
-    beaconBroadcast.setUUID(myFirebaseUserId).start();
+    beaconBroadcast.setUUID(myFirebaseUserId).setLayout('m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24')
+        .setManufacturerId(0x004C).start();
     try {
      await beacon.flutterBeacon.initializeAndCheckScanning;
     } catch (e) {
@@ -63,7 +64,7 @@ class NearbyScanner {
       // result contains a region and list of beacons found
       // list can be empty if no matching beacons were found in range
       result.beacons.forEach((beacon) {
-        print("FOUND RANGING BEACON: ${beacon.proximityUUID}");
+        print("FOUND RANGING BEACON: ${beacon}");
       });
     });
 

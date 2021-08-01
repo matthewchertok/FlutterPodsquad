@@ -24,11 +24,7 @@ class UserAuth {
     /// devices where they aren't signed in
     final fcmToken = await firebaseMessaging.getToken();
     if (fcmToken != null){
-      await firestoreDatabase.collection("users").doc(myPreviousID).set({
-        // remember, this must be an array because a user can be
-        // signed in (and therefore receive notifications) on multiple devices
-        "fcmTokens": FieldValue.arrayRemove([fcmToken])
-      }, SetOptions(merge: true));
+      await firebaseFunctions.httpsCallable('deleteDeviceFCMToken').call({"userID": myPreviousID, "token": fcmToken});
       this.isLoggedIn.value = false;
       if (onCompletion != null) onCompletion();
     }

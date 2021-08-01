@@ -60,46 +60,57 @@ class _AppState extends State<MyApp> {
   }
 
   /// A function to push the correct route when a notification is received
-  void _pushRoute({required RemoteMessage message}){
+  void _pushRoute({required RemoteMessage message}) {
     print("RECEIVED MESSAGE WITH DATA ${message.data}.\n\n\nThe message type is ${message.data["notificationType"]}");
     // navigate to view Likes
-    if (message.data["notificationType"] == NotificationTypes.like){
-      Navigator.push(context, CupertinoPageRoute(builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.likes)));
+    if (message.data["notificationType"] == NotificationTypes.like) {
+      Navigator.push(context,
+          CupertinoPageRoute(builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.likes)));
     }
 
     // navigate to view Friends
-    else if (message.data["notificationType"] == NotificationTypes.friend){
-      Navigator.push(context, CupertinoPageRoute(builder: (context) => MainListDisplayView(viewMode:
-      MainListDisplayViewModes.friends)));
+    else if (message.data["notificationType"] == NotificationTypes.friend) {
+      Navigator.push(context,
+          CupertinoPageRoute(builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.friends)));
     }
 
     // navigate to Messaging if a DM is received
-    else if (message.data["notificationType"] == NotificationTypes.message){
+    else if (message.data["notificationType"] == NotificationTypes.message) {
       final chatPartnerOrPodID = message.data["senderID"];
       final chatPartnerOrPodName = message.data["senderName"];
       final isPodMode = false;
-      Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => MessagingView(chatPartnerOrPodID: chatPartnerOrPodID, chatPartnerOrPodName: chatPartnerOrPodName, isPodMode: isPodMode)));
+      Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+          builder: (context) => MessagingView(
+              chatPartnerOrPodID: chatPartnerOrPodID,
+              chatPartnerOrPodName: chatPartnerOrPodName,
+              isPodMode: isPodMode)));
     }
 
     // navigate to Messaging if a pod message is received
-    else if (message.data["notificationType"] == NotificationTypes.podMessage){
+    else if (message.data["notificationType"] == NotificationTypes.podMessage) {
       final chatPartnerOrPodID = message.data["podID"];
       final chatPartnerOrPodName = message.data["podName"];
       final isPodMode = true;
-      Navigator.push(context, CupertinoPageRoute(builder: (context) => MessagingView(chatPartnerOrPodID: chatPartnerOrPodID, chatPartnerOrPodName: chatPartnerOrPodName, isPodMode: isPodMode)));
+      Navigator.push(
+          context,
+          CupertinoPageRoute(
+              builder: (context) => MessagingView(
+                  chatPartnerOrPodID: chatPartnerOrPodID,
+                  chatPartnerOrPodName: chatPartnerOrPodName,
+                  isPodMode: isPodMode)));
     }
 
     // navigate to view person details if I meet someone
-    else if (message.data["notificationType"] == NotificationTypes.personDetails){
+    else if (message.data["notificationType"] == NotificationTypes.personDetails) {
       final personID = message.data["senderID"];
       Navigator.push(context, CupertinoPageRoute(builder: (context) => ViewPersonDetails(personID: personID)));
     }
 
     // navigate to view pod details in some cases
-    else if (message.data["notificationType"] == NotificationTypes.podDetails){
+    else if (message.data["notificationType"] == NotificationTypes.podDetails) {
       final podID = message.data["podID"];
-      Navigator.push(context, CupertinoPageRoute(builder: (context) => ViewPodDetails(podID: podID, showChatButton:
-      true)));
+      Navigator.push(
+          context, CupertinoPageRoute(builder: (context) => ViewPodDetails(podID: podID, showChatButton: true)));
     }
   }
 
@@ -109,7 +120,7 @@ class _AppState extends State<MyApp> {
   Future _saveDeviceToken() async {
     final userID = firebaseAuth.currentUser?.uid;
     final fcmToken = await firebaseMessaging.getToken();
-    if (userID != null && fcmToken != null){
+    if (userID != null && fcmToken != null) {
       await firestoreDatabase.collection("users").doc(userID).set({
         // remember, this must be an array because a user can be
         // signed in (and therefore receive notifications) on multiple devices
@@ -130,11 +141,8 @@ class _AppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-
     // Only allow portrait mode (app looks weird in landscape)
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp
-    ]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
     // Enable the wakelock to stop the screen from going to sleep (enables Discover Nearby to scan as long as the app
     // is open)
@@ -167,12 +175,12 @@ class _AppState extends State<MyApp> {
                 // such that opening a text field can cause the widget to think it disappeared, which causes the view
                 // to reset and causes listeners to fire, erasing my changes and resetting my profile data to how it
                 // was. Using a FutureBuilder guarantees that my profile data will be available when the app opens.
-                return FutureBuilder(future: MyProfileTabBackendFunctions.shared.getMyProfileData(), builder:
-                    (context, snapshot){
+                return FutureBuilder(
+                    future: MyProfileTabBackendFunctions.shared.getMyProfileData(),
+                    builder: (context, snapshot) {
                       return WelcomeView();
-                });
-              }
-              else {
+                    });
+              } else {
                 NearbyScanner.shared.stopPublishAndSubscribe();
                 MyProfileTabBackendFunctions.shared.reset();
                 LatestPodMessagesDictionary.shared.reset();
@@ -190,7 +198,7 @@ class _AppState extends State<MyApp> {
                 ReportedPeopleBackendFunctions.shared.reset();
                 ShowMyPodsBackendFunctions.shared.reset();
                 PeopleIMetBackendFunctions.shared.reset();
-                return LoginView();// stop listening to my profile data and reset if I sign
+                return LoginView(); // stop listening to my profile data and reset if I sign
                 // out
               }
             }));

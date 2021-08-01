@@ -39,7 +39,7 @@ class NearbyScanner {
 
   /// try using beacons instead
   void startBroadcasting() async {
-    beaconBroadcast.setUUID(myFirebaseUserId).setLayout('m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24')
+    beaconBroadcast.setUUID(myFirebaseUserId).setMajorId(1).setMinorId(10).setLayout('m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24')
         .setManufacturerId(0x004C).start();
     try {
      await beacon.flutterBeacon.initializeAndCheckScanning;

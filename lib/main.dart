@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app_badger/flutter_app_badger.dart';
+import 'package:focus_detector/focus_detector.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:podsquad/BackendDataclasses/MainListDisplayViewModes.dart';
 import 'package:podsquad/BackendDataclasses/NotificationTypes.dart';
@@ -148,59 +149,64 @@ class _AppState extends State<MyApp> {
     // is open)
     Wakelock.enable();
 
-    return ValueListenableBuilder(
-            valueListenable: UserAuth.shared.isLoggedIn,
-            builder: (BuildContext context, bool isLoggedIn, Widget? child) {
-              if (isLoggedIn) {
-                LatestPodMessagesDictionary.shared.getListOfIDsForPodsImIn();
-                LatestDirectMessagesDictionary.shared.loadLatestMessageForAllDirectMessageConversations();
-                MessagesDictionary.shared.preLoadAllDirectMessageConversations();
-                MessagesDictionary.shared.preLoadAllPodMessageConversations();
-                MessagesDictionary.shared.preLoadListOfDMsImInactiveFrom();
-                MessagesDictionary.shared.preLoadListOfPodsImInactiveFrom();
-                SentBlocksBackendFunctions.shared.addDataToListView();
-                ReceivedBlocksBackendFunctions.shared.addDataToListView();
-                SentLikesBackendFunctions.shared.addDataToListView();
-                ReceivedLikesBackendFunctions.shared.addDataToListView();
-                SentFriendsBackendFunctions.shared.addDataToListView();
-                ReceivedFriendsBackendFunctions.shared.addDataToListView();
-                ReportedPeopleBackendFunctions.shared.observeReportedPeople();
-                ShowMyPodsBackendFunctions.shared.addDataToListView();
-                PeopleIMetBackendFunctions.shared.addDataToListView();
-                _saveDeviceToken(); // upload my messaging token to Firestore for more secure device-to-device messaging
+    // using a FocusDetector so that I can clear the notification badge every time the app goes to the foreground.
+    // This is important in case the user minimizes the app without terminating it, then receives a notification and
+    // opens the app. Without the focus detector, the badge would only clear if the app was terminated, then opened.
+    return FocusDetector(child: ValueListenableBuilder(
+        valueListenable: UserAuth.shared.isLoggedIn,
+        builder: (BuildContext context, bool isLoggedIn, Widget? child) {
+          if (isLoggedIn) {
+            LatestPodMessagesDictionary.shared.getListOfIDsForPodsImIn();
+            LatestDirectMessagesDictionary.shared.loadLatestMessageForAllDirectMessageConversations();
+            MessagesDictionary.shared.preLoadAllDirectMessageConversations();
+            MessagesDictionary.shared.preLoadAllPodMessageConversations();
+            MessagesDictionary.shared.preLoadListOfDMsImInactiveFrom();
+            MessagesDictionary.shared.preLoadListOfPodsImInactiveFrom();
+            SentBlocksBackendFunctions.shared.addDataToListView();
+            ReceivedBlocksBackendFunctions.shared.addDataToListView();
+            SentLikesBackendFunctions.shared.addDataToListView();
+            ReceivedLikesBackendFunctions.shared.addDataToListView();
+            SentFriendsBackendFunctions.shared.addDataToListView();
+            ReceivedFriendsBackendFunctions.shared.addDataToListView();
+            ReportedPeopleBackendFunctions.shared.observeReportedPeople();
+            ShowMyPodsBackendFunctions.shared.addDataToListView();
+            PeopleIMetBackendFunctions.shared.addDataToListView();
+            _saveDeviceToken(); // upload my messaging token to Firestore for more secure device-to-device messaging
 
-                // Must wait until profile data is ready; otherwise we'll run into the issue of profile data not
-                // loading. The reason I can't just put snapshots on profile data is that Flutter can behave weirdly,
-                // such that opening a text field can cause the widget to think it disappeared, which causes the view
-                // to reset and causes listeners to fire, erasing my changes and resetting my profile data to how it
-                // was. Using a FutureBuilder guarantees that my profile data will be available when the app opens.
-                return FutureBuilder(
-                    future: MyProfileTabBackendFunctions.shared.getMyProfileData(),
-                    builder: (context, snapshot) {
-                      return WelcomeView();
-                    });
-              } else {
-                NearbyScanner.shared.stopPublishAndSubscribe();
-                MyProfileTabBackendFunctions.shared.reset();
-                LatestPodMessagesDictionary.shared.reset();
-                LatestDirectMessagesDictionary.shared.reset();
-                MessagesDictionary.shared.reset();
-                MessagesDictionary.shared.reset();
-                MessagesDictionary.shared.reset();
-                MessagesDictionary.shared.reset();
-                SentBlocksBackendFunctions.shared.reset();
-                ReceivedBlocksBackendFunctions.shared.reset();
-                SentLikesBackendFunctions.shared.reset();
-                ReceivedLikesBackendFunctions.shared.reset();
-                SentFriendsBackendFunctions.shared.reset();
-                ReceivedFriendsBackendFunctions.shared.reset();
-                ReportedPeopleBackendFunctions.shared.reset();
-                ShowMyPodsBackendFunctions.shared.reset();
-                PeopleIMetBackendFunctions.shared.reset();
-                return LoginView(); // stop listening to my profile data and reset if I sign
-                // out
-              }
-            });
+            // Must wait until profile data is ready; otherwise we'll run into the issue of profile data not
+            // loading. The reason I can't just put snapshots on profile data is that Flutter can behave weirdly,
+            // such that opening a text field can cause the widget to think it disappeared, which causes the view
+            // to reset and causes listeners to fire, erasing my changes and resetting my profile data to how it
+            // was. Using a FutureBuilder guarantees that my profile data will be available when the app opens.
+            return FutureBuilder(
+                future: MyProfileTabBackendFunctions.shared.getMyProfileData(),
+                builder: (context, snapshot) {
+                  return WelcomeView();
+                });
+          } else {
+            NearbyScanner.shared.stopPublishAndSubscribe();
+            MyProfileTabBackendFunctions.shared.reset();
+            LatestPodMessagesDictionary.shared.reset();
+            LatestDirectMessagesDictionary.shared.reset();
+            MessagesDictionary.shared.reset();
+            MessagesDictionary.shared.reset();
+            MessagesDictionary.shared.reset();
+            MessagesDictionary.shared.reset();
+            SentBlocksBackendFunctions.shared.reset();
+            ReceivedBlocksBackendFunctions.shared.reset();
+            SentLikesBackendFunctions.shared.reset();
+            ReceivedLikesBackendFunctions.shared.reset();
+            SentFriendsBackendFunctions.shared.reset();
+            ReceivedFriendsBackendFunctions.shared.reset();
+            ReportedPeopleBackendFunctions.shared.reset();
+            ShowMyPodsBackendFunctions.shared.reset();
+            PeopleIMetBackendFunctions.shared.reset();
+            return LoginView(); // stop listening to my profile data and reset if I sign
+            // out
+          }
+        }), onForegroundGained: (){
+      FlutterAppBadger.removeBadge();
+    });
   }
 }
 

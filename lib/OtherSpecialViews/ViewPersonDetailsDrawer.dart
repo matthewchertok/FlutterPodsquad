@@ -38,15 +38,18 @@ Widget viewPersonDetailsDrawer(
         ),
 
         ListTile(
-          title: Text('Interact with ${personData.name}!'),
+          title: Text('Interact with ${personData.name}!', style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+          CupertinoColors.darkBackgroundGray)),
           subtitle: Text("${personData.name.firstName()}'s "
-              "podscore: ${personData.podScore}"),
+              "podscore: ${personData.podScore}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+          CupertinoColors.inactiveGray)),
         ),
 
         // view their extra images, if they have any
         if (personData.extraImagesList?.isNotEmpty ?? false)
           ListTile(
-            title: Text("${personData.name.firstName()}'s Photos"),
+            title: Text("${personData.name.firstName()}'s Photos", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.darkBackgroundGray)),
             leading: Icon(CupertinoIcons.photo),
             onTap: () {
               Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
@@ -59,7 +62,8 @@ Widget viewPersonDetailsDrawer(
 
         // view their pods button
         ListTile(
-          title: Text(personData.userID == myFirebaseUserId ? "My Pods" : "${personData.name.firstName()}'s Pods"),
+          title: Text(personData.userID == myFirebaseUserId ? "My Pods" : "${personData.name.firstName()}'s Pods", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+          CupertinoColors.darkBackgroundGray)),
           leading: Icon(CupertinoIcons.person_2_square_stack),
           onTap: () {
             Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
@@ -78,7 +82,8 @@ Widget viewPersonDetailsDrawer(
         if (!didBlockUser)
         if (personData.userID != myFirebaseUserId)
           ListTile(
-            title: Text("Add ${personData.name.firstName()} to a pod"),
+            title: Text("Add ${personData.name.firstName()} to a pod", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.darkBackgroundGray)),
             leading: Icon(CupertinoIcons.plus),
             onTap: () {
               Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
@@ -90,7 +95,8 @@ Widget viewPersonDetailsDrawer(
         // like or unlike button
         if (!didLikeUser)
           ListTile(
-            title: Text("Like ${personData.name.firstName()}"),
+            title: Text("Like ${personData.name.firstName()}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.darkBackgroundGray)),
             leading: Icon(CupertinoIcons.heart),
             onTap: () {
               // "Are you sure you want to like [NAME]?"
@@ -144,7 +150,8 @@ Widget viewPersonDetailsDrawer(
 
         if (didLikeUser)
           ListTile(
-            title: Text("Un-like ${personData.name.firstName()}"),
+            title: Text("Un-like ${personData.name.firstName()}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.darkBackgroundGray)),
             leading: Icon(CupertinoIcons.heart_slash),
             onTap: () {
               // "Are you sure you want to un-like [NAME]?"
@@ -191,7 +198,8 @@ Widget viewPersonDetailsDrawer(
         // friend or unfriend button
         if (!didFriendUser)
           ListTile(
-            title: Text("Friend ${personData.name.firstName()}"),
+            title: Text("Friend ${personData.name.firstName()}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.darkBackgroundGray)),
             leading: Icon(CupertinoIcons.person_badge_plus),
             onTap: () {
               // "Are you sure you want to friend [NAME]?"
@@ -246,7 +254,8 @@ Widget viewPersonDetailsDrawer(
 
         if (didFriendUser)
           ListTile(
-            title: Text("Unfriend ${personData.name.firstName()}"),
+            title: Text("Unfriend ${personData.name.firstName()}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.darkBackgroundGray)),
             leading: Icon(CupertinoIcons.person_badge_minus),
             onTap: () {
               // "Are you sure you want to unfriend [NAME]?"
@@ -293,7 +302,8 @@ Widget viewPersonDetailsDrawer(
         // block or unblock button
         if (!didBlockUser)
           ListTile(
-            title: Text("Block ${personData.name.firstName()}"),
+            title: Text("Block ${personData.name.firstName()}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.darkBackgroundGray)),
             leading: Icon(CupertinoIcons.hand_raised),
             onTap: () {
               // "Are you sure you want to block [NAME]?"
@@ -343,7 +353,8 @@ Widget viewPersonDetailsDrawer(
           ),
         if (didBlockUser)
           ListTile(
-            title: Text("Unblock ${personData.name.firstName()}"),
+            title: Text("Unblock ${personData.name.firstName()}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.darkBackgroundGray)),
             leading: Icon(CupertinoIcons.hand_raised_slash),
             onTap: () {
               // "Are you sure you want to unblock [NAME]?"
@@ -392,7 +403,8 @@ Widget viewPersonDetailsDrawer(
         // report or unreport button
         if (!didReportUser)
           ListTile(
-            title: Text("Report ${personData.name.firstName()}"),
+            title: Text("Report ${personData.name.firstName()}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.darkBackgroundGray)),
             leading: Icon(CupertinoIcons.exclamationmark_shield),
             onTap: () {
               // "Are you sure you want to report [NAME]?"
@@ -442,7 +454,8 @@ Widget viewPersonDetailsDrawer(
           ),
         if (didReportUser)
           ListTile(
-            title: Text("Un-report ${personData.name.firstName()}"),
+            title: Text("Un-report ${personData.name.firstName()}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.darkBackgroundGray)),
             leading: Icon(CupertinoIcons.shield_slash),
             onTap: () {
               // "Are you sure you want to report [NAME]?"
@@ -493,7 +506,8 @@ Widget viewPersonDetailsDrawer(
 
         //Help tile
         ListTile(
-            title: Text("Help"),
+            title: Text("Help", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.darkBackgroundGray)),
             leading: Icon(CupertinoIcons.question_circle),
             onTap: () {
               showViewPersonDetailsTutorialIfNecessary(context: context, personData: personData, userPressedHelp: true);

@@ -14,7 +14,7 @@ import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 /// Show the login tutorial (explaining how to get started) if the user hasn't yet seen it
 Future<void> showLoginTutorialIfNecessary({required BuildContext context}) async {
   final completer = Completer();
-  final sheet = Scaffold(
+  final sheet = Scaffold(backgroundColor: isDarkMode ? Colors.black : Colors.white,
       body: FocusDetector(
     child: CustomScrollView(
       slivers: [
@@ -36,20 +36,26 @@ Future<void> showLoginTutorialIfNecessary({required BuildContext context}) async
         SliverList(
             delegate: SliverChildListDelegate([
           ListTile(
-            title: Text("What Is Podsquad?"),
+            title: Text("What Is Podsquad?", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black),),
             subtitle: Text("Podsquad is an app designed to help you meet "
-                "people"),
+                "people", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.hand_point_right),
           ),
           ListTile(
-            title: Text("How Does It Work?"),
+            title: Text("How Does It Work?", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             subtitle: Text("Podsquad uses Bluetooth to detect nearby users and "
-                "does not required your location."),
+                "does not required your location.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.hand_point_right),
           ),
           ListTile(
-            title: Text("Get Started"),
-            subtitle: Text("Sign up with a valid university email address to begin!"),
+            title: Text("Get Started", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
+            subtitle: Text("Sign up with a valid university email address to begin!", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.hand_point_right),
           )
         ]))
@@ -77,7 +83,7 @@ Future<void> showLoginTutorialIfNecessary({required BuildContext context}) async
 /// Show the EULA if the user hasn't seen it yet
 Future<void> showEULAIfNecessary({required BuildContext context}) async {
   final completer = Completer();
-  final sheet = Scaffold(
+  final sheet = Scaffold(backgroundColor: isDarkMode ? Colors.black : Colors.white,
       body: FocusDetector(
     child: CustomScrollView(
       slivers: [
@@ -99,43 +105,53 @@ Future<void> showEULAIfNecessary({required BuildContext context}) async {
         SliverList(
             delegate: SliverChildListDelegate([
           ListTile(
-            title: Text("Code of Conduct"),
+            title: Text("Code of Conduct", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             subtitle: Text("Individuals agree to use Podsquad to make friends "
                 "rather than to harass people. This means that any publicly visible images should not contain offensive "
                 "or pornographic content, and no communication made through the app should seek to threaten or harm anyone "
                 "else. Additionally, users must be at least 17 years of age. Violation of any of the terms listed on this "
-                "page may result in account suspension."),
+                "page may result in account suspension.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.exclamationmark_octagon),
           ),
           ListTile(
-            title: Text("Data Collection"),
+            title: Text("Data Collection", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             subtitle: Text("Podsquad collects information such as name, age, and "
                 "university affiliation in order to improve user experience. When providing this information, users agree "
                 "to represent themselves accurately (no false names or misleading profile details). We value your privacy, "
                 "so this data will not be shared with or sold to third parties."
-                ""),
+                "", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.lock),
           ),
           ListTile(
-            title: Text("Content Liability"),
+            title: Text("Content Liability", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             subtitle: Text("While we strive to maintain a positive community on "
                 "Podsquad, we cannot guarantee that the app will be completely free of all inappropriate content. We shall "
                 "not be held liable for user-generated content on the app, through we encourage users to "
-                "report offensive content should they find any."),
+                "report offensive content should they find any.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.shield),
           ),
           ListTile(
-            title: Text("License"),
+            title: Text("License", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             subtitle: Text("The developers of Podsquad own all intellectual property "
                 "rights to the application. Users agree not to sell, modify, distribute, or attempt to copy or reverse "
-                "engineer the app. Violation of this policy may result in legal action."),
+                "engineer the app. Violation of this policy may result in legal action.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.doc_text),
           ),
           ListTile(
-            title: Text("Agreement To Terms"),
+            title: Text("Agreement To Terms", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             subtitle: Text("By continuing to use Podsquad, users agree to all "
                 "terms listed on this page. Individuals who do not agree with these terms should uninstall the application"
-                "."),
+                ".", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.person_crop_circle_badge_checkmark),
           )
         ]))
@@ -184,7 +200,7 @@ Future<void> showEULAIfNecessary({required BuildContext context}) async {
 /// Show the Welcome view tutorial sheet if the user hasn't seen it yet or if the user pressed Help
 Future<void> showWelcomeTutorialIfNecessary({required BuildContext context, userPressedHelp = false}) async {
   final completer = Completer();
-  final sheet = Scaffold(
+  final sheet = Scaffold(backgroundColor: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
       body: FocusDetector(
     child: CustomScrollView(
       slivers: [
@@ -207,32 +223,42 @@ Future<void> showWelcomeTutorialIfNecessary({required BuildContext context, user
             delegate: SliverChildListDelegate([
           if (MyProfileTabBackendFunctions.shared.isProfileComplete.value == false)
             ListTile(
-              title: Text("Create Profile"),
-              subtitle: Text("Create a profile to get started!"),
+              title: Text("Create Profile", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.black)),
+              subtitle: Text("Create a profile to get started!", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.black)),
               leading: Icon(CupertinoIcons.person),
             ),
           ListTile(
-            title: Text("Discover Nearby"),
+            title: Text("Discover Nearby", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             subtitle: Text("While open, Podsquad automatically "
-                "listens for users within approximately 30 feet. You'll be able to see people you meet in real time."),
+                "listens for users within approximately 30 feet. You'll be able to see people you meet in real time.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.bluetooth),
           ),
           ListTile(
-            title: Text("Messaging"),
+            title: Text("Messaging", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             subtitle: Text("You can message anyone on Podsquad. Messages will appear in "
-                "the Messages tab."),
+                "the Messages tab.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.bubble_left_bubble_right),
           ),
           ListTile(
-            title: Text("Create Pods"),
+            title: Text("Create Pods", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             subtitle: Text("Pods are groups you can make with your friends. Create one"
-                " by opening the drawer on the left hand side of the screen and tapping Create Pod."),
+                " by opening the drawer on the left hand side of the screen and tapping Create Pod.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.person_2_square_stack),
           ),
           ListTile(
-            title: Text("Search By Name"),
+            title: Text("Search By Name", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             subtitle: Text("You can search for users and pods by opening the drawer"
-                " on the left hand side of the screen and tapping Search Users By Name or Search Pods By Name."),
+                " on the left hand side of the screen and tapping Search Users By Name or Search Pods By Name.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.search),
           ),
         ]))
@@ -261,7 +287,7 @@ Future<void> showWelcomeTutorialIfNecessary({required BuildContext context, user
 Future<void> showViewPodDetailsTutorialIfNecessary(
     {required BuildContext context, userPressedHelp = false, required PodData podData, required bool amMember}) async {
   final completer = Completer();
-  final sheet = Scaffold(
+  final sheet = Scaffold(backgroundColor: isDarkMode? CupertinoColors.black : CupertinoColors.white,
       body: FocusDetector(
     child: CustomScrollView(
       slivers: [
@@ -284,36 +310,46 @@ Future<void> showViewPodDetailsTutorialIfNecessary(
             delegate: SliverChildListDelegate([
           if (!amMember)
             ListTile(
-              title: Text("Join ${podData.name}"),
+              title: Text("Join ${podData.name}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.black)),
               subtitle: Text("If the Join button isn't visible, tap the icon in the top right corner, then "
-                  "tap Join Pod for more information."),
+                  "tap Join Pod for more information.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.black)),
               leading: Icon(CupertinoIcons.line_horizontal_3),
             ),
           if (amMember)
             ListTile(
-              title: Text("Leave ${podData.name}"),
-              subtitle: Text("Tap the icon in the top right corner, then tap Leave Pod."),
+              title: Text("Leave ${podData.name}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.black)),
+              subtitle: Text("Tap the icon in the top right corner, then tap Leave Pod.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.black)),
               leading: Icon(CupertinoIcons.hand_raised),
             ),
           ListTile(
-            title: Text("Message ${podData.name}"),
+            title: Text("Message ${podData.name}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             subtitle: Text(amMember
                 ? "Message other members through the pod chat!"
                 : "Pod members can message each "
-                    "other through the pod chat. Join ${podData.name} to unlock this feature!"),
+                    "other through the pod chat. Join ${podData.name} to unlock this feature!", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.paperplane),
           ),
           ListTile(
-            title: Text("View Members"),
+            title: Text("View Members", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             subtitle: Text("Tap on the number of members below the pod name to view members of ${podData.name}. Any "
-                "member can remove or block another member (besides the pod creator) from that screen."),
+                "member can remove or block another member (besides the pod creator) from that screen.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.person_3),
           ),
           if (amMember)
             ListTile(
-              title: Text("Blocked Users"),
+              title: Text("Blocked Users", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.black)),
               subtitle:
-                  Text("Tap the icon in the top right corner, then Blocked Users to unblock someone from the pod."),
+                  Text("Tap the icon in the top right corner, then Blocked Users to unblock someone from the pod.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+                  CupertinoColors.black)),
               leading: Icon(CupertinoIcons.person_crop_circle_badge_xmark),
             ),
         ]))
@@ -342,7 +378,7 @@ Future<void> showViewPodDetailsTutorialIfNecessary(
 Future<void> showViewPersonDetailsTutorialIfNecessary(
     {required BuildContext context, userPressedHelp = false, required ProfileData personData}) async {
   final completer = Completer();
-  final sheet = Scaffold(
+  final sheet = Scaffold(backgroundColor: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
       body: FocusDetector(
     child: CustomScrollView(
       slivers: [
@@ -364,65 +400,79 @@ Future<void> showViewPersonDetailsTutorialIfNecessary(
         SliverList(
             delegate: SliverChildListDelegate([
           ListTile(
-            title: Text("Interact with ${personData.name}"),
-            subtitle: Text("Tap the icon in the top right corner for options!"),
+            title: Text("Interact with ${personData.name}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
+            subtitle: Text("Tap the icon in the top right corner for options!", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.line_horizontal_3),
           ),
           ListTile(
-            title: Text("Message ${personData.name}"),
+            title: Text("Message ${personData.name}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             subtitle: Text(
                 "Send ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)} a message! Alternatively, you can tap the Say "
-                "Hi button and Podsquad will send an automatic introduction for you."),
+                "Hi button and Podsquad will send an automatic introduction for you.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.paperplane),
           ),
           ListTile(
-            title: Text("Like ${personData.name}"),
+            title: Text("Like ${personData.name}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             subtitle: Text(
                 "Choose this if ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun,
                     pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: false)} ${PronounFormatter.isOrAre
-                  (pronoun: personData.preferredPronoun, shouldBeCapitalized: false)} attractive!"),
+                  (pronoun: personData.preferredPronoun, shouldBeCapitalized: false)} attractive!", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+            CupertinoColors.black)),
             leading: Icon(CupertinoIcons.heart),
           ),
             ListTile(
-              title: Text("Friend ${personData.name}"),
+              title: Text("Friend ${personData.name}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.black)),
               subtitle:
               Text(
                   "Choose this if ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun,
                       pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: false)} ${PronounFormatter.isOrAre
-                    (pronoun: personData.preferredPronoun, shouldBeCapitalized: false)} cool."), leading: Icon
+                    (pronoun: personData.preferredPronoun, shouldBeCapitalized: false)} cool.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.black)), leading: Icon
               (CupertinoIcons.person_badge_plus),
             ),
               ListTile(
-                title: Text("Likes And Friends Are Exclusive"),
+                title: Text("Likes And Friends Are Exclusive", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+                CupertinoColors.black)),
                 subtitle:
                 Text(
                     "Just like in real life, you cannot Like and Friend ${personData.name.firstName()} "
-                        "simultaneously. You must pick one!"),
+                        "simultaneously. You must pick one!", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+                CupertinoColors.black)),
                 leading:
               Icon
                 (CupertinoIcons.hand_point_right),
               ),
 
               ListTile(
-                title: Text("View ${personData.name.firstName()}'s Pods"),
+                title: Text("View ${personData.name.firstName()}'s Pods", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+                CupertinoColors.black)),
                 subtitle:
                 Text(
                     "Select this option to view the pods ${PronounFormatter.makePronoun(preferredPronouns:
                     personData.preferredPronoun, pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: false)} "
                         "${PronounFormatter.isOrAre(pronoun: personData.preferredPronoun, shouldBeCapitalized: false)
-                    } in."),
+                    } in.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+                CupertinoColors.black)),
                 leading:
                 Icon
                   (CupertinoIcons.person_2_square_stack),
               ),
 
               ListTile(
-                title: Text("Add ${personData.name.firstName()} To Pod"),
+                title: Text("Add ${personData.name.firstName()} To Pod", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+                CupertinoColors.black)),
                 subtitle:
                 Text(
                     "Additionally, you may add ${PronounFormatter.makePronoun(preferredPronouns:
                     personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)}"
-                        " to a pod that you are in."),
+                        " to a pod that you are in.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+                CupertinoColors.black)),
                 leading:
                 Icon
                   (CupertinoIcons.plus),

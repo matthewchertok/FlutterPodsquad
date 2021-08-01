@@ -291,7 +291,7 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
     return Localizations(
       locale: Locale('en', 'US'),
       delegates: [DefaultWidgetsLocalizations.delegate, DefaultMaterialLocalizations.delegate],
-      child: Scaffold(
+      child: Scaffold(backgroundColor: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
           key: _scaffoldKey,
           appBar: CupertinoNavigationBar(
             padding: EdgeInsetsDirectional.all(5),
@@ -357,7 +357,7 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                     ),
 
                     // Name, age, school, relationship type, bio on the left, Message and Say Hi buttons on the right
-                    Card(
+                    Card(color:  isDarkMode ? CupertinoColors.black : CupertinoColors.white,
                         child: Padding(
                       padding: EdgeInsets.all(10),
                       child: Column(
@@ -377,15 +377,16 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                                     personData.name,
                                     style: TextStyle(
                                         fontSize: 18.scaledForScreenSize(context: context),
-                                        color: isDarkMode ? CupertinoColors.white : CupertinoColors.black,
-                                        fontWeight: FontWeight.bold),
+                                        fontWeight: FontWeight.bold, color: isDarkMode ? CupertinoColors.white :
+                                    CupertinoColors.black),
                                   ),
                                   SizedBox(height: 15),
 
                                   // The person's age
                                   Text(
                                     TimeAndDateFunctions.getAgeFromBirthday(birthday: personData.birthday).toString(),
-                                    style: TextStyle(fontSize: 15.scaledForScreenSize(context: context)),
+                                    style: TextStyle(fontSize: 15.scaledForScreenSize(context: context), color: isDarkMode ? CupertinoColors.white :
+                                    CupertinoColors.black),
                                   ),
                                   SizedBox(
                                     height: 15,
@@ -394,7 +395,8 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                                   // The person's school
                                   Text(
                                     personData.school,
-                                    style: TextStyle(fontSize: 15.scaledForScreenSize(context: context)),
+                                    style: TextStyle(fontSize: 15.scaledForScreenSize(context: context), color: isDarkMode ? CupertinoColors.white :
+                                    CupertinoColors.black),
                                   ),
                                   SizedBox(
                                     height: 15,
@@ -403,7 +405,8 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                                   // Who they're looking for
                                   Text(
                                     _preferredRelationshipTypeText(lookingFor: personData.preferredRelationshipType),
-                                    style: TextStyle(fontSize: 15.scaledForScreenSize(context: context)),
+                                    style: TextStyle(fontSize: 15.scaledForScreenSize(context: context), color: isDarkMode ? CupertinoColors.white :
+                                    CupertinoColors.black),
                                   ),
                                 ],
                               ),
@@ -467,7 +470,8 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                                 ? personData.bio
                                 : "${personData.name.firstName()} has not "
                                     "written a bio!",
-                            style: TextStyle(fontSize: 15.scaledForScreenSize(context: context)),
+                            style: TextStyle(fontSize: 15.scaledForScreenSize(context: context), color: isDarkMode ? CupertinoColors.white :
+                            CupertinoColors.black),
                           )
                         ],
                       ),

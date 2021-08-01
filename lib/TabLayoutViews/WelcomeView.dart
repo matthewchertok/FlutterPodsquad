@@ -2,8 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:podsquad/BackendDataclasses/MainListDisplayViewModes.dart';
 import 'package:podsquad/BackendFunctions/NearbyScanner.dart';
-import 'package:podsquad/BackendFunctions/NearbyScanner2.dart';
 import 'package:podsquad/CommonlyUsedClasses/AlertDialogs.dart';
+import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/MyProfileTab.dart';
 import 'package:podsquad/ContentViews/MainListDisplayView.dart';
 import 'package:podsquad/ContentViews/MessagingTab.dart';
@@ -29,7 +29,7 @@ class _WelcomeViewState extends State<WelcomeView> {
     // Listen to check if my profile is complete. If it isn't, switch the tab to My Profile to make me fill one out.
     if (MyProfileTabBackendFunctions.shared.isProfileComplete.value) {
       print("Profile Complete!");
-      NearbyScanner2.shared.advertiseAndListen();
+      NearbyScanner.shared.publishAndSubscribe();
     } else {
       print("Profile Not Complete");
       NearbyScanner.shared.stopPublishAndSubscribe();
@@ -41,7 +41,7 @@ class _WelcomeViewState extends State<WelcomeView> {
       });
       if (isComplete) {
         print("Profile Complete!");
-        NearbyScanner2.shared.advertiseAndListen();
+        NearbyScanner.shared.publishAndSubscribe();
       } else {
         print("Profile Not Complete");
         NearbyScanner.shared.stopPublishAndSubscribe();
@@ -82,7 +82,7 @@ class _WelcomeViewState extends State<WelcomeView> {
         DefaultMaterialLocalizations.delegate,
         DefaultCupertinoLocalizations.delegate
       ],
-      child: Scaffold(
+      child: Scaffold(backgroundColor: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
         key: drawerKey,
         drawer: likesFriendsBlocksDrawer(context: context),
         body: CupertinoTabScaffold(

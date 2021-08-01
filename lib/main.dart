@@ -21,7 +21,6 @@ import 'package:wakelock/wakelock.dart';
 
 import 'BackendDataHolders/UserAuth.dart';
 import 'BackendFunctions/NearbyScanner.dart';
-import 'BackendFunctions/NearbyScanner2.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

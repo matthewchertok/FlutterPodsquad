@@ -10,7 +10,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:podsquad/BackendDataHolders/UserAuth.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';
 import 'package:podsquad/BackendFunctions/NearbyScanner.dart';
-import 'package:podsquad/BackendFunctions/NearbyScanner2.dart';
 import 'package:podsquad/BackendFunctions/PushNotificationStatus.dart';
 import 'package:podsquad/BackendFunctions/ResizeAndUploadImage.dart';
 import 'package:podsquad/CommonlyUsedClasses/AlertDialogs.dart';

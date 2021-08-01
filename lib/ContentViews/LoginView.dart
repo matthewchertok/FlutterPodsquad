@@ -353,7 +353,7 @@ class _LoginViewState extends State<LoginView> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 // Podsquad logo
 
-                CupertinoFormRow(child: image(named: 'podsquad_logo_improved_2.png')),
+                CupertinoFormRow(child: image(named: 'podsquad_P.png')),
 
                 // Email and password
                 CupertinoFormSection(

@@ -9,8 +9,6 @@ import 'dart:async';
 import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter_blue/flutter_blue.dart';
 import 'dart:io';
 import 'PushNotificationSender.dart';
 
@@ -22,22 +20,15 @@ class NearbyScanner {
   // initialize the API
   FlutterNearbyMessagesApi nearbyMessagesApi = FlutterNearbyMessagesApi();
 
-  // Using this for no reason other than to get the Bluetooth permission request to pop up
-  FlutterBlue flutterBlue = FlutterBlue.instance;
-
-
   /// Stores the user ID of everyone I met, along with the time that I met them. The time is needed because Flutter's
   /// version of Google Nearby continuously publishes and subscribes, meaning that I'll use up reads far too quickly
   /// by default. This map stores {userID: timeIMetThePerson}. Thus, I can use it to check if I met the person less
   /// than 10 minutes ago, and if that's the case, don't meet them again.
   Map<String, DateTime> _peopleIMetAndTimeMap = {};
 
-  var _streamSubs = <StreamSubscription>[];
-
-  final _pubSubChannel = MethodChannel('publishAndSubscribe');
-
   ///Begin searching for nearby users over Bluetooth
   Future<void> publishAndSubscribe() async {
+    if (!Platform.isIOS) return; // for some reason, this package crashes on Android. So we can't use it.
     if (myFirebaseUserId.isEmpty) return; // don't proceed if I'm not signed in
 
     // config for iOS
@@ -52,79 +43,50 @@ class NearbyScanner {
 
     // if we're on iOS, we can use this library. Unfortunately, the library crashes on Android, so we have to use a
     // platform channel and native code there.
-    if (true) {
-      // Enable debug mode
-      await nearbyMessagesApi.enableDebugMode();
 
-      // This callback gets the message when an a nearby device sends one
-      nearbyMessagesApi.onFound = (message) {
-        print("MESSAGE FOUND $message");
-        if (message != myFirebaseUserId) // don't meet myself
-          _meetSomeone(personID: message).then((otherPersonsProfileData) {
-            if (otherPersonsProfileData != null) {
-              final tokens = otherPersonsProfileData.fcmTokens;
-              this._sendTheOtherPersonAPushNotificationIfWeHaveNotMetRecently(
-                  recipientID: otherPersonsProfileData.userID, toDeviceTokens: tokens);
-            }
-          }); // the message
-        // contains the person's ID
-      };
+    // Enable debug mode
+    await nearbyMessagesApi.enableDebugMode();
 
-      nearbyMessagesApi.onLost = (message) {
-        print("MESSAGE LOST: $message");
-      };
-
-      // Listen status when publish and subscribe
-      // enum GNSOperationStatus { inactive, starting, active }
-      nearbyMessagesApi.statusHandler = (status) {
-        print('~~~statusHandler : $status');
-        // notify the UI of status changes
-        if (status == GNSOperationStatus.active)
-          ScanningStatus.shared.inProgress.value = true;
-        else
-          ScanningStatus.shared.inProgress.value = false;
-      };
-
-      // Publish my ID for other users to discover
-      await nearbyMessagesApi.publish(myFirebaseUserId);
-
-      // allow subscribing in the background
-      await nearbyMessagesApi.backgroundSubscribe();
-
-    }
-    else if (Platform.isAndroid) {
-      // call the publish and subscribe function
-      final didStartScanningSuccessfully = await _pubSubChannel.invokeMethod('startPublishAndSubscribe',
-          myFirebaseUserId);
-      print(didStartScanningSuccessfully);
-
-      // listen for when people are met
-      final listenerChannel = EventChannel('nearbyScannerAndroid');
-      final androidSubscription = listenerChannel.receiveBroadcastStream().listen((userID) {
-        print("Met user with id $userID");
-        if (userID != myFirebaseUserId) _meetSomeone(personID: userID).then((otherPersonsProfileData) {
+    // This callback gets the message when an a nearby device sends one
+    nearbyMessagesApi.onFound = (message) {
+      print("MESSAGE FOUND $message");
+      if (message != myFirebaseUserId) // don't meet myself
+        _meetSomeone(personID: message).then((otherPersonsProfileData) {
           if (otherPersonsProfileData != null) {
             final tokens = otherPersonsProfileData.fcmTokens;
             this._sendTheOtherPersonAPushNotificationIfWeHaveNotMetRecently(
                 recipientID: otherPersonsProfileData.userID, toDeviceTokens: tokens);
           }
-        });
-      });
-      _streamSubs.add(androidSubscription);
+        }); // the message
+      // contains the person's ID
+    };
 
-    }
+    nearbyMessagesApi.onLost = (message) {
+      print("MESSAGE LOST: $message");
+    };
+
+    // Listen status when publish and subscribe
+    // enum GNSOperationStatus { inactive, starting, active }
+    nearbyMessagesApi.statusHandler = (status) {
+      print('~~~statusHandler : $status');
+      // notify the UI of status changes
+      if (status == GNSOperationStatus.active)
+        ScanningStatus.shared.inProgress.value = true;
+      else
+        ScanningStatus.shared.inProgress.value = false;
+    };
+
+    // Publish my ID for other users to discover
+    await nearbyMessagesApi.publish(myFirebaseUserId);
+
+    // allow subscribing in the background
+    await nearbyMessagesApi.backgroundSubscribe();
   }
 
   ///Stop searching for nearby users over Bluetooth
   void stopPublishAndSubscribe() async {
     await nearbyMessagesApi.unPublish();
     await nearbyMessagesApi.backgroundUnsubscribe();
-
-    // stop publishing and subscribing on Android
-    _pubSubChannel.invokeMethod('stop', myFirebaseUserId);
-    _streamSubs.forEach((subscription) {
-      subscription.cancel();
-    });
   }
 
   /// Get the list of user IDs for everyone I previously met in the last 21 days.
@@ -197,10 +159,7 @@ class NearbyScanner {
 
     // If I met the person less than the specified breakInterval number of minutes ago, then don't bother to update
     // the data - I met them too recently for anything to have changed, so there's no need to spend reads and writes.
-    final minutesSinceILastMetThem = DateTime
-        .now()
-        .difference(this._peopleIMetAndTimeMap[personID]!)
-        .inMinutes;
+    final minutesSinceILastMetThem = DateTime.now().difference(this._peopleIMetAndTimeMap[personID]!).inMinutes;
     if (minutesSinceILastMetThem < breakInterval) return null;
 
     this._peopleIMetAndTimeMap[personID] = DateTime.now(); // If I met them awhile ago, then update the time to now
@@ -233,25 +192,23 @@ class NearbyScanner {
             "userID": myProfileData.userID
           };
 
-          final secondsSinceEpoch = DateTime
-              .now()
-              .millisecondsSinceEpoch * 0.001;
+          final secondsSinceEpoch = DateTime.now().millisecondsSinceEpoch * 0.001;
 
           // Depending on whose user ID comes first alphabetically, create the data dictionary with either myself or
           // the other person as person 1 (and the other as person 2).
           final documentData = otherPersonsData.userID < myProfileData.userID
               ? {
-            "people": [otherPersonsData.userID, myProfileData.userID],
-            "person1": otherPersonsDataDict,
-            "person2": myDataDict,
-            "time": secondsSinceEpoch
-          }
+                  "people": [otherPersonsData.userID, myProfileData.userID],
+                  "person1": otherPersonsDataDict,
+                  "person2": myDataDict,
+                  "time": secondsSinceEpoch
+                }
               : {
-            "people": [myProfileData.userID, otherPersonsData.userID],
-            "person1": myDataDict,
-            "person2": otherPersonsDataDict,
-            "time": secondsSinceEpoch
-          };
+                  "people": [myProfileData.userID, otherPersonsData.userID],
+                  "person1": myDataDict,
+                  "person2": otherPersonsDataDict,
+                  "time": secondsSinceEpoch
+                };
 
           // document ID is the alphabetical combination of our user IDs.
           final documentID = otherPersonsData.userID < myProfileData.userID

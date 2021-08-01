@@ -322,7 +322,7 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
     return Localizations(
       locale: Locale('en', 'US'),
       delegates: [DefaultWidgetsLocalizations.delegate, DefaultMaterialLocalizations.delegate],
-      child: Scaffold(
+      child: Scaffold(backgroundColor: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
           key: _scaffoldKey,
           appBar: CupertinoNavigationBar(
             padding: EdgeInsetsDirectional.all(5),
@@ -371,7 +371,7 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
                     ),
 
                     // Pod name, members, and chat button at the top. Description below that.
-                    Card(
+                    Card(color: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
                         child: Padding(
                       padding: EdgeInsets.all(10),
                       child: Column(
@@ -485,7 +485,8 @@ class _ViewPodDetailsState extends State<ViewPodDetails> {
                           // pod description
                           Text(
                             podData.description,
-                            style: TextStyle(fontSize: 15),
+                            style: TextStyle(fontSize: 15,
+                                color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
                           )
                         ],
                       ),

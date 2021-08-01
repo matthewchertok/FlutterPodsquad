@@ -58,8 +58,6 @@ dependencies:
   pull_to_refresh: ^2.0.0
   flutter_launcher_icons: ^0.9.1
   permission_handler: ^8.1.4+1
-  flutter_blue: ^0.8.0
-  flutter_nearby_connections: ^1.1.1
 
 dev_dependencies:
   flutter_test:

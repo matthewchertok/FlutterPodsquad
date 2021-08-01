@@ -25,7 +25,9 @@ SafeArea(child: ListView(padding: EdgeInsets
   ),
 
   ListTile(
-    title: Text('${podData.name}'), subtitle: Text("Team podscore : ${podData.podScore}"),
+    title: Text('${podData.name}', style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+    CupertinoColors.darkBackgroundGray)), subtitle: Text("Team podscore : ${podData.podScore}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+  CupertinoColors.inactiveGray)),
   ),
 
 // For convenience, also show a Join Pod option if I'm not a member. THe difference between the other
@@ -33,7 +35,8 @@ SafeArea(child: ListView(padding: EdgeInsets
   // allow anyone to join. This button will warn me why I can't join. Unless there's nobody in the pod (if
   // it was deleted). Then just don't show the button.
   if (!amMemberOfPod && podMembersList.length > 0)
-    ListTile(title: Text("Join Pod"), leading: Icon(CupertinoIcons.plus), onTap: (){
+    ListTile(title: Text("Join Pod", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+    CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.plus), onTap: (){
       // You Are Blocked alert
       if (amBlockedFromPod) {
         final blockedAlert = CupertinoAlertDialog(
@@ -76,7 +79,8 @@ SafeArea(child: ListView(padding: EdgeInsets
 
   // Navigate to view the members (redundant capability in case users don't realize they can see the members by
   // tapping on the member count (anyone can see the pod members to help them decide if they want to join)
-  ListTile(title: Text("Pod Members"), leading: Icon(CupertinoIcons.person_3), onTap: (){
+  ListTile(title: Text("Pod Members", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+  CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.person_3), onTap: (){
     Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
         builder: (context) => MainListDisplayView(
           viewMode: MainListDisplayViewModes.podMembers,
@@ -87,7 +91,8 @@ SafeArea(child: ListView(padding: EdgeInsets
 
   // Navigate to view the blocked users (only show this option if I'm a member, for privacy reasons)
   if (amMemberOfPod)
-    ListTile(title: Text("Blocked Users"), leading: Icon(CupertinoIcons.person_crop_circle_badge_xmark), onTap: (){
+    ListTile(title: Text("Blocked Users", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+    CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.person_crop_circle_badge_xmark), onTap: (){
       Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
           builder: (context) => MainListDisplayView(
             viewMode: MainListDisplayViewModes.podBlockedUsers,
@@ -98,7 +103,8 @@ SafeArea(child: ListView(padding: EdgeInsets
 
   // Edit the pod, if I'm the creator and a member
   if (amMemberOfPod && podData.podCreatorID == myFirebaseUserId)
-    ListTile(title: Text("Edit Pod"), leading: Icon(CupertinoIcons.pencil), onTap: (){
+    ListTile(title: Text("Edit Pod", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+    CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.pencil), onTap: (){
       Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
           builder: (context) => CreateAPodView(
             isCreatingNewPod: false,
@@ -108,7 +114,8 @@ SafeArea(child: ListView(padding: EdgeInsets
 
   // Leave the pod, if I'm a member
   if (amMemberOfPod)
-    ListTile(title: Text("Leave Pod"), leading: Icon(CupertinoIcons.hand_raised), onTap: (){
+    ListTile(title: Text("Leave Pod", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+    CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.hand_raised), onTap: (){
       leavePodFunction();
     },),
 
@@ -120,7 +127,8 @@ SafeArea(child: ListView(padding: EdgeInsets
     },),
 
   //Help tile
-  ListTile(title: Text("Help"), leading: Icon(CupertinoIcons.question_circle), onTap: (){
+  ListTile(title: Text("Help", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+  CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.question_circle), onTap: (){
     showViewPodDetailsTutorialIfNecessary(context: context, podData: podData, userPressedHelp: true, amMember:
     podMembersList.map((member) => member.userID).contains(myFirebaseUserId));
   },)

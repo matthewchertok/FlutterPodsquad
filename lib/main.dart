@@ -78,8 +78,7 @@ class _AppState extends State<MyApp> {
       final chatPartnerOrPodID = message.data["senderID"];
       final chatPartnerOrPodName = message.data["senderName"];
       final isPodMode = false;
-      Navigator.push(context, CupertinoPageRoute(builder: (_) => MessagingView(chatPartnerOrPodID:
-      chatPartnerOrPodID, chatPartnerOrPodName: chatPartnerOrPodName, isPodMode: isPodMode)));
+      Navigator.pushNamed(context, "/messaging");
     }
 
     // navigate to Messaging if a pod message is received
@@ -141,7 +140,10 @@ class _AppState extends State<MyApp> {
     // is open)
     Wakelock.enable();
 
-    return CupertinoApp(
+    return CupertinoApp(routes: {
+      "/messaging": (context) => MessagingView(chatPartnerOrPodID: "null", chatPartnerOrPodName: "null", 
+          isPodMode: false)
+    },
         home: ValueListenableBuilder(
             valueListenable: UserAuth.shared.isLoggedIn,
             builder: (BuildContext context, bool isLoggedIn, Widget? child) {

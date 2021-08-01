@@ -40,8 +40,7 @@ class NearbyScanner {
 
   /// try using beacons instead
   void startBroadcasting() async {
-    beaconBroadcast.setUUID(Uuid().v1()).setMajorId(1).setMinorId(10)
-        .setManufacturerId(0x004C);
+    beaconBroadcast.setUUID(Uuid().v1()).setMajorId(1).setMinorId(100);
     if (Platform.isIOS) beaconBroadcast.setIdentifier(myFirebaseUserId);
     else if (Platform.isAndroid) beaconBroadcast.setLayout(myFirebaseUserId);
     beaconBroadcast.start();

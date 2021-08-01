@@ -34,7 +34,7 @@ class NearbyScanner {
 
   ///Begin searching for nearby users over Bluetooth
   Future<void> publishAndSubscribe() async {
-    if (!Platform.isIOS) return; // for some reason, this package crashes on Android. So we can't use it.
+  //  if (!Platform.isIOS) return; // for some reason, this package crashes on Android. So we can't use it.
     if (myFirebaseUserId.isEmpty) return; // don't proceed if I'm not signed in
 
     // config for iOS

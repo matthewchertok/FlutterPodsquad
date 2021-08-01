@@ -5,17 +5,22 @@ import 'package:podsquad/ContentViews/MainListDisplayView.dart';
 /// Display people I liked/friended/blocked on the left and people who liked/friended/blocked me on the right. Pass
 /// in a static member of MainListDisplayViewModes for the viewMode parameter.
 class LikesFriendsBlocksTabView extends StatefulWidget {
-  const LikesFriendsBlocksTabView({Key? key, required this.viewMode}) : super(key: key);
+  const LikesFriendsBlocksTabView({Key? key, required this.viewMode, this.showingSentDataNotReceivedData = true}) :
+        super
+      (key: key);
   final String viewMode;
+  final bool showingSentDataNotReceivedData;
 
   @override
-  _LikesFriendsBlocksTabViewState createState() => _LikesFriendsBlocksTabViewState(viewMode: viewMode);
+  _LikesFriendsBlocksTabViewState createState() => _LikesFriendsBlocksTabViewState(viewMode: viewMode,
+      showingSentDataNotReceivedData: showingSentDataNotReceivedData);
 }
 
 class _LikesFriendsBlocksTabViewState extends State<LikesFriendsBlocksTabView> {
-  _LikesFriendsBlocksTabViewState({required this.viewMode});
+  _LikesFriendsBlocksTabViewState({required this.viewMode, required this.showingSentDataNotReceivedData});
 
   final String viewMode;
+  final bool showingSentDataNotReceivedData;
   final _tabController = CupertinoTabController();
 
   /// Create the left tab navigation bar icon, depending on the view mode
@@ -50,6 +55,15 @@ class _LikesFriendsBlocksTabViewState extends State<LikesFriendsBlocksTabView> {
     else if (viewMode == MainListDisplayViewModes.friends) return "People Who Friended Me";
     else if (viewMode == MainListDisplayViewModes.blocked) return "People Who Blocked Me";
     else return "Error";
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    // start on the left tab by default, but if otherwise specified, start on the right tab (i.e. if opening from a
+    // push notification saying someone friended me)
+    this._tabController.index = showingSentDataNotReceivedData ? 0 : 1;
   }
 
   @override

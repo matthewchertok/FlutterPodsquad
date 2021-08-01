@@ -67,13 +67,14 @@ class _AppState extends State<MyApp> {
     // navigate to view Likes
     if (message.data["notificationType"] == NotificationTypes.like) {
       Navigator.of(context, rootNavigator: true).push(
-          CupertinoPageRoute(builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes.likes)));
+          CupertinoPageRoute(builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes.likes, showingSentDataNotReceivedData: false,)));
     }
 
     // navigate to view Friends
     else if (message.data["notificationType"] == NotificationTypes.friend) {
       Navigator.of(context, rootNavigator: true).push(
-          CupertinoPageRoute(builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes.friends)));
+          CupertinoPageRoute(builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes
+              .friends, showingSentDataNotReceivedData: false,)));
     }
 
     // navigate to Messaging if a DM is received

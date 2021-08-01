@@ -40,7 +40,7 @@ class NearbyScanner {
     // config for iOS
     await nearbyMessagesApi.setAPIKey("AIzaSyAFdNMfNpASvuVViGHB7lL4dMtgwLKWip4");
 
-    nearbyMessagesApi.setPermissionAlert('Allow Bluetooth Permission?',
+    await nearbyMessagesApi.setPermissionAlert('Allow Bluetooth Permission?',
         'Podsquad requires Bluetooth permission to discover nearby users.', 'Deny', 'Grant');
 
     // first, get the list of people I already met (so that I don't create repeated notifications if I meet the same
@@ -49,9 +49,6 @@ class NearbyScanner {
 
     // if we're on iOS, we can use this library. Unfortunately, the library crashes on Android, so we have to use a
     // platform channel and native code there.
-
-    // Enable debug mode
-    await nearbyMessagesApi.enableDebugMode();
 
     // This callback gets the message when an a nearby device sends one
     nearbyMessagesApi.onFound = (message) {

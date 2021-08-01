@@ -9,9 +9,15 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:podsquad/BackendDataclasses/MainListDisplayViewModes.dart';
+import 'package:podsquad/BackendDataclasses/NotificationTypes.dart';
 import 'package:podsquad/BackendFunctions/ReportedPeopleBackendFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/LoginView.dart';
+import 'package:podsquad/ContentViews/MainListDisplayView.dart';
+import 'package:podsquad/ContentViews/MessagingView.dart';
+import 'package:podsquad/ContentViews/ViewPersonDetails.dart';
+import 'package:podsquad/ContentViews/ViewPodDetails.dart';
 import 'package:podsquad/OtherSpecialViews/LoadingView.dart';
 import 'package:podsquad/TabLayoutViews/WelcomeView.dart';
 import 'package:podsquad/UIBackendClasses/MainListDisplayBackend.dart';
@@ -42,8 +48,7 @@ class _AppState extends State<MyApp> {
     // Stream listener
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       //handle navigation when the app is in the background and a push notification is tapped to open it
-      if (message.notification?.title == "Test Notification")
-        Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
+      this._pushRoute(message: message);
     });
 
     //Get any messages which caused the application to open from
@@ -51,8 +56,50 @@ class _AppState extends State<MyApp> {
     RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
 
     //handle navigation when the app is launched from a push notification
-    if (initialMessage?.notification?.title == "Test Notification")
-      Navigator.push(context, CupertinoPageRoute(builder: (context) => LoadingView()));
+    if (initialMessage != null) this._pushRoute(message: initialMessage);
+  }
+
+  /// A function to push the correct route when a notification is received
+  void _pushRoute({required RemoteMessage message}){
+    // navigate to view Likes
+    if (message.data["notificationType"] == NotificationTypes.like){
+      Navigator.push(context, CupertinoPageRoute(builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.likes)));
+    }
+
+    // navigate to view Friends
+    else if (message.data["notificationType"] == NotificationTypes.friend){
+      Navigator.push(context, CupertinoPageRoute(builder: (context) => MainListDisplayView(viewMode:
+      MainListDisplayViewModes.friends)));
+    }
+
+    // navigate to Messaging if a DM is received
+    else if (message.data["notificationType"] == NotificationTypes.message){
+      final chatPartnerOrPodID = message.data["senderID"];
+      final chatPartnerOrPodName = message.data["senderName"];
+      final isPodMode = false;
+      Navigator.push(context, CupertinoPageRoute(builder: (context) => MessagingView(chatPartnerOrPodID: chatPartnerOrPodID, chatPartnerOrPodName: chatPartnerOrPodName, isPodMode: isPodMode)));
+    }
+
+    // navigate to Messaging if a pod message is received
+    else if (message.data["notificationType"] == NotificationTypes.podMessage){
+      final chatPartnerOrPodID = message.data["podID"];
+      final chatPartnerOrPodName = message.data["podName"];
+      final isPodMode = true;
+      Navigator.push(context, CupertinoPageRoute(builder: (context) => MessagingView(chatPartnerOrPodID: chatPartnerOrPodID, chatPartnerOrPodName: chatPartnerOrPodName, isPodMode: isPodMode)));
+    }
+
+    // navigate to view person details if I meet someone
+    else if (message.data["notificationType"] == NotificationTypes.personDetails){
+      final personID = message.data["senderID"];
+      Navigator.push(context, CupertinoPageRoute(builder: (context) => ViewPersonDetails(personID: personID)));
+    }
+
+    // navigate to view pod details in some cases
+    else if (message.data["notificationType"] == NotificationTypes.podDetails){
+      final podID = message.data["podID"];
+      Navigator.push(context, CupertinoPageRoute(builder: (context) => ViewPodDetails(podID: podID, showChatButton:
+      true)));
+    }
   }
 
   /// Save the Firebase Messaging token when a users signs in, then upload it to Firestore to allow us to directly

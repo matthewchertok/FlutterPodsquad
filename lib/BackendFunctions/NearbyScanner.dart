@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_nearby_messages_api/flutter_nearby_messages_api.dart';
 import 'package:podsquad/BackendDataclasses/NotificationTypes.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';
@@ -30,6 +30,10 @@ class NearbyScanner {
   Future<void> publishAndSubscribe() async {
     if (!Platform.isIOS) return; // for some reason, this package crashes on Android. So we can't use it.
     if (myFirebaseUserId.isEmpty) return; // don't proceed if I'm not signed in
+
+    // the only reason why I need this line is so that iOS recognizes the app as a Bluetooth app and requests
+    // permission automatically, allowing Nearby to work.
+    final flutterBlue = FlutterBlue.instance;
 
     // config for iOS
     await nearbyMessagesApi.setAPIKey("AIzaSyAFdNMfNpASvuVViGHB7lL4dMtgwLKWip4");

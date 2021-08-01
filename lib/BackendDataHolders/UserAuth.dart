@@ -24,7 +24,9 @@ class UserAuth {
     /// devices where they aren't signed in
     final fcmToken = await firebaseMessaging.getToken();
     if (fcmToken != null){
-      await firebaseFunctions.httpsCallable('deleteDeviceFCMToken').call({"userID": myPreviousID, "token": fcmToken})
+      // don't await - this would slow down the app too much. Just trust that the deletion will happen in the
+      // background.
+      firebaseFunctions.httpsCallable('deleteDeviceFCMToken').call({"userID": myPreviousID, "token": fcmToken})
           .catchError((error){
             print("Couldn't call a cloud function to delete the device FCM token: $error");
       });

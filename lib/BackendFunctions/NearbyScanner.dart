@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_nearby_messages_api/flutter_nearby_messages_api.dart';
 import 'package:podsquad/BackendDataclasses/NotificationTypes.dart';
@@ -11,6 +12,8 @@ import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 import 'dart:io';
 import 'PushNotificationSender.dart';
+import 'package:flutter_isolate/flutter_isolate.dart';
+
 
 ///Discovers users nearby
 class NearbyScanner {
@@ -19,6 +22,10 @@ class NearbyScanner {
 
   // initialize the API
   FlutterNearbyMessagesApi nearbyMessagesApi = FlutterNearbyMessagesApi();
+
+  // the only reason why I need this line is so that iOS recognizes the app as a Bluetooth app and requests
+  // permission automatically, allowing Nearby to work.
+  final flutterBlue = FlutterBlue.instance;
 
   /// Stores the user ID of everyone I met, along with the time that I met them. The time is needed because Flutter's
   /// version of Google Nearby continuously publishes and subscribes, meaning that I'll use up reads far too quickly
@@ -30,10 +37,6 @@ class NearbyScanner {
   Future<void> publishAndSubscribe() async {
     if (!Platform.isIOS) return; // for some reason, this package crashes on Android. So we can't use it.
     if (myFirebaseUserId.isEmpty) return; // don't proceed if I'm not signed in
-
-    // the only reason why I need this line is so that iOS recognizes the app as a Bluetooth app and requests
-    // permission automatically, allowing Nearby to work.
-    final flutterBlue = FlutterBlue.instance;
 
     // config for iOS
     await nearbyMessagesApi.setAPIKey("AIzaSyAFdNMfNpASvuVViGHB7lL4dMtgwLKWip4");
@@ -84,7 +87,7 @@ class NearbyScanner {
     await nearbyMessagesApi.publish(myFirebaseUserId);
 
     // allow subscribing in the background
-    await nearbyMessagesApi.backgroundSubscribe();
+   await nearbyMessagesApi.backgroundSubscribe();
   }
 
   ///Stop searching for nearby users over Bluetooth

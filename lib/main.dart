@@ -61,6 +61,7 @@ class _AppState extends State<MyApp> {
 
   /// A function to push the correct route when a notification is received
   void _pushRoute({required RemoteMessage message}){
+    print("RECEIVED MESSAGE WITH DATA ${message.data}");
     // navigate to view Likes
     if (message.data["notificationType"] == NotificationTypes.like){
       Navigator.push(context, CupertinoPageRoute(builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.likes)));

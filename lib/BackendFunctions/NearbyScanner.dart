@@ -63,7 +63,7 @@ class NearbyScanner {
       // result contains a region and list of beacons found
       // list can be empty if no matching beacons were found in range
       result.beacons.forEach((beacon) {
-        print("FOUND RANGING BEACON: $beacon");
+        print("FOUND RANGING BEACON: ${beacon.proximityUUID}");
       });
     });
 

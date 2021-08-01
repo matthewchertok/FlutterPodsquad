@@ -42,8 +42,7 @@ Widget viewPersonDetailsDrawer(
             title: Text('Interact with ${personData.name}!', style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.darkBackgroundGray)),
             subtitle: Text("${personData.name.firstName()}'s "
-                "podscore: ${personData.podScore}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.inactiveGray)),
+                "podscore: ${personData.podScore}", style: TextStyle(color: CupertinoColors.inactiveGray)),
           ),
 
           // view their extra images, if they have any

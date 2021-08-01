@@ -37,7 +37,7 @@ Widget viewPodDetailsDrawer(
               title: Text('${podData.name}',
                   style: TextStyle(color: isDarkMode ? CupertinoColors.white : CupertinoColors.darkBackgroundGray)),
               subtitle: Text("Team podscore : ${podData.podScore}",
-                  style: TextStyle(color: isDarkMode ? CupertinoColors.white : CupertinoColors.inactiveGray)),
+                  style: TextStyle(color: CupertinoColors.inactiveGray)),
             ),
 
             // For convenience, also show a Join Pod option if I'm not a member. THe difference between the other

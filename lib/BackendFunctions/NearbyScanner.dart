@@ -107,20 +107,30 @@ class NearbyScanner {
         .snapshots()
         .listen((snapshot) {
       Map<String, DateTime> peopleIMetIDsAndTimesMap = {};
-      snapshot.docs.forEach((personIAlreadyMetDocument) {
-        final timeIMetThem = personIAlreadyMetDocument.get("time") as num; // this is time since epoch in SECONDS, not
-        // milliseconds
-        final peopleListRaw = personIAlreadyMetDocument.get("people") as List<dynamic>;
-        final peopleList = List<String>.from(peopleListRaw); // convert the dynamic list to a String list
-        if (peopleList.length >= 2) {
-          final otherPersonsUserID = peopleList.first == myFirebaseUserId ? peopleList.last : peopleList.first;
-          peopleIMetIDsAndTimesMap[otherPersonsUserID] =
-              DateTime.fromMillisecondsSinceEpoch((timeIMetThem * 1000).toInt());
-        }
-      });
-      listener?.cancel(); // cancel the listener since it's no longer needed
-      completer.complete(peopleIMetIDsAndTimesMap);
+
+      if (snapshot.docs.isNotEmpty) {
+        snapshot.docs.forEach((personIAlreadyMetDocument) {
+          final timeIMetThem = personIAlreadyMetDocument.get("time") as num; // this is time since epoch in SECONDS, not
+          // milliseconds
+          final peopleListRaw = personIAlreadyMetDocument.get("people") as List<dynamic>;
+          final peopleList = List<String>.from(peopleListRaw); // convert the dynamic list to a String list
+          if (peopleList.length >= 2) {
+            final otherPersonsUserID = peopleList.first == myFirebaseUserId ? peopleList.last : peopleList.first;
+            peopleIMetIDsAndTimesMap[otherPersonsUserID] =
+                DateTime.fromMillisecondsSinceEpoch((timeIMetThem * 1000).toInt());
+          }
+        });
+        listener?.cancel(); // cancel the listener since it's no longer needed
+        completer.complete(peopleIMetIDsAndTimesMap);
+      }
+
+      // If there's nothing to return, complete the future with an empty string to avoid an asynchronous suspension
+      else {
+        listener?.cancel();
+        completer.complete({});
+      }
     });
+
     return completer.future;
   }
 

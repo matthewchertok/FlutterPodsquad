@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
+import 'package:uuid/uuid.dart';
 import 'dart:io';
 import 'PushNotificationSender.dart';
 import 'package:beacon_broadcast/beacon_broadcast.dart';
@@ -39,7 +40,17 @@ class NearbyScanner {
 
   /// try using beacons instead
   void startBroadcasting() async {
-    beaconBroadcast.setUUID(myFirebaseUserId).setMajorId(1).setMinorId(10).setLayout('m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24')
+    // uuid format will be first8DigitsOfMyID-next4DigitsOfMyID-next4DigitsOfMyID-next4DigitsOfMyID-last8DigitsOfMyID
+    // +XXXX
+    final uuidPart1 = myFirebaseUserId.substring(0, 8);
+    final uuidPart2 = myFirebaseUserId.substring(8, 12);
+    final uuidPart3 = myFirebaseUserId.substring(12, 16);
+    final uuidPart4 = myFirebaseUserId.substring(16, 20);
+    final uuidPart5 = myFirebaseUserId.substring(20, 28);
+    final endPadding = "XXXX";
+    final broadcastUUID = uuidPart1+"-"+uuidPart2+"-"+uuidPart3+"-"+uuidPart4+"-"+uuidPart5+endPadding;
+    beaconBroadcast.setUUID(broadcastUUID).setMajorId(1).setMinorId(10).setLayout('m:2-3=0215,i:4-19,i:20-21,i:22-23,'
+        'p:24-24')
         .setManufacturerId(0x004C).start();
     try {
      await beacon.flutterBeacon.initializeAndCheckScanning;
@@ -64,7 +75,7 @@ class NearbyScanner {
       // result contains a region and list of beacons found
       // list can be empty if no matching beacons were found in range
       result.beacons.forEach((beacon) {
-        print("FOUND RANGING BEACON: ${beacon}");
+        print("FOUND RANGING BEACON: $beacon");
       });
     });
 

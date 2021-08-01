@@ -64,13 +64,13 @@ class _AppState extends State<MyApp> {
     print("RECEIVED MESSAGE WITH DATA ${message.data}.\n\n\nThe message type is ${message.data["notificationType"]}");
     // navigate to view Likes
     if (message.data["notificationType"] == NotificationTypes.like) {
-      Navigator.push(context,
+      Navigator.of(context, rootNavigator: true).push(
           CupertinoPageRoute(builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.likes)));
     }
 
     // navigate to view Friends
     else if (message.data["notificationType"] == NotificationTypes.friend) {
-      Navigator.push(context,
+      Navigator.of(context, rootNavigator: true).push(
           CupertinoPageRoute(builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.friends)));
     }
 
@@ -79,7 +79,7 @@ class _AppState extends State<MyApp> {
       final chatPartnerOrPodID = message.data["senderID"];
       final chatPartnerOrPodName = message.data["senderName"];
       final isPodMode = false;
-      Navigator.push(context, CupertinoPageRoute(
+      Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
           builder: (context) => MessagingView(
               chatPartnerOrPodID: chatPartnerOrPodID,
               chatPartnerOrPodName: chatPartnerOrPodName,
@@ -91,8 +91,7 @@ class _AppState extends State<MyApp> {
       final chatPartnerOrPodID = message.data["podID"];
       final chatPartnerOrPodName = message.data["podName"];
       final isPodMode = true;
-      Navigator.push(
-          context,
+      Navigator.of(context, rootNavigator: true).push(
           CupertinoPageRoute(
               builder: (context) => MessagingView(
                   chatPartnerOrPodID: chatPartnerOrPodID,
@@ -103,14 +102,15 @@ class _AppState extends State<MyApp> {
     // navigate to view person details if I meet someone
     else if (message.data["notificationType"] == NotificationTypes.personDetails) {
       final personID = message.data["senderID"];
-      Navigator.push(context, CupertinoPageRoute(builder: (context) => ViewPersonDetails(personID: personID)));
+      Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) =>
+          ViewPersonDetails(personID:
+      personID)));
     }
 
     // navigate to view pod details in some cases
     else if (message.data["notificationType"] == NotificationTypes.podDetails) {
       final podID = message.data["podID"];
-      Navigator.push(
-          context, CupertinoPageRoute(builder: (context) => ViewPodDetails(podID: podID, showChatButton: true)));
+      Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => ViewPodDetails(podID: podID, showChatButton: true)));
     }
   }
 

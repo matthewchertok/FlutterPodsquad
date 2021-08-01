@@ -79,7 +79,7 @@ class _AppState extends State<MyApp> {
       final chatPartnerOrPodID = message.data["senderID"];
       final chatPartnerOrPodName = message.data["senderName"];
       final isPodMode = false;
-      Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+      Navigator.push(context, CupertinoPageRoute(
           builder: (context) => MessagingView(
               chatPartnerOrPodID: chatPartnerOrPodID,
               chatPartnerOrPodName: chatPartnerOrPodName,

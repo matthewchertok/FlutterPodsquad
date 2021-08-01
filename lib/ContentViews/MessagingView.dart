@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:focus_detector/focus_detector.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:podsquad/BackendDataclasses/ChatMessageDataclasses.dart';
@@ -1612,86 +1613,92 @@ class _MessagingViewState extends State<MessagingView> {
             ),
 
             // Text field to type a message
-            CupertinoTextField(
-              textCapitalization: TextCapitalization.sentences,
-              maxLines: null,
-              controller: _typingMessageController,
-              placeholder: "Message ${isPodMode ? chatPartnerOrPodName : chatPartnerOrPodName.split(" ").first}",
-              prefix: CupertinoButton(
-                padding: EdgeInsets.zero,
-                child: Icon(CupertinoIcons.paperclip),
-                onPressed: () {
-                  final attachmentSheet = CupertinoActionSheet(
-                    title: Text("Attachment Options"),
-                    actions: [
-                      // take photo with camera
-                      CupertinoActionSheetAction(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [Icon(CupertinoIcons.camera), SizedBox(width: 10), Text("Take Photo")],
-                          ),
-                          onPressed: () {
-                            dismissAlert(context: context);
-                            this._pickImage(source: ImageSource.camera);
-                          }),
-
-                      // pick photo from gallery
-                      CupertinoActionSheetAction(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [Icon(CupertinoIcons.photo), SizedBox(width: 10), Text("Choose Photo")],
-                          ),
-                          onPressed: () {
-                            dismissAlert(context: context);
-                            this._pickImage(source: ImageSource.gallery);
-                          }),
-
-                      // record audio
-                      CupertinoActionSheetAction(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [Icon(CupertinoIcons.mic), SizedBox(width: 10), Text("Voice Message")],
-                          ),
-                          onPressed: () {
-                            dismissAlert(context: context);
-                            this._recordAudio();
-                          }),
-
-                      // cancel
-                      CupertinoActionSheetAction(
-                        onPressed: () {
-                          dismissAlert(context: context);
-                        },
-                        child: Text("Cancel"),
-                        isDefaultAction: true,
-                      )
-                    ],
-                  );
-                  showCupertinoModalPopup(context: context, builder: (context) => attachmentSheet);
-                },
-              ),
-              suffix: CupertinoButton(
-                  child: Icon(CupertinoIcons.paperplane),
+            FocusDetector(
+              child: CupertinoTextField(
+                textCapitalization: TextCapitalization.sentences,
+                maxLines: null,
+                controller: _typingMessageController,
+                placeholder: "Message ${isPodMode ? chatPartnerOrPodName : chatPartnerOrPodName.split(" ").first}",
+                prefix: CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  child: Icon(CupertinoIcons.paperclip),
                   onPressed: () {
-                    final randomID = Uuid().v1();
-                    final myName = MyProfileTabBackendFunctions.shared.myProfileData.value.name;
-                    final myThumbnailURL = MyProfileTabBackendFunctions.shared.myProfileData.value.thumbnailURL;
-                    final timeStamp = DateTime.now().millisecondsSinceEpoch * 0.001;
-                    final text = _typingMessageController.text;
-                    final messageToSend = ChatMessage(
-                        id: randomID,
-                        recipientId: chatPartnerOrPodID,
-                        recipientName: chatPartnerOrPodName,
-                        senderId: myFirebaseUserId,
-                        senderName: myName,
-                        timeStamp: timeStamp,
-                        text: text,
-                        senderThumbnailURL: myThumbnailURL,
-                        recipientThumbnailURL: chatPartnerThumbnailURL ?? "",
-                        podID: isPodMode ? chatPartnerOrPodID : null);
-                    if (!_sendingInProgress) _sendMessage(messageToSend: messageToSend);
-                  }),
-            ),
+                    final attachmentSheet = CupertinoActionSheet(
+                      title: Text("Attachment Options"),
+                      actions: [
+                        // take photo with camera
+                        CupertinoActionSheetAction(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [Icon(CupertinoIcons.camera), SizedBox(width: 10), Text("Take Photo")],
+                            ),
+                            onPressed: () {
+                              dismissAlert(context: context);
+                              this._pickImage(source: ImageSource.camera);
+                            }),
+
+                        // pick photo from gallery
+                        CupertinoActionSheetAction(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [Icon(CupertinoIcons.photo), SizedBox(width: 10), Text("Choose Photo")],
+                            ),
+                            onPressed: () {
+                              dismissAlert(context: context);
+                              this._pickImage(source: ImageSource.gallery);
+                            }),
+
+                        // record audio
+                        CupertinoActionSheetAction(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [Icon(CupertinoIcons.mic), SizedBox(width: 10), Text("Voice Message")],
+                            ),
+                            onPressed: () {
+                              dismissAlert(context: context);
+                              this._recordAudio();
+                            }),
+
+                        // cancel
+                        CupertinoActionSheetAction(
+                          onPressed: () {
+                            dismissAlert(context: context);
+                          },
+                          child: Text("Cancel"),
+                          isDefaultAction: true,
+                        )
+                      ],
+                    );
+                    showCupertinoModalPopup(context: context, builder: (context) => attachmentSheet);
+                  },
+                ),
+                suffix: CupertinoButton(
+                    child: Icon(CupertinoIcons.paperplane),
+                    onPressed: () {
+                      final randomID = Uuid().v1();
+                      final myName = MyProfileTabBackendFunctions.shared.myProfileData.value.name;
+                      final myThumbnailURL = MyProfileTabBackendFunctions.shared.myProfileData.value.thumbnailURL;
+                      final timeStamp = DateTime.now().millisecondsSinceEpoch * 0.001;
+                      final text = _typingMessageController.text;
+                      final messageToSend = ChatMessage(
+                          id: randomID,
+                          recipientId: chatPartnerOrPodID,
+                          recipientName: chatPartnerOrPodName,
+                          senderId: myFirebaseUserId,
+                          senderName: myName,
+                          timeStamp: timeStamp,
+                          text: text,
+                          senderThumbnailURL: myThumbnailURL,
+                          recipientThumbnailURL: chatPartnerThumbnailURL ?? "",
+                          podID: isPodMode ? chatPartnerOrPodID : null);
+                      if (!_sendingInProgress) _sendMessage(messageToSend: messageToSend);
+                    }),
+              ),
+            onFocusLost: (){
+                // if the user stops typing (or if the app goes to the background), make sure to remove the user's
+              // typing status
+                this._amCurrentlyTyping.value = false;
+            },),
           ],
         ),
       )),

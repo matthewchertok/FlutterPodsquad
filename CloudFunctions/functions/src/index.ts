@@ -1227,11 +1227,11 @@ export const sendPushNotification = functions.https.onCall(async data => {
 // delete an FCM token from a device when the user signs out
 export const deleteDeviceFCMToken = functions.https.onCall(async data => {
   let userID = data.userID as string;
-  let token = data.token as string;
+  let token = data.token as Array<string>;
 
   // remove the specified token
   firestore().collection("users").doc(userID).update({
-    "fcmTokens": firestore.FieldValue.arrayRemove([token])
+    "fcmTokens": firestore.FieldValue.arrayRemove(token)
   });
 });
 

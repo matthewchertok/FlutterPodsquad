@@ -10,75 +10,84 @@ import 'package:podsquad/TabLayoutViews/LikesFriendsBlocksTabView.dart';
 /// The drawer that opens from the left side of the screen to allow the user to navigate to view their
 /// likes/friends/blocks
 Widget likesFriendsBlocksDrawer({required BuildContext context}) => Drawer(
-        child: SafeArea(child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: accentColor, image: DecorationImage(image: AssetImage("assets/podsquad_logo_simple.png"),
-                  fit: BoxFit.cover),
+        child: Container(color: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
+          child: SafeArea(child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  color: accentColor, image: DecorationImage(image: AssetImage("assets/podsquad_logo_simple.png"),
+                    fit: BoxFit.cover),
+                ),
+                child: Text('Options', style: TextStyle(color: CupertinoColors.white),),
               ),
-              child: Text('Options', style: TextStyle(color: CupertinoColors.white),),
-            ),
 
-            // Navigate to search users by name
-            ListTile(
-              title: Text("Search Users By Name"), leading: Icon(CupertinoIcons.search_circle),
-              onTap: () {
-                Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
-                    builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.searchUsers)));
-              },
-            ),
+              // Navigate to search users by name
+              ListTile(
+                title: Text("Search Users By Name", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.search_circle),
+                onTap: () {
+                  Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                      builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.searchUsers)));
+                },
+              ),
 
-            // Search for a pod by name
-            ListTile(
-              onTap: () {
-                Navigator.of(context, rootNavigator: true)
-                    .push(CupertinoPageRoute(
-                    builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.searchPods)))
-                    .then((value) {
-                });
-              },
-              title: Text("Search Pods By Name"), leading: Icon(CupertinoIcons.search),),
+              // Search for a pod by name
+              ListTile(
+                onTap: () {
+                  Navigator.of(context, rootNavigator: true)
+                      .push(CupertinoPageRoute(
+                      builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.searchPods)))
+                      .then((value) {
+                  });
+                },
+                title: Text("Search Pods By Name", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.search),),
 
-            ListTile(
-              onTap: () {
-                Navigator.of(context, rootNavigator: true)
-                    .push(CupertinoPageRoute(builder: (context) => CreateAPodView(isCreatingNewPod: true)));
-              },
-              title: Text("Create Pod"), leading: Icon(CupertinoIcons.plus),),
+              ListTile(
+                onTap: () {
+                  Navigator.of(context, rootNavigator: true)
+                      .push(CupertinoPageRoute(builder: (context) => CreateAPodView(isCreatingNewPod: true)));
+                },
+                title: Text("Create Pod", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.plus),),
 
-            // Navigate to view likes
-            ListTile(
-              title: Text("View Likes"), leading: Icon(CupertinoIcons.heart),
-              onTap: () {
-                // navigate to view likes
-                Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
-                    builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes.likes)));
-              },
-            ),
+              // Navigate to view likes
+              ListTile(
+                title: Text("View Likes", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.heart),
+                onTap: () {
+                  // navigate to view likes
+                  Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                      builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes.likes)));
+                },
+              ),
 
-            // Navigate to view friends
-            ListTile(
-              title: Text("View Friends"), leading: Icon(CupertinoIcons.person_3),
-              onTap: () {
-                Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
-                    builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes.friends)));
-              },
-            ),
+              // Navigate to view friends
+              ListTile(
+                title: Text("View Friends", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.person_3),
+                onTap: () {
+                  Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                      builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes.friends)));
+                },
+              ),
 
-            // Navigate to view blocks
-            ListTile(
-              title: Text("Blocked People"), leading: Icon(CupertinoIcons.person_crop_circle_badge_xmark),
-              onTap: () {
-                Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
-                    builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes.blocked)));
-              },
-            ),
+              // Navigate to view blocks
+              ListTile(
+                title: Text("Blocked People", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.person_crop_circle_badge_xmark),
+                onTap: () {
+                  Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                      builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes.blocked)));
+                },
+              ),
 
-            // show the help sheet
-            ListTile(title: Text("Help"), leading: Icon(CupertinoIcons.question_circle), onTap: (){
-              showWelcomeTutorialIfNecessary(context: context, userPressedHelp: true);
-            },)
-          ],
-        )));
+              // show the help sheet
+              ListTile(title: Text("Help", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.question_circle), onTap: (){
+                showWelcomeTutorialIfNecessary(context: context, userPressedHelp: true);
+              },)
+            ],
+          )),
+        ));

@@ -32,7 +32,7 @@ import 'BackendFunctions/NearbyScanner.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(MyApp());
+  runApp(CupertinoApp(home: MyApp(),));
 }
 
 ///Required for Firebase to work with Flutter
@@ -148,8 +148,7 @@ class _AppState extends State<MyApp> {
     // is open)
     Wakelock.enable();
 
-    return CupertinoApp(
-        home: ValueListenableBuilder(
+    return ValueListenableBuilder(
             valueListenable: UserAuth.shared.isLoggedIn,
             builder: (BuildContext context, bool isLoggedIn, Widget? child) {
               if (isLoggedIn) {
@@ -201,7 +200,7 @@ class _AppState extends State<MyApp> {
                 return LoginView(); // stop listening to my profile data and reset if I sign
                 // out
               }
-            }));
+            });
   }
 }
 

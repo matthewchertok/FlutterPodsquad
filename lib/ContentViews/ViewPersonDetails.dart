@@ -229,7 +229,8 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
     super.initState();
     this._getProfileData().then((_) {
       this._checkIfTheOtherPersonBlockedMe();
-      showViewPersonDetailsTutorialIfNecessary(context: context, personData: personData);
+      if (personID != myFirebaseUserId) showViewPersonDetailsTutorialIfNecessary(context: context, personData:
+      personData);
     });
     this._getPodMemberships();
 

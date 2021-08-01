@@ -60,6 +60,8 @@ dependencies:
   permission_handler: ^8.1.4+1
   flutter_blue: ^0.8.0
   flutter_app_badger: ^1.2.0
+  beacon_broadcast: ^0.3.0-nullsafety.0
+  flutter_beacon: ^0.5.0
 
 dev_dependencies:
   flutter_test:

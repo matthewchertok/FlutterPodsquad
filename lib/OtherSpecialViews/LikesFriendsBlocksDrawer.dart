@@ -25,7 +25,8 @@ Widget likesFriendsBlocksDrawer({required BuildContext context}) => Drawer(
               // Navigate to search users by name
               ListTile(
                 title: Text("Search Users By Name", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
-                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.search_circle),
+                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.search_circle, color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.darkBackgroundGray),
                 onTap: () {
                   Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                       builder: (context) => MainListDisplayView(viewMode: MainListDisplayViewModes.searchUsers)));
@@ -42,7 +43,8 @@ Widget likesFriendsBlocksDrawer({required BuildContext context}) => Drawer(
                   });
                 },
                 title: Text("Search Pods By Name", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
-                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.search),),
+                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.search, color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.darkBackgroundGray),),
 
               ListTile(
                 onTap: () {
@@ -50,12 +52,14 @@ Widget likesFriendsBlocksDrawer({required BuildContext context}) => Drawer(
                       .push(CupertinoPageRoute(builder: (context) => CreateAPodView(isCreatingNewPod: true)));
                 },
                 title: Text("Create Pod", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
-                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.plus),),
+                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.plus, color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.darkBackgroundGray),),
 
               // Navigate to view likes
               ListTile(
                 title: Text("View Likes", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
-                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.heart),
+                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.heart, color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.darkBackgroundGray),
                 onTap: () {
                   // navigate to view likes
                   Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
@@ -66,7 +70,8 @@ Widget likesFriendsBlocksDrawer({required BuildContext context}) => Drawer(
               // Navigate to view friends
               ListTile(
                 title: Text("View Friends", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
-                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.person_3),
+                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.person_3, color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.darkBackgroundGray),
                 onTap: () {
                   Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                       builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes.friends)));
@@ -76,7 +81,8 @@ Widget likesFriendsBlocksDrawer({required BuildContext context}) => Drawer(
               // Navigate to view blocks
               ListTile(
                 title: Text("Blocked People", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
-                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.person_crop_circle_badge_xmark),
+                CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.person_crop_circle_badge_xmark, color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.darkBackgroundGray),
                 onTap: () {
                   Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                       builder: (context) => LikesFriendsBlocksTabView(viewMode: MainListDisplayViewModes.blocked)));
@@ -85,7 +91,8 @@ Widget likesFriendsBlocksDrawer({required BuildContext context}) => Drawer(
 
               // show the help sheet
               ListTile(title: Text("Help", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.question_circle), onTap: (){
+              CupertinoColors.darkBackgroundGray)), leading: Icon(CupertinoIcons.question_circle, color: isDarkMode ? CupertinoColors.white :
+              CupertinoColors.darkBackgroundGray), onTap: (){
                 showWelcomeTutorialIfNecessary(context: context, userPressedHelp: true);
               },)
             ],

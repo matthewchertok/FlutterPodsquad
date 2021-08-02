@@ -666,7 +666,7 @@ class _MessagingViewState extends State<MessagingView> {
     dmMessageDictionary["senderName"] = MyProfileTabBackendFunctions.shared.myProfileData.value.name;
     dmMessageDictionary["recipientName"] = chatPartnerOrPodName;
     dmMessageDictionary["senderThumbnailURL"] = MyProfileTabBackendFunctions.shared.myProfileData.value.thumbnailURL;
-    dmMessageDictionary["recipientThumbnailURL"] = chatPartnerThumbnailURL;
+    dmMessageDictionary["recipientThumbnailURL"] = _chatPartnerProfileData?.thumbnailURL ?? chatPartnerThumbnailURL;
 
     if (message.audioURL != null) {
       dmMessageDictionary["audioURL"] = message.audioURL;

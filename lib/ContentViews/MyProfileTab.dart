@@ -465,7 +465,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                   showCupertinoModalPopup(context: context, builder: (context) => sheet);
                                 },
                                 child: Padding(
-                                    padding: EdgeInsets.all(5),
+                                    padding: EdgeInsets.only(left: 5),
                                     child: Align(
                                         alignment: Alignment.centerLeft,
                                         child: Text(
@@ -534,7 +534,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                   showCupertinoModalPopup(context: context, builder: (context) => sheet);
                                 },
                                 child: Padding(
-                                    padding: EdgeInsets.all(5),
+                                    padding: EdgeInsets.only(left: 5),
                                     child: Align(
                                         alignment: Alignment.centerLeft,
                                         child: Text(
@@ -551,7 +551,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                         // birthday picker
                         Align(
                             alignment: Alignment.centerLeft,
-                            child: CupertinoButton(
+                            child: CupertinoButton(padding: EdgeInsets.zero,
                                 child: Padding(
                                     padding: EdgeInsets.only(left: 8),
                                     child: Text(

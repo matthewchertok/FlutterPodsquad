@@ -556,20 +556,25 @@ class _MyProfileTabState extends State<MyProfileTab> {
                         // birthday picker
                         CupertinoFormRow(
                           child: CupertinoButton(
-                              padding: EdgeInsets.only(left: 8),
-                              child: Text(
-                                _birthday == -42069
-                                    ? "Select "
-                                        "your "
-                                        "birthday"
-                                    : "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).month.toHumanReadableMonth()} "
-                                        "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).day}, ${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).year}",
-                                style: TextStyle(
-                                    color: _birthday == -42069
-                                        ? CupertinoColors.inactiveGray
-                                        : isDarkMode
-                                            ? CupertinoColors.white
-                                            : CupertinoColors.black),
+                              padding: EdgeInsets.zero,
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 5),
+                                child: Align(alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    _birthday == -42069
+                                        ? "Select "
+                                            "your "
+                                            "birthday"
+                                        : "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).month.toHumanReadableMonth()} "
+                                            "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).day}, ${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).year}",
+                                    style: TextStyle(
+                                        color: _birthday == -42069
+                                            ? CupertinoColors.inactiveGray
+                                            : isDarkMode
+                                                ? CupertinoColors.white
+                                                : CupertinoColors.black),
+                                  ),
+                                ),
                               ),
                               onPressed: () {
                                 // show a sheet where the user can pick their birthday

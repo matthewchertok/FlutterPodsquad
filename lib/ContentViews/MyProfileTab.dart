@@ -549,9 +549,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                         ))))),
 
                         // birthday picker
-                        Align(
-                            alignment: Alignment.centerLeft,
-                            child: CupertinoButton(padding: EdgeInsets.only(left: 8),
+                        CupertinoButton(padding: EdgeInsets.only(left: 8),
                                 child: Text(
                                       _birthday == -42069
                                           ? "Select "
@@ -616,7 +614,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                           ),
                                         );
                                       });
-                                })),
+                                }),
 
                         // school text field
                         CupertinoTextFormFieldRow(controller: _schoolTextController, placeholder: "School"),

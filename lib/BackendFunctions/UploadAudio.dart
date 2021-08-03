@@ -13,10 +13,11 @@ class UploadAudio {
   Future<List<String>?> uploadRecordingToDatabase(
       {required File recordingFile, required String chatPartnerOrPodID, required bool isPodMessage}) async {
 
-    // for strange reasons, the file path gets messed up on iOS (an extra "file:///" gets added in front of the path)
-    // . Thus, to fix this, I must remove that part of the string on iOS only.
+    // for strange reasons, the file path sometimes gets messed up on iOS (an extra "file:///" gets added in front of
+    // the path)
+    // Thus, to fix this, I must remove that part of the string if necessary.
     var filePath = recordingFile.path;
-    if (Platform.isIOS) filePath = filePath.substring(8, filePath.length);
+    if (filePath.contains("file:///file:///")) filePath = filePath.substring(8, filePath.length);
     final recordingFileAdjusted = File(filePath);
 
     // create a random identifier for the audio recording

@@ -1368,7 +1368,7 @@ class _MessagingViewState extends State<MessagingView> {
                                 this._markMessageReadIfNecessary(message: message);
 
                                 // Show/hide the time stamp when the row is tapped
-                                return SizeTransition(
+                                return SizeTransition(key: ValueKey<int>(index),
                                   sizeFactor: animation,
                                   child: Slidable(
                                     actionPane: SlidableDrawerActionPane(),

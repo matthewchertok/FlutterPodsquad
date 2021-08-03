@@ -551,10 +551,8 @@ class _MyProfileTabState extends State<MyProfileTab> {
                         // birthday picker
                         Align(
                             alignment: Alignment.centerLeft,
-                            child: CupertinoButton(padding: EdgeInsets.zero,
-                                child: Padding(
-                                    padding: EdgeInsets.only(left: 8),
-                                    child: Text(
+                            child: CupertinoButton(padding: EdgeInsets.only(left: 8),
+                                child: Text(
                                       _birthday == -42069
                                           ? "Select "
                                               "your "
@@ -567,7 +565,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                               : isDarkMode
                                                   ? CupertinoColors.white
                                                   : CupertinoColors.black),
-                                    )),
+                                    ),
                                 onPressed: () {
                                   // show a sheet where the user can pick their birthday
                                   showCupertinoModalPopup(

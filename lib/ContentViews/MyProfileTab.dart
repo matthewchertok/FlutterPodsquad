@@ -108,8 +108,9 @@ class _MyProfileTabState extends State<MyProfileTab> {
           .set({"profileData": myProfileDataDict}, SetOptions(merge: true)).then((value) {
         showSingleButtonAlert(
             context: context,
-            title:
-                MyProfileTabBackendFunctions.shared.isProfileComplete.value ? "Profile Changes Saved!" : "Profile Created!",
+            title: MyProfileTabBackendFunctions.shared.isProfileComplete.value
+                ? "Profile Changes Saved!"
+                : "Profile Created!",
             dismissButtonLabel: "OK");
       }).catchError((error) {
         print("An error occurred while setting my profile data: $error");
@@ -323,11 +324,13 @@ class _MyProfileTabState extends State<MyProfileTab> {
             CupertinoSliverNavigationBar(
               padding: EdgeInsetsDirectional.all(5),
               leading: CupertinoButton(
-                child: MyProfileTabBackendFunctions.shared.isProfileComplete.value ? Icon(CupertinoIcons
-                  .line_horizontal_3) : Icon(CupertinoIcons.question_circle),
+                child: MyProfileTabBackendFunctions.shared.isProfileComplete.value
+                    ? Icon(CupertinoIcons.line_horizontal_3)
+                    : Icon(CupertinoIcons.question_circle),
                 onPressed: () {
-                  MyProfileTabBackendFunctions.shared.isProfileComplete.value ? drawerKey.currentState?.openDrawer() :
-                  showWelcomeTutorialIfNecessary(context: context, userPressedHelp: true); // open the 
+                  MyProfileTabBackendFunctions.shared.isProfileComplete.value
+                      ? drawerKey.currentState?.openDrawer()
+                      : showWelcomeTutorialIfNecessary(context: context, userPressedHelp: true); // open the
                   // likes/friends/blocks drawer;
                 },
                 padding: EdgeInsets.zero,
@@ -351,7 +354,8 @@ class _MyProfileTabState extends State<MyProfileTab> {
                               builder: (context, ProfileData profileData, widget) {
                                 return profileData.thumbnailURL.isEmpty
                                     ? Icon(CupertinoIcons.person)
-                                    : CupertinoButton(padding: EdgeInsets.zero,
+                                    : CupertinoButton(
+                                        padding: EdgeInsets.zero,
                                         child: DecoratedImage(
                                           imageURL: profileData.thumbnailURL,
                                           width: 125.scaledForScreenSize(context: context),
@@ -360,11 +364,12 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                         onPressed: () {
                                           // Navigate to view my profile (if it's complete)
                                           if (MyProfileTabBackendFunctions.shared.isProfileComplete.value)
-                                          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
-                                              builder: (context) => ViewPersonDetails(personID: myFirebaseUserId)));
+                                            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                                                builder: (context) => ViewPersonDetails(personID: myFirebaseUserId)));
 
                                           // otherwise, take a picture with the camera
-                                          else _pickImage(source: ImageSource.camera);
+                                          else
+                                            _pickImage(source: ImageSource.camera);
                                         },
                                       );
                               })),
@@ -549,72 +554,73 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                         ))))),
 
                         // birthday picker
-                        CupertinoButton(padding: EdgeInsets.only(left: 8),
-                                child: Text(
-                                      _birthday == -42069
-                                          ? "Select "
-                                              "your "
-                                              "birthday"
-                                          : "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).month.toHumanReadableMonth()} "
-                                              "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).day}, ${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).year}",
-                                      style: TextStyle(
-                                          color: _birthday == -42069
-                                              ? CupertinoColors.inactiveGray
-                                              : isDarkMode
-                                                  ? CupertinoColors.white
-                                                  : CupertinoColors.black),
-                                    ),
-                                onPressed: () {
-                                  // show a sheet where the user can pick their birthday
-                                  showCupertinoModalPopup(
-                                      context: context,
-                                      builder: (context) {
-                                        return Container(
-                                          height: 200,
-                                          child: CupertinoPageScaffold(
-                                            child: Column(
-                                              children: [
-                                                Padding(
-                                                    padding: EdgeInsets.all(10),
-                                                    child: Text(
-                                                      "Enter Birthday",
-                                                      style: TextStyle(
-                                                          color: isDarkMode
-                                                              ? CupertinoColors.white
-                                                              : CupertinoColors.black),
-                                                    )),
-                                                Expanded(
-                                                    child: Padding(
-                                                        padding: EdgeInsets.only(top: 20),
-                                                        child: CupertinoDatePicker(
-                                                            onDateTimeChanged: (DateTime selectedBirthday) {
-                                                              setState(() {
-                                                                this._birthday =
-                                                                    selectedBirthday.millisecondsSinceEpoch *
-                                                                        0.001; // divide by 1000 to convert to
-                                                                // seconds, since that's how the native iOS app handles time.
-                                                              });
-                                                            },
-                                                            initialDateTime: DateTime.fromMillisecondsSinceEpoch(
-                                                                ((_birthday ?? _twentyOneYearsAgo()) * 1000).toInt()),
-                                                            minimumDate: _earliestAllowedBirthday(),
-                                                            maximumDate: _latestAllowedBirthday(),
-                                                            mode: CupertinoDatePickerMode.date))),
-                                                Padding(
-                                                  padding: EdgeInsets.all(5),
-                                                  child: CupertinoButton(
-                                                    child: Text("Done"),
-                                                    onPressed: () {
-                                                      dismissAlert(context: context);
-                                                    },
-                                                  ),
-                                                )
-                                              ],
-                                            ),
+                        CupertinoFormRow(
+                          child: CupertinoButton(
+                              padding: EdgeInsets.only(left: 8),
+                              child: Text(
+                                _birthday == -42069
+                                    ? "Select "
+                                        "your "
+                                        "birthday"
+                                    : "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).month.toHumanReadableMonth()} "
+                                        "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).day}, ${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).year}",
+                                style: TextStyle(
+                                    color: _birthday == -42069
+                                        ? CupertinoColors.inactiveGray
+                                        : isDarkMode
+                                            ? CupertinoColors.white
+                                            : CupertinoColors.black),
+                              ),
+                              onPressed: () {
+                                // show a sheet where the user can pick their birthday
+                                showCupertinoModalPopup(
+                                    context: context,
+                                    builder: (context) {
+                                      return Container(
+                                        height: 200,
+                                        child: CupertinoPageScaffold(
+                                          child: Column(
+                                            children: [
+                                              Padding(
+                                                  padding: EdgeInsets.all(10),
+                                                  child: Text(
+                                                    "Enter Birthday",
+                                                    style: TextStyle(
+                                                        color:
+                                                            isDarkMode ? CupertinoColors.white : CupertinoColors.black),
+                                                  )),
+                                              Expanded(
+                                                  child: Padding(
+                                                      padding: EdgeInsets.only(top: 20),
+                                                      child: CupertinoDatePicker(
+                                                          onDateTimeChanged: (DateTime selectedBirthday) {
+                                                            setState(() {
+                                                              this._birthday = selectedBirthday.millisecondsSinceEpoch *
+                                                                  0.001; // divide by 1000 to convert to
+                                                              // seconds, since that's how the native iOS app handles time.
+                                                            });
+                                                          },
+                                                          initialDateTime: DateTime.fromMillisecondsSinceEpoch(
+                                                              ((_birthday ?? _twentyOneYearsAgo()) * 1000).toInt()),
+                                                          minimumDate: _earliestAllowedBirthday(),
+                                                          maximumDate: _latestAllowedBirthday(),
+                                                          mode: CupertinoDatePickerMode.date))),
+                                              Padding(
+                                                padding: EdgeInsets.all(5),
+                                                child: CupertinoButton(
+                                                  child: Text("Done"),
+                                                  onPressed: () {
+                                                    dismissAlert(context: context);
+                                                  },
+                                                ),
+                                              )
+                                            ],
                                           ),
-                                        );
-                                      });
-                                }),
+                                        ),
+                                      );
+                                    });
+                              }),
+                        ),
 
                         // school text field
                         CupertinoTextFormFieldRow(controller: _schoolTextController, placeholder: "School"),

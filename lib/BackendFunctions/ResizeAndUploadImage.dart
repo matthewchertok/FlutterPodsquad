@@ -212,7 +212,7 @@ class ResizeAndUploadImage {
 
     // Save the photo as a jpg in the application directory
     final tempDir = await getApplicationDocumentsDirectory();
-    final tempPath = tempDir.path + "messaging_image.jpg";
+    final tempPath = tempDir.path + "/messaging_image.jpg";
     final messageImageFile = File(tempPath);
     messageImageFile.writeAsBytesSync(encodeJpg(resizedPhoto));
 

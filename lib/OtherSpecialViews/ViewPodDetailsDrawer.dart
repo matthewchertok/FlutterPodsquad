@@ -52,8 +52,7 @@ Widget viewPodDetailsDrawer(
               ListTile(
                 title: Text("Join Pod",
                     style: TextStyle(color: isDarkMode ? CupertinoColors.white : CupertinoColors.darkBackgroundGray)),
-                leading: Icon(CupertinoIcons.plus, color: isDarkMode ? CupertinoColors.white :
-                CupertinoColors.darkBackgroundGray),
+                leading: Icon(CupertinoIcons.plus, color: CupertinoColors.inactiveGray),
                 onTap: () {
                   // You Are Blocked alert
 
@@ -108,8 +107,7 @@ Widget viewPodDetailsDrawer(
             ListTile(
               title: Text("Pod Members",
                   style: TextStyle(color: isDarkMode ? CupertinoColors.white : CupertinoColors.darkBackgroundGray)),
-              leading: Icon(CupertinoIcons.person_3, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.person_3, color: CupertinoColors.inactiveGray),
               onTap: () {
                 Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                     builder: (context) => MainListDisplayView(
@@ -126,8 +124,7 @@ Widget viewPodDetailsDrawer(
               ListTile(
                 title: Text("Blocked Users",
                     style: TextStyle(color: isDarkMode ? CupertinoColors.white : CupertinoColors.darkBackgroundGray)),
-                leading: Icon(CupertinoIcons.person_crop_circle_badge_xmark, color: isDarkMode ? CupertinoColors.white :
-                CupertinoColors.darkBackgroundGray),
+                leading: Icon(CupertinoIcons.person_crop_circle_badge_xmark, color: CupertinoColors.inactiveGray),
                 onTap: () {
                   Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                       builder: (context) => MainListDisplayView(
@@ -144,8 +141,7 @@ Widget viewPodDetailsDrawer(
               ListTile(
                 title: Text("Edit Pod",
                     style: TextStyle(color: isDarkMode ? CupertinoColors.white : CupertinoColors.darkBackgroundGray)),
-                leading: Icon(CupertinoIcons.pencil, color: isDarkMode ? CupertinoColors.white :
-                CupertinoColors.darkBackgroundGray),
+                leading: Icon(CupertinoIcons.pencil, color: CupertinoColors.inactiveGray),
                 onTap: () {
                   Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                       builder: (context) => CreateAPodView(
@@ -161,8 +157,7 @@ Widget viewPodDetailsDrawer(
               ListTile(
                 title: Text("Leave Pod",
                     style: TextStyle(color: isDarkMode ? CupertinoColors.white : CupertinoColors.darkBackgroundGray)),
-                leading: Icon(CupertinoIcons.hand_raised, color: isDarkMode ? CupertinoColors.white :
-                CupertinoColors.darkBackgroundGray),
+                leading: Icon(CupertinoIcons.hand_raised, color: CupertinoColors.inactiveGray),
                 onTap: () {
                   leavePodFunction();
                 },
@@ -190,8 +185,7 @@ Widget viewPodDetailsDrawer(
             ListTile(
               title: Text("Help",
                   style: TextStyle(color: isDarkMode ? CupertinoColors.white : CupertinoColors.darkBackgroundGray)),
-              leading: Icon(CupertinoIcons.question_circle, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.question_circle, color: CupertinoColors.inactiveGray),
               onTap: () {
                 showViewPodDetailsTutorialIfNecessary(
                     context: context,

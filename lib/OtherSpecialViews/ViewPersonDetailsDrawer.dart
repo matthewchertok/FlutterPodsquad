@@ -50,8 +50,7 @@ Widget viewPersonDetailsDrawer(
             ListTile(
               title: Text("${personData.name.firstName()}'s Photos", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
               CupertinoColors.darkBackgroundGray)),
-              leading: Icon(CupertinoIcons.photo, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.photo, color: CupertinoColors.inactiveGray),
               onTap: () {
                 Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                     builder: (context) => MultiImagePageViewer(
@@ -65,8 +64,7 @@ Widget viewPersonDetailsDrawer(
           ListTile(
             title: Text(personData.userID == myFirebaseUserId ? "My Pods" : "${personData.name.firstName()}'s Pods", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.darkBackgroundGray)),
-            leading: Icon(CupertinoIcons.person_2_square_stack, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.person_2_square_stack, color: CupertinoColors.inactiveGray),
             onTap: () {
               Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                   builder: (context) => MainListDisplayView(
@@ -86,8 +84,7 @@ Widget viewPersonDetailsDrawer(
             ListTile(
               title: Text("Add ${personData.name.firstName()} to a pod", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
               CupertinoColors.darkBackgroundGray)),
-              leading: Icon(CupertinoIcons.plus, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.plus, color: CupertinoColors.inactiveGray),
               onTap: () {
                 Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
                     builder: (context) =>
@@ -100,8 +97,7 @@ Widget viewPersonDetailsDrawer(
             ListTile(
               title: Text("Like ${personData.name.firstName()}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
               CupertinoColors.darkBackgroundGray)),
-              leading: Icon(CupertinoIcons.heart, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.heart, color: CupertinoColors.inactiveGray),
               onTap: () {
                 // "Are you sure you want to like [NAME]?"
                 final likeAlert = CupertinoAlertDialog(
@@ -156,8 +152,7 @@ Widget viewPersonDetailsDrawer(
             ListTile(
               title: Text("Un-like ${personData.name.firstName()}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
               CupertinoColors.darkBackgroundGray)),
-              leading: Icon(CupertinoIcons.heart_slash, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.heart_slash, color: CupertinoColors.inactiveGray),
               onTap: () {
                 // "Are you sure you want to un-like [NAME]?"
                 final unLikeAlert = CupertinoAlertDialog(
@@ -205,8 +200,7 @@ Widget viewPersonDetailsDrawer(
             ListTile(
               title: Text("Friend ${personData.name.firstName()}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
               CupertinoColors.darkBackgroundGray)),
-              leading: Icon(CupertinoIcons.person_badge_plus, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.person_badge_plus, color: CupertinoColors.inactiveGray),
               onTap: () {
                 // "Are you sure you want to friend [NAME]?"
                 final friendAlert = CupertinoAlertDialog(
@@ -262,8 +256,7 @@ Widget viewPersonDetailsDrawer(
             ListTile(
               title: Text("Unfriend ${personData.name.firstName()}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
               CupertinoColors.darkBackgroundGray)),
-              leading: Icon(CupertinoIcons.person_badge_minus, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.person_badge_minus, color: CupertinoColors.inactiveGray),
               onTap: () {
                 // "Are you sure you want to unfriend [NAME]?"
                 final unFriendAlert = CupertinoAlertDialog(
@@ -311,8 +304,7 @@ Widget viewPersonDetailsDrawer(
             ListTile(
               title: Text("Block ${personData.name.firstName()}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
               CupertinoColors.darkBackgroundGray)),
-              leading: Icon(CupertinoIcons.hand_raised, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.hand_raised, color: CupertinoColors.inactiveGray),
               onTap: () {
                 // "Are you sure you want to block [NAME]?"
                 final blockAlert = CupertinoAlertDialog(
@@ -363,8 +355,7 @@ Widget viewPersonDetailsDrawer(
             ListTile(
               title: Text("Unblock ${personData.name.firstName()}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
               CupertinoColors.darkBackgroundGray)),
-              leading: Icon(CupertinoIcons.hand_raised_slash, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.hand_raised_slash, color: CupertinoColors.inactiveGray),
               onTap: () {
                 // "Are you sure you want to unblock [NAME]?"
                 final unBlockAlert = CupertinoAlertDialog(
@@ -414,8 +405,7 @@ Widget viewPersonDetailsDrawer(
             ListTile(
               title: Text("Report ${personData.name.firstName()}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
               CupertinoColors.darkBackgroundGray)),
-              leading: Icon(CupertinoIcons.exclamationmark_shield, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.exclamationmark_shield, color: CupertinoColors.inactiveGray),
               onTap: () {
                 // "Are you sure you want to report [NAME]?"
                 final reportAlert = CupertinoAlertDialog(
@@ -466,8 +456,7 @@ Widget viewPersonDetailsDrawer(
             ListTile(
               title: Text("Un-report ${personData.name.firstName()}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
               CupertinoColors.darkBackgroundGray)),
-              leading: Icon(CupertinoIcons.shield_slash, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.shield_slash, color: CupertinoColors.inactiveGray),
               onTap: () {
                 // "Are you sure you want to report [NAME]?"
                 final reportAlert = CupertinoAlertDialog(
@@ -519,8 +508,7 @@ Widget viewPersonDetailsDrawer(
           ListTile(
               title: Text("Help", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
               CupertinoColors.darkBackgroundGray)),
-              leading: Icon(CupertinoIcons.question_circle, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.question_circle, color: CupertinoColors.inactiveGray),
               onTap: () {
                 showViewPersonDetailsTutorialIfNecessary(context: context, personData: personData, userPressedHelp: true);
               })

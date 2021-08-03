@@ -1415,7 +1415,7 @@ class _MessagingViewState extends State<MessagingView> {
                                           padding: EdgeInsets.all(10),
                                           child: Text(
                                             TimeAndDateFunctions.timeStampText(timeStamp),
-                                            style: TextStyle(fontSize: 10),
+                                            style: TextStyle(fontSize: 10, color: CupertinoColors.inactiveGray),
                                           ),
                                         ),
                                     ],
@@ -1428,7 +1428,7 @@ class _MessagingViewState extends State<MessagingView> {
                                           padding: EdgeInsets.all(10),
                                           child: Text(
                                             TimeAndDateFunctions.timeStampText(timeStamp),
-                                            style: TextStyle(fontSize: 10),
+                                            style: TextStyle(fontSize: 10, color: CupertinoColors.inactiveGray),
                                           ),
                                         ),
 

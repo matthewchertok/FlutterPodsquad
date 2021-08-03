@@ -41,8 +41,7 @@ Future<void> showLoginTutorialIfNecessary({required BuildContext context}) async
             subtitle: Text("Podsquad is an app designed to help you meet "
                 "people", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.hand_point_right, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.hand_point_right, color: CupertinoColors.inactiveGray),
           ),
           ListTile(
             title: Text("How Does It Work?", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
@@ -50,16 +49,14 @@ Future<void> showLoginTutorialIfNecessary({required BuildContext context}) async
             subtitle: Text("Podsquad uses Bluetooth to detect nearby users and "
                 "does not required your location.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.hand_point_right, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.hand_point_right, color: CupertinoColors.inactiveGray),
           ),
           ListTile(
             title: Text("Get Started", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
             subtitle: Text("Sign up with a valid university email address to begin!", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.hand_point_right, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.hand_point_right, color: CupertinoColors.inactiveGray),
           )
         ]))
       ],
@@ -116,8 +113,7 @@ Future<void> showEULAIfNecessary({required BuildContext context}) async {
                 "else. Additionally, users must be at least 17 years of age. Violation of any of the terms listed on this "
                 "page may result in account suspension.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.exclamationmark_octagon, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.exclamationmark_octagon, color: CupertinoColors.inactiveGray),
           ),
           ListTile(
             title: Text("Data Collection", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
@@ -128,8 +124,7 @@ Future<void> showEULAIfNecessary({required BuildContext context}) async {
                 "so this data will not be shared with or sold to third parties."
                 "", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.lock, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.lock, color: CupertinoColors.inactiveGray),
           ),
           ListTile(
             title: Text("Content Liability", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
@@ -139,8 +134,7 @@ Future<void> showEULAIfNecessary({required BuildContext context}) async {
                 "not be held liable for user-generated content on the app, through we encourage users to "
                 "report offensive content should they find any.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.shield, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.shield, color: CupertinoColors.inactiveGray),
           ),
           ListTile(
             title: Text("License", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
@@ -149,8 +143,7 @@ Future<void> showEULAIfNecessary({required BuildContext context}) async {
                 "rights to the application. Users agree not to sell, modify, distribute, or attempt to copy or reverse "
                 "engineer the app. Violation of this policy may result in legal action.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.doc_text, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.doc_text, color: CupertinoColors.inactiveGray),
           ),
           ListTile(
             title: Text("Agreement To Terms", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
@@ -159,8 +152,7 @@ Future<void> showEULAIfNecessary({required BuildContext context}) async {
                 "terms listed on this page. Individuals who do not agree with these terms should uninstall the application"
                 ".", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.person_crop_circle_badge_checkmark, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.person_crop_circle_badge_checkmark, color: CupertinoColors.inactiveGray),
           )
         ]))
       ],
@@ -235,8 +227,7 @@ Future<void> showWelcomeTutorialIfNecessary({required BuildContext context, user
               CupertinoColors.black)),
               subtitle: Text("Create a profile to get started!", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
               CupertinoColors.black)),
-              leading: Icon(CupertinoIcons.person, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.person, color: CupertinoColors.inactiveGray),
             ),
           ListTile(
             title: Text("Discover Nearby", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
@@ -244,8 +235,7 @@ Future<void> showWelcomeTutorialIfNecessary({required BuildContext context, user
             subtitle: Text("While open, Podsquad automatically "
                 "listens for users within approximately 30 feet. You'll be able to see people you meet in real time.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.bluetooth, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.bluetooth, color: CupertinoColors.inactiveGray),
           ),
           ListTile(
             title: Text("Messaging", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
@@ -253,8 +243,7 @@ Future<void> showWelcomeTutorialIfNecessary({required BuildContext context, user
             subtitle: Text("You can message anyone on Podsquad. Messages will appear in "
                 "the Messages tab.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.bubble_left_bubble_right, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.bubble_left_bubble_right, color: CupertinoColors.inactiveGray),
           ),
           ListTile(
             title: Text("Create Pods", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
@@ -262,8 +251,7 @@ Future<void> showWelcomeTutorialIfNecessary({required BuildContext context, user
             subtitle: Text("Pods are groups you can make with your friends. Create one"
                 " by opening the drawer on the left hand side of the screen and tapping Create Pod.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.person_2_square_stack, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.person_2_square_stack, color: CupertinoColors.inactiveGray),
           ),
           ListTile(
             title: Text("Search By Name", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
@@ -271,8 +259,7 @@ Future<void> showWelcomeTutorialIfNecessary({required BuildContext context, user
             subtitle: Text("You can search for users and pods by opening the drawer"
                 " on the left hand side of the screen and tapping Search Users By Name or Search Pods By Name.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.search, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.search, color: CupertinoColors.inactiveGray),
           ),
         ]))
       ],
@@ -328,8 +315,7 @@ Future<void> showViewPodDetailsTutorialIfNecessary(
               subtitle: Text("If the Join button isn't visible, tap the icon in the top right corner, then "
                   "tap Join Pod for more information.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
               CupertinoColors.black)),
-              leading: Icon(CupertinoIcons.line_horizontal_3, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.line_horizontal_3, color: CupertinoColors.inactiveGray),
             ),
           if (amMember)
             ListTile(
@@ -337,8 +323,7 @@ Future<void> showViewPodDetailsTutorialIfNecessary(
               CupertinoColors.black)),
               subtitle: Text("Tap the icon in the top right corner, then tap Leave Pod.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
               CupertinoColors.black)),
-              leading: Icon(CupertinoIcons.hand_raised, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.hand_raised, color: CupertinoColors.inactiveGray),
             ),
           ListTile(
             title: Text("Message ${podData.name}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
@@ -348,8 +333,7 @@ Future<void> showViewPodDetailsTutorialIfNecessary(
                 : "Pod members can message each "
                     "other through the pod chat. Join ${podData.name} to unlock this feature!", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.paperplane, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.paperplane, color: CupertinoColors.inactiveGray),
           ),
           ListTile(
             title: Text("View Members", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
@@ -357,8 +341,7 @@ Future<void> showViewPodDetailsTutorialIfNecessary(
             subtitle: Text("Tap on the number of members below the pod name to view members of ${podData.name}. Any "
                 "member can remove or block another member (besides the pod creator) from that screen.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.person_3, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.person_3, color: CupertinoColors.inactiveGray),
           ),
           if (amMember)
             ListTile(
@@ -367,8 +350,7 @@ Future<void> showViewPodDetailsTutorialIfNecessary(
               subtitle:
                   Text("Tap the icon in the top right corner, then Blocked Users to unblock someone from the pod.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
                   CupertinoColors.black)),
-              leading: Icon(CupertinoIcons.person_crop_circle_badge_xmark, color: isDarkMode ? CupertinoColors.white :
-              CupertinoColors.darkBackgroundGray),
+              leading: Icon(CupertinoIcons.person_crop_circle_badge_xmark, color: CupertinoColors.inactiveGray),
             ),
         ]))
       ],
@@ -422,8 +404,7 @@ Future<void> showViewPersonDetailsTutorialIfNecessary(
             CupertinoColors.black)),
             subtitle: Text("Tap the icon in the top right corner for options!", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.line_horizontal_3, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.line_horizontal_3, color: CupertinoColors.inactiveGray),
           ),
           ListTile(
             title: Text("Message ${personData.name}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
@@ -432,8 +413,7 @@ Future<void> showViewPersonDetailsTutorialIfNecessary(
                 "Send ${PronounFormatter.makePronoun(preferredPronouns: personData.preferredPronoun, pronounTense: PronounTenses.HimHerThem, shouldBeCapitalized: false)} a message! Alternatively, you can tap the Say "
                 "Hi button and Podsquad will send an automatic introduction for you.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.paperplane, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.paperplane, color: CupertinoColors.inactiveGray),
           ),
           ListTile(
             title: Text("Like ${personData.name}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
@@ -443,8 +423,7 @@ Future<void> showViewPersonDetailsTutorialIfNecessary(
                     pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: false)} ${PronounFormatter.isOrAre
                   (pronoun: personData.preferredPronoun, shouldBeCapitalized: false)} attractive!", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
-            leading: Icon(CupertinoIcons.heart, color: isDarkMode ? CupertinoColors.white :
-            CupertinoColors.darkBackgroundGray),
+            leading: Icon(CupertinoIcons.heart, color: CupertinoColors.inactiveGray),
           ),
             ListTile(
               title: Text("Friend ${personData.name}", style: TextStyle(color: isDarkMode ? CupertinoColors.white :

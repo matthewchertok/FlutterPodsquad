@@ -78,7 +78,7 @@ class _ViewFullImageState extends State<ViewFullImage> {
             // write and delete image captions
             if (canWriteCaption)
               // caption editing controls
-              Container(color: CupertinoColors.systemBackground, child: Column(
+              Container(color: isDarkMode ? CupertinoColors.black : CupertinoColors.white, child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   CupertinoTextField(

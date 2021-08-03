@@ -439,6 +439,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
 
                         // preferred pronouns menu - show an action sheet instead
                         CupertinoFormRow(
+                            padding: EdgeInsets.only(left: 25),
                             child: CupertinoButton(
                                 padding: EdgeInsets.zero,
                                 onPressed: () {
@@ -469,22 +470,21 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                   );
                                   showCupertinoModalPopup(context: context, builder: (context) => sheet);
                                 },
-                                child: Padding(
-                                    padding: EdgeInsets.only(left: 5),
-                                    child: Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          _preferredPronouns ?? "Pick your pronouns",
-                                          style: TextStyle(
-                                              color: _preferredPronouns == null
-                                                  ? CupertinoColors.inactiveGray
-                                                  : isDarkMode
-                                                      ? CupertinoColors.white
-                                                      : CupertinoColors.black),
-                                        ))))),
+                                child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      _preferredPronouns ?? "Pick your pronouns",
+                                      style: TextStyle(
+                                          color: _preferredPronouns == null
+                                              ? CupertinoColors.inactiveGray
+                                              : isDarkMode
+                                                  ? CupertinoColors.white
+                                                  : CupertinoColors.black),
+                                    )))),
 
                         // preferred relationship type menu
                         CupertinoFormRow(
+                            padding: EdgeInsets.only(left: 25),
                             child: CupertinoButton(
                                 padding: EdgeInsets.zero,
                                 onPressed: () {
@@ -538,42 +538,39 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                   );
                                   showCupertinoModalPopup(context: context, builder: (context) => sheet);
                                 },
-                                child: Padding(
-                                    padding: EdgeInsets.only(left: 5),
-                                    child: Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          _preferredRelationshipType?.formattedPronounForDisplay() ??
-                                              "Select a relationship preference",
-                                          style: TextStyle(
-                                              color: _preferredRelationshipType == null
-                                                  ? CupertinoColors.inactiveGray
-                                                  : isDarkMode
-                                                      ? CupertinoColors.white
-                                                      : CupertinoColors.black),
-                                        ))))),
+                                child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      _preferredRelationshipType?.formattedPronounForDisplay() ??
+                                          "Select a relationship preference",
+                                      style: TextStyle(
+                                          color: _preferredRelationshipType == null
+                                              ? CupertinoColors.inactiveGray
+                                              : isDarkMode
+                                                  ? CupertinoColors.white
+                                                  : CupertinoColors.black),
+                                    )))),
 
                         // birthday picker
                         CupertinoFormRow(
+                          padding: EdgeInsets.only(left: 25),
                           child: CupertinoButton(
                               padding: EdgeInsets.zero,
-                              child: Padding(
-                                padding: const EdgeInsets.only(left: 5),
-                                child: Align(alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    _birthday == -42069
-                                        ? "Select "
-                                            "your "
-                                            "birthday"
-                                        : "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).month.toHumanReadableMonth()} "
-                                            "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).day}, ${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).year}",
-                                    style: TextStyle(
-                                        color: _birthday == -42069
-                                            ? CupertinoColors.inactiveGray
-                                            : isDarkMode
-                                                ? CupertinoColors.white
-                                                : CupertinoColors.black),
-                                  ),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  _birthday == -42069
+                                      ? "Select "
+                                          "your "
+                                          "birthday"
+                                      : "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).month.toHumanReadableMonth()} "
+                                          "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).day}, ${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).year}",
+                                  style: TextStyle(
+                                      color: _birthday == -42069
+                                          ? CupertinoColors.inactiveGray
+                                          : isDarkMode
+                                              ? CupertinoColors.white
+                                              : CupertinoColors.black),
                                 ),
                               ),
                               onPressed: () {

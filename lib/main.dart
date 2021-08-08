@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -15,11 +17,9 @@ import 'package:podsquad/BackendDataclasses/NotificationTypes.dart';
 import 'package:podsquad/BackendFunctions/ReportedPeopleBackendFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/ContentViews/LoginView.dart';
-import 'package:podsquad/ContentViews/MainListDisplayView.dart';
 import 'package:podsquad/ContentViews/MessagingView.dart';
 import 'package:podsquad/ContentViews/ViewPersonDetails.dart';
 import 'package:podsquad/ContentViews/ViewPodDetails.dart';
-import 'package:podsquad/OtherSpecialViews/LoadingView.dart';
 import 'package:podsquad/TabLayoutViews/LikesFriendsBlocksTabView.dart';
 import 'package:podsquad/TabLayoutViews/WelcomeView.dart';
 import 'package:podsquad/UIBackendClasses/MainListDisplayBackend.dart';
@@ -35,6 +35,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(CupertinoApp(home: MyApp(),));
+
 }
 
 ///Required for Firebase to work with Flutter

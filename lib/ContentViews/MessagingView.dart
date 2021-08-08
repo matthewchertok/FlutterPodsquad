@@ -707,8 +707,8 @@ class _MessagingViewState extends State<MessagingView> {
         if (tokens != null)
         pushSender.sendPushNotification(
             recipientDeviceTokens: tokens,
-            title: "New message from $myName",
-            body: message.text,
+            title: "New Message",
+            body: "from $myName",
             notificationType: NotificationTypes.message);
       }
 
@@ -718,8 +718,7 @@ class _MessagingViewState extends State<MessagingView> {
           pushSender.sendPushNotification(
               recipientDeviceTokens: memberTokens,
               title: chatPartnerOrPodName,
-              body: "$myName: "
-                  "${message.text}",
+              body: "New message from $myName",
               notificationType: NotificationTypes.podMessage,
               podID: chatPartnerOrPodID,
               podName: chatPartnerOrPodName);

@@ -58,7 +58,7 @@ class _SearchTextFieldState extends State<SearchTextField> {
         },
       ),
       suffixMode: OverlayVisibilityMode.editing,
-    ), borderRadius: BorderRadius.circular(8),),);
+    ), borderRadius: BorderRadius.circular(0),),);
   }
 }
 

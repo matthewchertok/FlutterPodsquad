@@ -8,7 +8,8 @@ class PersonOrPodListRow extends StatelessWidget {
       {Key? key,
       required this.personOrPodID,
       required this.personOrPodName,
-      required this.personOrPodThumbnailURL, this.personBirthday = -1,
+      required this.personOrPodThumbnailURL,
+      this.personBirthday = -1,
       required this.personOrPodBio,
       this.timeIMetThePerson})
       : super(key: key);
@@ -37,25 +38,32 @@ class PersonOrPodListRow extends StatelessWidget {
                 children: [
                   Text(
                     this.personOrPodName,
-                    style: TextStyle(fontSize: 18, color: isDarkMode ?
-                    CupertinoColors.white : CupertinoColors.black),
+                    style: TextStyle(fontSize: 18, color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
                   ),
                   SizedBox(height: 10),
                   if (this.personBirthday > 0)
-                    Text(TimeAndDateFunctions.getAgeFromBirthday(birthday: this.personBirthday).toString(), style:
-                    TextStyle(fontSize: 16, color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),),
-                  SizedBox(height: 10,),
+                    Text(
+                      TimeAndDateFunctions.getAgeFromBirthday(birthday: this.personBirthday).toString(),
+                      style: TextStyle(fontSize: 16, color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
+                    ),
+                  if (this.personBirthday > 0)
+                    SizedBox(
+                      height: 10,
+                    ),
                   if (this.personOrPodBio.isNotEmpty)
-                    ClipRRect(child: Container(
-                      padding: EdgeInsets.all(4),
-                      color: accentColor.withOpacity(0.9),
-                      child: Text(
-                        this.personOrPodBio,
-                        style: TextStyle(fontSize: 14, color: CupertinoColors.white),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
+                    ClipRRect(
+                      child: Container(
+                        padding: EdgeInsets.all(4),
+                        color: accentColor.withOpacity(0.9),
+                        child: Text(
+                          this.personOrPodBio,
+                          style: TextStyle(fontSize: 14, color: CupertinoColors.white),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ), borderRadius: BorderRadius.circular(5),)
+                      borderRadius: BorderRadius.circular(5),
+                    )
                 ],
               ),
             ),
@@ -65,8 +73,10 @@ class PersonOrPodListRow extends StatelessWidget {
           if (timeIMetThePerson != null)
             Container(
               width: 50,
-              child: Text(TimeAndDateFunctions.timeStampText(timeIMetThePerson!), style: TextStyle(fontSize: 10, color: isDarkMode ?
-              CupertinoColors.white : CupertinoColors.black),),
+              child: Text(
+                TimeAndDateFunctions.timeStampText(timeIMetThePerson!),
+                style: TextStyle(fontSize: 10, color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
+              ),
             )
         ],
       ),

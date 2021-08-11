@@ -227,10 +227,10 @@ export const deleteUserData = functions.https.onCall(data => {
     // now delete all the extra images from storage
     const extraImages = document.get("extraImages") as Map<string, any> | null;
     if (extraImages != null) {
-      extraImages.forEach((imageData, _imageID) => {
+      for (const [_imageID, imageData] of extraImages){
         const imagePath = imageData.get("imagePath") as string;
         storage().bucket().file(imagePath).delete(); // delete the extra image (there can be up to 5 right now)
-      });
+      }
     }
 
     document.ref.delete(); // delete the document containing the user's profile data

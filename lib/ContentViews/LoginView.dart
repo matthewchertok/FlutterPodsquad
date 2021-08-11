@@ -383,11 +383,14 @@ class _LoginViewState extends State<LoginView> {
                                 ? Opacity(
                                     opacity: 0.8,
                                     child: Icon(CupertinoIcons.eye_slash,
-                                        size: 15, color: CupertinoColors.darkBackgroundGray))
+                                        size: 15, color: isDarkMode ? CupertinoColors.inactiveGray : CupertinoColors
+                                            .darkBackgroundGray))
                                 : Opacity(
                                     opacity: 0.8,
                                     child:
-                                        Icon(CupertinoIcons.eye, size: 15, color: CupertinoColors.darkBackgroundGray)),
+                                        Icon(CupertinoIcons.eye, size: 15, color: isDarkMode ?
+                                        CupertinoColors.inactiveGray : CupertinoColors
+                                            .darkBackgroundGray)),
                             onPressed: showHidePassword)
                       ],
                     ),

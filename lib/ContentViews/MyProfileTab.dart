@@ -434,7 +434,8 @@ class _MyProfileTabState extends State<MyProfileTab> {
                       // Name, pronouns, lookingFor, Birthday, school, bio, and Update Profile button
                       CupertinoFormSection(header: Text("Profile Info"), children: [
                         // name text field
-                        CupertinoTextFormFieldRow(controller: _nameTextController, placeholder: "Name"),
+                        CupertinoTextFormFieldRow(controller: _nameTextController, placeholder: "Name",
+                          textCapitalization: TextCapitalization.words,),
 
                         // preferred pronouns menu - show an action sheet instead
                         CupertinoFormRow(
@@ -601,8 +602,15 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                                               // seconds, since that's how the native iOS app handles time.
                                                             });
                                                           },
+
+                                                          // if the birthday is the placeholder (-42069), then
+                                                          // default the picker to choose the date 21 years ago
+                                                          // (around the age of an average user perhaps?). Otherwise,
+                                                          // if a birthday has previously been chosen, then use it.
                                                           initialDateTime: DateTime.fromMillisecondsSinceEpoch(
-                                                              ((_birthday ?? _twentyOneYearsAgo()) * 1000).toInt()),
+                                                              ((_birthday == -42069 ? _twentyOneYearsAgo() :
+                                                              (_birthday ?? _twentyOneYearsAgo())) * 1000)
+                                                                  .toInt()),
                                                           minimumDate: _earliestAllowedBirthday(),
                                                           maximumDate: _latestAllowedBirthday(),
                                                           mode: CupertinoDatePickerMode.date))),
@@ -624,10 +632,12 @@ class _MyProfileTabState extends State<MyProfileTab> {
                         ),
 
                         // school text field
-                        CupertinoTextFormFieldRow(controller: _schoolTextController, placeholder: "School"),
+                        CupertinoTextFormFieldRow(controller: _schoolTextController, placeholder: "School",
+                          textCapitalization: TextCapitalization.words,),
 
                         // bio text field
-                        CupertinoTextFormFieldRow(controller: _bioTextController, placeholder: "Bio", maxLines: null),
+                        CupertinoTextFormFieldRow(controller: _bioTextController, placeholder: "Bio", maxLines: null,
+                            textCapitalization: TextCapitalization.sentences,),
 
                         // Set profile data button
                         Align(

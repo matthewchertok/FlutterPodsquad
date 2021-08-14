@@ -358,7 +358,7 @@ class _CreateAPodViewState extends State<CreateAPodView> {
                             textCapitalization: TextCapitalization.sentences,
                             controller: _descriptionController,
                             placeholder: "Describe this"
-                                " pod"),
+                                " pod", maxLines: null,),
 
                         // create or update pod button
                         CupertinoButton(

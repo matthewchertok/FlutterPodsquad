@@ -321,7 +321,7 @@ class MessagingTabFunctions {
       // if there are no messages in the conversation, remove the conversation from the Messaging tab
       else {
         latestMessagesDict.remove(chatPartnerID);
-        refreshLatestMessagesList(newDict: latestMessagesDict)
+        refreshLatestMessagesList(newDict: latestMessagesDict);
       }
     });
     _latestMessageListenersDict[chatPartnerID] = listener; // track the listener so it can be removed later if needed

@@ -112,9 +112,14 @@ class _MultiImagePageViewerState extends State<MultiImagePageViewer> {
                   ],
                 )),
             if (imagesList.isEmpty)
-              Center(
-                child: Text("${personName ?? "This user"} doesn't have any pictures yet!", style: TextStyle(color:
-                CupertinoColors.inactiveGray),),
+              SafeArea(
+                child: Center(
+                  child: Text("${personId == myFirebaseUserId ? "You don't" : ("$personName doesn't")} have "
+                      "any pictures yet!", style:
+                  TextStyle
+                    (color:
+                  CupertinoColors.inactiveGray), textAlign: TextAlign.center,),
+                ),
               )
           ],
         ));

@@ -89,10 +89,9 @@ class MessagingTabFunctions {
             isShowingNoMessages.value = false;
 */
 
-      /// Return the sorted messages list after
-      sortedLatestMessageList.value.clear(); // clearing the value forces a state reset (otherwise nothing will
-      // change, because the message IDs stay the same so the message won't update)
+      /// Update the displayed list
       sortedLatestMessageList.value = _latestMessageList;
+      sortedLatestMessageList.notifyListeners();
     }
   }
 
@@ -205,7 +204,9 @@ class MessagingTabFunctions {
             audioURL: audioURL,
             imagePath: imagePath,
             audioPath: audioPath,
-            readBy: List<String>.from(readBy), readNames: readNamesMap, readTimes: readTimesMap);
+            readBy: List<String>.from(readBy),
+            readNames: readNamesMap,
+            readTimes: readTimesMap);
 
         latestMessagesDict[podID] = message; // update the latest message that gets displayed for the pod
         refreshLatestMessagesList(newDict: latestMessagesDict);
@@ -248,14 +249,13 @@ class MessagingTabFunctions {
         // find out who the chat partner is in the list of either [myId, theirId] or [theirId, myId]
         final participantIDs = diff.doc.get("participants") as List<dynamic>;
         final String chatPartnerID =
-        participantIDs.first == myFirebaseUserId ? participantIDs.last : participantIDs.first;
+            participantIDs.first == myFirebaseUserId ? participantIDs.last : participantIDs.first;
 
         if (diff.type == DocumentChangeType.added) {
           // the path where the messages in the conversation are stored
           final collectionRef = diff.doc.reference.collection("messages");
           _observeLatestMessageInConversation(collectionRef: collectionRef, chatPartnerID: chatPartnerID);
-        }
-        else if (diff.type == DocumentChangeType.removed){
+        } else if (diff.type == DocumentChangeType.removed) {
           // Remove the conversation from my list of conversations
           latestMessagesDict.removeWhere((key, value) => key == chatPartnerID);
           refreshLatestMessagesList(newDict: latestMessagesDict);
@@ -273,7 +273,7 @@ class MessagingTabFunctions {
     final listener = collectionRef.orderBy("systemTime").limitToLast(1).snapshots().listen((snapshot) {
       final latestMessageDocuments = snapshot.docs;
       didGetData.value = true; // set to true as soon as the first conversation is ready to hide the loading bar
-
+      if (latestMessageDocuments.length > 0)
         latestMessageDocuments.forEach((doc) {
           final data = doc.data() as Map;
           final id = data["id"] as String;
@@ -310,11 +310,19 @@ class MessagingTabFunctions {
               imageURL: imageURL,
               audioPath: audioPath,
               audioURL: audioURL,
-              readBy: readBy, readNames: readNamesMap, readTimes: readTimesMap);
+              readBy: readBy,
+              readNames: readNamesMap,
+              readTimes: readTimesMap);
           //replace the value in the message dictionary with a value equal to the latest chat message.
           latestMessagesDict[chatPartnerID] = chatMessage;
           refreshLatestMessagesList(newDict: latestMessagesDict);
         });
+      
+      // if there are no messages in the conversation, remove the conversation from the Messaging tab
+      else {
+        latestMessagesDict.remove(chatPartnerID);
+        refreshLatestMessagesList(newDict: latestMessagesDict)
+      }
     });
     _latestMessageListenersDict[chatPartnerID] = listener; // track the listener so it can be removed later if needed
   }

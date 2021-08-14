@@ -150,11 +150,13 @@ class _MessagingViewState extends State<MessagingView> {
   /// Get the chat partner's profile data if in DM mode
   Future _getChatPartnerProfileData() async {
     if (isPodMode) return;
-    MyProfileTabBackendFunctions().getPersonsProfileData(userID: chatPartnerOrPodID, onCompletion: (profileData){
-      setState(() {
-        this._chatPartnerProfileData = profileData;
-      });
-    });
+    MyProfileTabBackendFunctions().getPersonsProfileData(
+        userID: chatPartnerOrPodID,
+        onCompletion: (profileData) {
+          setState(() {
+            this._chatPartnerProfileData = profileData;
+          });
+        });
   }
 
   /// Make the text to display when someone else is typing
@@ -705,11 +707,11 @@ class _MessagingViewState extends State<MessagingView> {
 
         final tokens = _chatPartnerProfileData?.fcmTokens;
         if (tokens != null)
-        pushSender.sendPushNotification(
-            recipientDeviceTokens: tokens,
-            title: "New Message",
-            body: "from $myName",
-            notificationType: NotificationTypes.message);
+          pushSender.sendPushNotification(
+              recipientDeviceTokens: tokens,
+              title: "New Message",
+              body: "from $myName",
+              notificationType: NotificationTypes.message);
       }
 
       // Send every active member a push notification if I just sent a pod message
@@ -780,13 +782,20 @@ class _MessagingViewState extends State<MessagingView> {
     if (isPodMode) return;
     final streamSubscription =
         firestoreDatabase.collection("dm-conversations").doc(conversationID).snapshots().listen((docSnapshot) {
-      final theirConversationHiddenValue = docSnapshot.get(chatPartnerOrPodID);
-      final didTheyHideTheChat = theirConversationHiddenValue["didHideChat"] as bool;
-      this.didChatPartnerHideTheConversation = didTheyHideTheChat;
+      final data = docSnapshot.data();
+      final theirConversationHiddenValue = data?[chatPartnerOrPodID];
+      if (theirConversationHiddenValue != null) {
+        final didTheyHideTheChat = theirConversationHiddenValue["didHideChat"] as bool? ?? false;
+        this.didChatPartnerHideTheConversation = didTheyHideTheChat;
+      }
+      else this.didChatPartnerHideTheConversation = false; // if the conversation is deleted, then they didn't hide it
 
-      final myConversationHiddenValue = docSnapshot.get(myFirebaseUserId);
-      final didIHideTheConversation = myConversationHiddenValue["didHideChat"] as bool;
-      this.didIHideTheConversation = didIHideTheConversation;
+      final myConversationHiddenValue = data?[myFirebaseUserId];
+      if (myConversationHiddenValue != null) {
+        final didIHideTheConversation = myConversationHiddenValue["didHideChat"] as bool? ?? false;
+        this.didIHideTheConversation = didIHideTheConversation;
+      }
+      else this.didIHideTheConversation = false; // if the conversation is deleted, then I didn't hide it
     });
     this._streamSubscriptions.add(streamSubscription);
   }
@@ -954,11 +963,11 @@ class _MessagingViewState extends State<MessagingView> {
         });
         if (this._amIBlocked)
           showSingleButtonAlert(
-              context: context,
-              title: "Permission Denied",
-              content: "$chatPartnerOrPodName "
-                  "blocked you.",
-              dismissButtonLabel: "OK")
+                  context: context,
+                  title: "Permission Denied",
+                  content: "$chatPartnerOrPodName "
+                      "blocked you.",
+                  dismissButtonLabel: "OK")
               .then((value) {
             Navigator.of(context, rootNavigator: true).pop(); // go back
           });
@@ -1367,7 +1376,8 @@ class _MessagingViewState extends State<MessagingView> {
                                 this._markMessageReadIfNecessary(message: message);
 
                                 // Show/hide the time stamp when the row is tapped
-                                return SizeTransition(key: ValueKey<int>(index),
+                                return SizeTransition(
+                                  key: ValueKey<int>(index),
                                   sizeFactor: animation,
                                   child: Slidable(
                                     actionPane: SlidableDrawerActionPane(),
@@ -1693,11 +1703,12 @@ class _MessagingViewState extends State<MessagingView> {
                       if (!_sendingInProgress) _sendMessage(messageToSend: messageToSend);
                     }),
               ),
-            onFocusLost: (){
+              onFocusLost: () {
                 // if the user stops typing (or if the app goes to the background), make sure to remove the user's
-              // typing status
+                // typing status
                 this._amCurrentlyTyping.value = false;
-            },),
+              },
+            ),
           ],
         ),
       )),

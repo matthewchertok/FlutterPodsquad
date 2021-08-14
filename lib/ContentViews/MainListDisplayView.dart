@@ -1070,7 +1070,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
           physics: AlwaysScrollableScrollPhysics(),
           slivers: [
             CupertinoSliverNavigationBar(
-              padding: viewMode != MainListDisplayViewModes.peopleIMet
+              padding: viewMode != MainListDisplayViewModes.peopleIMet && viewMode != MainListDisplayViewModes.myPods
                   ? EdgeInsetsDirectional.zero
                   : EdgeInsetsDirectional.all(5),
               largeTitle: Text(navBarTitle(viewMode: viewMode)),

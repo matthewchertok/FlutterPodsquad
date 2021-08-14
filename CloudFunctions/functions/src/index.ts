@@ -225,13 +225,16 @@ export const deleteUserData = functions.https.onCall(data => {
     storage().bucket().file(fullPhotoPath).delete(); // delete the user's full photo
 
     // now delete all the extra images from storage
-    const extraImages = document.get("extraImages") as Map<string, any> | null;
+    let docData = document.data();
+    if (docData != null){
+    let extraImages = docData["extraImages"] as Map<string, any> | null
     if (extraImages != null) {
       for (const [_imageID, imageData] of extraImages){
         const imagePath = imageData.get("imagePath") as string;
         storage().bucket().file(imagePath).delete(); // delete the extra image (there can be up to 5 right now)
       }
     }
+  }
 
     document.ref.delete(); // delete the document containing the user's profile data
   });
@@ -1227,7 +1230,7 @@ export const sendPushNotification = functions.https.onCall(async data => {
 // delete an FCM token from a device when the user signs out
 export const deleteDeviceFCMToken = functions.https.onCall(async data => {
   let userID = data.userID as string;
-  let token = data.token as Array<string>;
+  let token = data.token as Array<any>;
 
   // remove the specified token
   firestore().collection("users").doc(userID).update({

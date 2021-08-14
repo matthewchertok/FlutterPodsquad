@@ -16,13 +16,13 @@ class UserAuth {
   ///Handles sign out logic and updates the UI.
   Future<void> logOut({Function? onCompletion}) async {
     final myPreviousID = myFirebaseUserId; // save the value before I sign out
+    /// Delete a messaging token from the database when a user signs out, so that they don't receive notifications on
+    /// devices where they aren't signed in
+    final fcmToken = await firebaseMessaging.getToken();
     await firebaseAuth.signOut().catchError((error) {
       print("An error occurred while trying to sign out: $error");
     });
 
-    /// Delete a messaging token from the database when a user signs out, so that they don't receive notifications on
-    /// devices where they aren't signed in
-    final fcmToken = await firebaseMessaging.getToken();
     if (fcmToken != null){
       // don't await - this would slow down the app too much. Just trust that the deletion will happen in the
       // background.

@@ -1,5 +1,6 @@
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/DatabasePaths/MessagingDatabasePaths.dart';
+import 'package:podsquad/UIBackendClasses/MessagingTabFunctions.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 
@@ -51,6 +52,10 @@ class BlockedUsersDatabasePaths {
             // Delete the messaging conversation using a cloud function if I block someone
             MessagingDatabasePaths(userID: myFirebaseUserId, interactingWithUserWithID: otherPersonsUserID)
                 .deleteConversation(conversationID: alphabeticalID);
+
+            // Remove the conversation from the Messaging Tab
+            LatestDirectMessagesDictionary.shared.latestMessagesDict.remove(otherPersonsUserID);
+            LatestDirectMessagesDictionary.shared.refreshLatestMessagesList(newDict: LatestDirectMessagesDictionary.shared.latestMessagesDict);
           }).catchError((error) {
             print("Error blocking someone: $error");
           });

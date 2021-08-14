@@ -401,7 +401,8 @@ class _MyProfileTabState extends State<MyProfileTab> {
                           ),
                         ),
 
-                        // Add more photos button
+                        // Add more photos button (only show if I've selected a profile thumbnail, to avoid confusion)
+                        if (this._profileThumbnailURL != null)
                         CupertinoButton(
                           onPressed: () {
                             setState(() {

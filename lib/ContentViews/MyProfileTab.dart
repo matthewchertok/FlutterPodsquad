@@ -302,9 +302,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
             : MyProfileTabBackendFunctions.shared.myProfileData.value.preferredRelationshipType;
 
     /// Make sure to replace my birthday if it's equal to the placeholder value, which is -42069
-    this._birthday = MyProfileTabBackendFunctions.shared.myProfileData.value.birthday == -42069
-        ? _twentyOneYearsAgo()
-        : MyProfileTabBackendFunctions.shared.myProfileData.value.birthday;
+    this._birthday = MyProfileTabBackendFunctions.shared.myProfileData.value.birthday;
 
     this._schoolTextController.text = MyProfileTabBackendFunctions.shared.myProfileData.value.school;
     this._bioTextController.text = MyProfileTabBackendFunctions.shared.myProfileData.value.bio;

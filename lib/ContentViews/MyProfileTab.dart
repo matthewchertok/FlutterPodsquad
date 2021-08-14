@@ -309,6 +309,21 @@ class _MyProfileTabState extends State<MyProfileTab> {
     this._profileThumbnailURL = MyProfileTabBackendFunctions.shared.myProfileData.value.thumbnailURL.isEmpty
         ? null
         : MyProfileTabBackendFunctions.shared.myProfileData.value.thumbnailURL;
+
+    // Continue to listen to changes to my profile thumbnail URL (to avoid the bug where you select a profile photo
+    // but it doesn't register)
+    MyProfileTabBackendFunctions.shared.myProfileData.addListener(() {
+      final myProfileData = MyProfileTabBackendFunctions.shared.myProfileData.value;
+      setState(() {
+        this._profileThumbnailURL = myProfileData.thumbnailURL;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    MyProfileTabBackendFunctions.shared.myProfileData.removeListener(() { });
   }
 
   @override

@@ -53,7 +53,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
   /// The birthday, as the number of SECONDS since midnight on January 1, 1970
   double? _birthday;
 
-  /// Returns the date 21 years ago, which is the default age for new users
+  /// Returns the time since epoch 21 years ago (in seconds), which is the default age for new users
   double _twentyOneYearsAgo() {
     final millisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
     final millisecondsSinceEpoch21YearsAgo = millisecondsSinceEpoch - 662709600 * 1000;

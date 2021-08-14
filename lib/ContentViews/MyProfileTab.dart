@@ -475,7 +475,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                       _preferredPronouns ?? "Pick your pronouns",
                                       style: TextStyle(
                                           color: _preferredPronouns == null
-                                              ? CupertinoColors.inactiveGray.withOpacity(0.6)
+                                              ? CupertinoColors.inactiveGray.withOpacity(0.5)
                                               : isDarkMode
                                                   ? CupertinoColors.white
                                                   : CupertinoColors.black),
@@ -544,7 +544,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                           "Select a relationship preference",
                                       style: TextStyle(
                                           color: _preferredRelationshipType == null
-                                              ? CupertinoColors.inactiveGray.withOpacity(0.6)
+                                              ? CupertinoColors.inactiveGray.withOpacity(0.5)
                                               : isDarkMode
                                                   ? CupertinoColors.white
                                                   : CupertinoColors.black),
@@ -566,7 +566,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
                                           "${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).day}, ${DateTime.fromMillisecondsSinceEpoch((_birthday! * 1000).toInt()).year}",
                                   style: TextStyle(
                                       color: _birthday == -42069
-                                          ? CupertinoColors.inactiveGray.withOpacity(0.6)
+                                          ? CupertinoColors.inactiveGray.withOpacity(0.5)
                                           : isDarkMode
                                               ? CupertinoColors.white
                                               : CupertinoColors.black),

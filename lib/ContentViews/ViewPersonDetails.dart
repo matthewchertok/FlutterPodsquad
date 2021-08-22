@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:podsquad/BackendDataclasses/NotificationTypes.dart';
 import 'package:podsquad/BackendDataclasses/PodData.dart';
 import 'package:podsquad/BackendDataclasses/ProfileData.dart';
+import 'package:podsquad/BackendFunctions/PushNotificationSender.dart';
 import 'package:podsquad/BackendFunctions/ReportedPeopleBackendFunctions.dart';
 import 'package:podsquad/BackendFunctions/TimeAndDateFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/AlertDialogs.dart';
@@ -188,6 +190,12 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                     .doc(randomID)
                     .set(dmMessageDictionary);
                 showSingleButtonAlert(context: context, title: "Message Sent!", dismissButtonLabel: "OK");
+
+                // send a push notification
+                final sender = PushNotificationSender();
+                sender.sendPushNotification(recipientDeviceTokens: personData.fcmTokens, title: "New Message", body:
+                "from ${MyProfileTabBackendFunctions.shared.myProfileData.value.name}", notificationType:
+                NotificationTypes.message);
                 completer.complete();
               }
             })

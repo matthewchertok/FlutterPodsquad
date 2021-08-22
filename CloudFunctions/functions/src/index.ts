@@ -230,7 +230,7 @@ export const deleteUserData = functions.https.onCall(data => {
     let extraImages = docData["extraImages"] as Map<string, any> | null
     if (extraImages != null) {
       for (const [_imageID, imageData] of Object.entries(extraImages)){
-        const imagePath = imageData.get("imagePath") as string;
+        const imagePath = imageData["imagePath"] as string;
         storage().bucket().file(imagePath).delete(); // delete the extra image (there can be up to 5 right now)
       }
     }

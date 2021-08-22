@@ -88,11 +88,10 @@ class MessagingTabFunctions {
           else
             isShowingNoMessages.value = false;
 */
-
-      /// Update the displayed list
-      sortedLatestMessageList.value = _latestMessageList;
-      sortedLatestMessageList.notifyListeners();
     }
+    /// Update the displayed list
+    sortedLatestMessageList.value = _latestMessageList;
+    sortedLatestMessageList.notifyListeners();
   }
 
   ///Pre-load the IDs for all the pods I'm in and determine if any of those pods has messages
@@ -257,7 +256,7 @@ class MessagingTabFunctions {
           _observeLatestMessageInConversation(collectionRef: collectionRef, chatPartnerID: chatPartnerID);
         } else if (diff.type == DocumentChangeType.removed) {
           // Remove the conversation from my list of conversations
-          latestMessagesDict.removeWhere((key, value) => key == chatPartnerID);
+          latestMessagesDict.remove(chatPartnerID);
           refreshLatestMessagesList(newDict: latestMessagesDict);
         }
       });
@@ -321,6 +320,7 @@ class MessagingTabFunctions {
       // if there are no messages in the conversation, remove the conversation from the Messaging tab
       else {
         latestMessagesDict.remove(chatPartnerID);
+        print("CONVERSATION REMOVED. Now it is $latestMessagesDict");
         refreshLatestMessagesList(newDict: latestMessagesDict);
       }
     });

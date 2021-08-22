@@ -137,14 +137,18 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                     title: "Unable To Start Conversation",
                     content: "${personData.name} blocked you.",
                     dismissButtonLabel: "OK");
-
-
-              else if (this.didBlockUser) showSingleButtonAlert(context: context, title: "Unable To Start "
-                  "Conversation", content: "You blocked ${personData.name}", dismissButtonLabel: "OK");
+              else if (this.didBlockUser)
+                showSingleButtonAlert(
+                    context: context,
+                    title: "Unable To Start "
+                        "Conversation",
+                    content: "You blocked ${personData.name}",
+                    dismissButtonLabel: "OK");
               else {
                 // the conversation ID is an alphabetical combination of our user IDs.
-                final conversationID = personData.userID < myFirebaseUserId ? personData.userID + myFirebaseUserId :
-                myFirebaseUserId + personData.userID;
+                final conversationID = personData.userID < myFirebaseUserId
+                    ? personData.userID + myFirebaseUserId
+                    : myFirebaseUserId + personData.userID;
                 final user1ID = personData.userID < myFirebaseUserId ? personData.userID : myFirebaseUserId; // lower
                 // alphabetically
                 final user2ID = personData.userID < myFirebaseUserId ? myFirebaseUserId : personData.userID; // higher
@@ -155,10 +159,10 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                   user2ID: {"didHideChat": false},
                   "participants": [user1ID, user2ID]
                 }, SetOptions(merge: true));
-                
+
                 // now create a random message ID
                 final randomID = Uuid().v1();
-                final timestamp = DateTime.now().millisecondsSinceEpoch*0.001;
+                final timestamp = DateTime.now().millisecondsSinceEpoch * 0.001;
                 Map<String, dynamic> dmMessageDictionary = {
                   "id": randomID,
                   "recipientId": personData.userID,
@@ -168,14 +172,21 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                 };
                 dmMessageDictionary["readBy"] = [myFirebaseUserId];
                 dmMessageDictionary["readTime"] = {myFirebaseUserId: timestamp};
-                dmMessageDictionary["readName"] = {myFirebaseUserId: MyProfileTabBackendFunctions.shared.myProfileData.value.name};
+                dmMessageDictionary["readName"] = {
+                  myFirebaseUserId: MyProfileTabBackendFunctions.shared.myProfileData.value.name
+                };
                 dmMessageDictionary["senderName"] = MyProfileTabBackendFunctions.shared.myProfileData.value.name;
                 dmMessageDictionary["recipientName"] = personData.name;
-                dmMessageDictionary["senderThumbnailURL"] = MyProfileTabBackendFunctions.shared.myProfileData.value.thumbnailURL;
+                dmMessageDictionary["senderThumbnailURL"] =
+                    MyProfileTabBackendFunctions.shared.myProfileData.value.thumbnailURL;
                 dmMessageDictionary["recipientThumbnailURL"] = personData.thumbnailURL;
 
-                await firestoreDatabase.collection("dm-conversations").doc(conversationID).collection("messages").doc
-                  (randomID).set(dmMessageDictionary);
+                await firestoreDatabase
+                    .collection("dm-conversations")
+                    .doc(conversationID)
+                    .collection("messages")
+                    .doc(randomID)
+                    .set(dmMessageDictionary);
                 showSingleButtonAlert(context: context, title: "Message Sent!", dismissButtonLabel: "OK");
                 completer.complete();
               }
@@ -192,18 +203,23 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
         .collection("blocked-users")
         .where("blocker.userID", isEqualTo: personData.userID)
         .where("blockee.userID", isEqualTo: myFirebaseUserId)
-        .snapshots().listen((event) {
+        .snapshots()
+        .listen((event) {
       final didTheyBlockMe = event.docs.length > 0; // they blocked me if the document exists
       setState(() {
         this._wasBlockedByUser = didTheyBlockMe;
       });
 
       // if I'm blocked, then take me away from the user's profile
-      if (didTheyBlockMe){
-        showSingleButtonAlert(context: context, title: "Permission Denied", content: "${personData.name} blocked "
-            "you.", dismissButtonLabel: "OK")
+      if (didTheyBlockMe) {
+        showSingleButtonAlert(
+                context: context,
+                title: "Permission Denied",
+                content: "${personData.name} blocked "
+                    "you.",
+                dismissButtonLabel: "OK")
             .then((_) {
-              Navigator.of(context, rootNavigator: true).pop();
+          Navigator.of(context, rootNavigator: true).pop();
         });
       }
     });
@@ -229,8 +245,8 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
     super.initState();
     this._getProfileData().then((_) {
       this._checkIfTheOtherPersonBlockedMe();
-      if (personID != myFirebaseUserId) showViewPersonDetailsTutorialIfNecessary(context: context, personData:
-      personData);
+      if (personID != myFirebaseUserId)
+        showViewPersonDetailsTutorialIfNecessary(context: context, personData: personData);
     });
     this._getPodMemberships();
 
@@ -259,9 +275,10 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
 
     SentBlocksBackendFunctions.shared.sortedListOfPeople.addListener(() {
       final didBlockUser = SentBlocksBackendFunctions.shared.sortedListOfPeople.value.contains(personData);
-      setState(() {
-        this.didBlockUser = didBlockUser;
-      });
+      if (mounted)
+        setState(() {
+          this.didBlockUser = didBlockUser;
+        });
     });
 
     ReportedPeopleBackendFunctions.shared.peopleIReportedList.addListener(() {
@@ -292,7 +309,8 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
     return Localizations(
       locale: Locale('en', 'US'),
       delegates: [DefaultWidgetsLocalizations.delegate, DefaultMaterialLocalizations.delegate],
-      child: Scaffold(backgroundColor: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
+      child: Scaffold(
+          backgroundColor: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
           key: _scaffoldKey,
           appBar: CupertinoNavigationBar(
             padding: EdgeInsetsDirectional.all(5),
@@ -358,125 +376,139 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                     ),
 
                     // Name, age, school, relationship type, bio on the left, Message and Say Hi buttons on the right
-                    Card(color:  isDarkMode ? CupertinoColors.black : CupertinoColors.white,
+                    Card(
+                        color: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
                         child: Padding(
-                      padding: EdgeInsets.all(10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Contains name, age, school, lookingFor, Message button, and Say Hi button
-                          Row(
+                          padding: EdgeInsets.all(10),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // name, age, school, relationship type, and bio column
-                              Column(
+                              // Contains name, age, school, lookingFor, Message button, and Say Hi button
+                              Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // The name field should be a button that opens an action sheet that will show the user's podScore
-                                  // and an option to view their pods
-                                  Text(
-                                    personData.name,
-                                    style: TextStyle(
-                                        fontSize: 18.scaledForScreenSize(context: context),
-                                        fontWeight: FontWeight.bold, color: isDarkMode ? CupertinoColors.white :
-                                    CupertinoColors.black),
-                                  ),
-                                  SizedBox(height: 15),
+                                  // name, age, school, relationship type, and bio column
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // The name field should be a button that opens an action sheet that will show the user's podScore
+                                      // and an option to view their pods
+                                      Text(
+                                        personData.name,
+                                        style: TextStyle(
+                                            fontSize: 18.scaledForScreenSize(context: context),
+                                            fontWeight: FontWeight.bold,
+                                            color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
+                                      ),
+                                      SizedBox(height: 15),
 
-                                  // The person's age
-                                  Text(
-                                    TimeAndDateFunctions.getAgeFromBirthday(birthday: personData.birthday).toString(),
-                                    style: TextStyle(fontSize: 15.scaledForScreenSize(context: context), color: isDarkMode ? CupertinoColors.white :
-                                    CupertinoColors.black),
-                                  ),
-                                  SizedBox(
-                                    height: 15,
-                                  ),
+                                      // The person's age
+                                      Text(
+                                        TimeAndDateFunctions.getAgeFromBirthday(birthday: personData.birthday)
+                                            .toString(),
+                                        style: TextStyle(
+                                            fontSize: 15.scaledForScreenSize(context: context),
+                                            color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
+                                      ),
+                                      SizedBox(
+                                        height: 15,
+                                      ),
 
-                                  // The person's school
-                                  Text(
-                                    personData.school,
-                                    style: TextStyle(fontSize: 15.scaledForScreenSize(context: context), color: isDarkMode ? CupertinoColors.white :
-                                    CupertinoColors.black),
-                                  ),
-                                  SizedBox(
-                                    height: 15,
-                                  ),
+                                      // The person's school
+                                      Text(
+                                        personData.school,
+                                        style: TextStyle(
+                                            fontSize: 15.scaledForScreenSize(context: context),
+                                            color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
+                                      ),
+                                      SizedBox(
+                                        height: 15,
+                                      ),
 
-                                  // Who they're looking for
-                                  Text(
-                                    _preferredRelationshipTypeText(lookingFor: personData.preferredRelationshipType),
-                                    style: TextStyle(fontSize: 15.scaledForScreenSize(context: context), color: isDarkMode ? CupertinoColors.white :
-                                    CupertinoColors.black),
+                                      // Who they're looking for
+                                      Text(
+                                        _preferredRelationshipTypeText(
+                                            lookingFor: personData.preferredRelationshipType),
+                                        style: TextStyle(
+                                            fontSize: 15.scaledForScreenSize(context: context),
+                                            color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
+                                      ),
+                                    ],
                                   ),
+                                  Spacer(),
+
+                                  // Message and "Say Hi" button (don't show if I'm viewing my own profile or if I am
+                                  // blocked or if I navigated from Messaging and want the user to navigate back rather
+                                  // than further into the stack)
+                                  if (personID != myFirebaseUserId &&
+                                      messagingEnabled &&
+                                      !_wasBlockedByUser &&
+                                      !didBlockUser)
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        // Message button
+                                        CupertinoButton(
+                                            alignment: Alignment.topCenter,
+                                            padding: EdgeInsets.zero,
+                                            child: Row(
+                                              children: [
+                                                Text("Message"),
+                                                SizedBox(
+                                                  width: 5,
+                                                ),
+                                                Icon(CupertinoIcons.paperplane),
+                                              ],
+                                            ),
+                                            onPressed: () {
+                                              Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                                                  builder: (context) => MessagingView(
+                                                      chatPartnerOrPodID: personData.userID,
+                                                      chatPartnerOrPodName: personData.name,
+                                                      chatPartnerThumbnailURL: personData.thumbnailURL,
+                                                      isPodMode: false)));
+                                            }),
+
+                                        // Say Hi button (only show this button if I don't already have a conversation with
+                                        // the user - meaning that the messages list is either empty or null)
+                                        if ((MessagesDictionary
+                                                .shared.directMessagesDict.value[personData.userID]?.isEmpty) ??
+                                            true)
+                                          CupertinoButton(
+                                              alignment: Alignment.topCenter,
+                                              padding: EdgeInsets.zero,
+                                              child: Row(
+                                                children: [
+                                                  Text("Say Hi!"),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Icon(CupertinoIcons.hand_raised),
+                                                ],
+                                              ),
+                                              onPressed: this._sendAutoGeneratedMessage)
+                                      ],
+                                    )
                                 ],
                               ),
-                              Spacer(),
 
-                              // Message and "Say Hi" button (don't show if I'm viewing my own profile or if I am
-                              // blocked or if I navigated from Messaging and want the user to navigate back rather
-                              // than further into the stack)
-                              if (personID != myFirebaseUserId && messagingEnabled && !_wasBlockedByUser && !didBlockUser)
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    // Message button
-                                    CupertinoButton(
-                                        alignment: Alignment.topCenter,
-                                        padding: EdgeInsets.zero,
-                                        child: Row(
-                                          children: [
-                                            Text("Message"),
-                                            SizedBox(
-                                              width: 5,
-                                            ),
-                                            Icon(CupertinoIcons.paperplane),
-                                          ],
-                                        ),
-                                        onPressed: () {
-                                          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
-                                              builder: (context) => MessagingView(
-                                                  chatPartnerOrPodID: personData.userID,
-                                                  chatPartnerOrPodName: personData.name,
-                                                  chatPartnerThumbnailURL: personData.thumbnailURL,
-                                                  isPodMode: false)));
-                                        }),
+                              // The person's bio
+                              SizedBox(
+                                height: 15,
+                              ),
 
-                                    // Say Hi button (only show this button if I don't already have a conversation with
-                                    // the user - meaning that the messages list is either empty or null)
-                                    if ((MessagesDictionary.shared.directMessagesDict.value[personData.userID]?.isEmpty) ?? true)
-                                    CupertinoButton(alignment: Alignment.topCenter, padding: EdgeInsets.zero, child:
-                                    Row(
-                                      children: [
-                                        Text("Say Hi!"),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        Icon(CupertinoIcons.hand_raised),
-                                      ],
-                                    ),
-                                        onPressed: this._sendAutoGeneratedMessage)
-                                  ],
-                                )
+                              Text(
+                                personData.bio.isNotEmpty
+                                    ? personData.bio
+                                    : "${personData.name.firstName()} has not "
+                                        "written a bio!",
+                                style: TextStyle(
+                                    fontSize: 15.scaledForScreenSize(context: context),
+                                    color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
+                              )
                             ],
                           ),
-
-                          // The person's bio
-                          SizedBox(
-                            height: 15,
-                          ),
-
-                          Text(
-                            personData.bio.isNotEmpty
-                                ? personData.bio
-                                : "${personData.name.firstName()} has not "
-                                    "written a bio!",
-                            style: TextStyle(fontSize: 15.scaledForScreenSize(context: context), color: isDarkMode ? CupertinoColors.white :
-                            CupertinoColors.black),
-                          )
-                        ],
-                      ),
-                    ))
+                        ))
                   ],
                 ),
               ),

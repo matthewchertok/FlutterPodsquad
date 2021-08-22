@@ -27,6 +27,7 @@ import 'package:podsquad/OtherSpecialViews/AudioRecorder.dart';
 import 'package:podsquad/UIBackendClasses/MainListDisplayBackend.dart';
 import 'package:podsquad/UIBackendClasses/MessagesDictionary.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
+import 'package:podsquad/UIBackendClasses/MessagingTabFunctions.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'dart:io';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
@@ -946,6 +947,7 @@ class _MessagingViewState extends State<MessagingView> {
       this._didIBlockThem = peopleIBlocked.memberIDs().contains(chatPartnerOrPodID);
       SentBlocksBackendFunctions.shared.sortedListOfPeople.addListener(() {
         final peopleIBlocked = SentBlocksBackendFunctions.shared.sortedListOfPeople.value;
+        if (mounted)
         setState(() {
           this._didIBlockThem = peopleIBlocked.memberIDs().contains(chatPartnerOrPodID);
         });
@@ -958,6 +960,7 @@ class _MessagingViewState extends State<MessagingView> {
       this._amIBlocked = peopleWhoBlockedMe.memberIDs().contains(chatPartnerOrPodID);
       ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.addListener(() {
         final peopleWhoBlockedMe = ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.value;
+        if (mounted)
         setState(() {
           this._amIBlocked = peopleWhoBlockedMe.memberIDs().contains(chatPartnerOrPodID);
         });
@@ -1031,6 +1034,14 @@ class _MessagingViewState extends State<MessagingView> {
                 BlockedUsersDatabasePaths.blockUser(
                     otherPersonsUserID: chatPartnerOrPodID,
                     onCompletion: () {
+                      // clean up the latest message preview also
+                      LatestDirectMessagesDictionary.shared.latestMessagesDict.remove(chatPartnerOrPodID);
+                      final newDict = LatestDirectMessagesDictionary.shared.latestMessagesDict;
+                      LatestDirectMessagesDictionary.shared.refreshLatestMessagesList(newDict: newDict);
+
+                      setState(() {
+                        displayedChatLog.clear();
+                      });
                       final success = CupertinoAlertDialog(
                         title: Text("$chatPartnerOrPodName Blocked"),
                         actions: [

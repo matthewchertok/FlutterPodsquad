@@ -819,6 +819,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         // also continuously listen in case I block someone while the view is open
         SentBlocksBackendFunctions.shared.sortedListOfPeople.addListener(() {
           final sentBlocks = SentBlocksBackendFunctions.shared.sortedListOfPeople.value;
+          if (mounted)
           setState(() {
             this._listOfPeople = sentBlocks;
           });

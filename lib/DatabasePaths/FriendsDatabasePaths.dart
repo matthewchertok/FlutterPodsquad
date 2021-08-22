@@ -1,3 +1,6 @@
+import 'package:podsquad/BackendDataclasses/NotificationTypes.dart';
+import 'package:podsquad/BackendFunctions/PronounFormatter.dart';
+import 'package:podsquad/BackendFunctions/PushNotificationSender.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 
@@ -30,6 +33,12 @@ class FriendsDatabasePaths {
 
             //unlike a user if they are friended (can't like and friend someone simultaneously)
             firestoreDatabase.collection("likes").doc(documentID).delete();
+
+            // send them a push notification
+            final sender = PushNotificationSender();
+            sender.sendPushNotification(recipientDeviceTokens: otherPersonsProfileData.fcmTokens, title: "${otherPersonsProfileData.name} friended you", body: "${PronounFormatter.makePronoun(preferredPronouns:
+                otherPersonsProfileData.preferredPronoun, pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized:
+                true)} probably found your bio interesting!", notificationType: NotificationTypes.friend);
           }).catchError((error) {
             print("An error occurred when friending someone: $error");
           });

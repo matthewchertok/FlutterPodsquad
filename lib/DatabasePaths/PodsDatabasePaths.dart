@@ -189,7 +189,8 @@ class PodsDatabasePaths {
                 recipientDeviceTokens: memberTokens,
                 title: "$podName Was Deleted",
                 body: "$myName "
-                    "decided it wasn't fun anymore, so ${PronounFormatter.makePronoun(preferredPronouns: myPronouns, pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: false)} decided to delete the pod.",
+                    "decided it wasn't fun anymore, so ${PronounFormatter.makePronoun(preferredPronouns: myPronouns,
+                    pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: false)} deleted the pod.",
                 podID: this.podID,
                 podName: this.podName,
                 notificationType: NotificationTypes.personDetails);
@@ -396,7 +397,8 @@ class PodsDatabasePaths {
       for (final document in documents) {
         final personID = document.get("userID") as String;
         final docData = document.data();
-        final personTokens = docData["fcmTokens"] as List<String>? ?? [];
+        final personTokensRaw = docData["fcmTokens"] as List? ?? [];
+        final personTokens = List<String>.from(personTokensRaw);
         if (!this._podMembersIDsMap.keys.contains(personID)) this._podMembersIDsMap[personID] = personTokens;
       }
       if (onCompletion != null) onCompletion();

@@ -89,6 +89,7 @@ class MessagingTabFunctions {
             isShowingNoMessages.value = false;
 */
     }
+
     /// Update the displayed list
     sortedLatestMessageList.value = _latestMessageList;
     sortedLatestMessageList.notifyListeners();
@@ -167,50 +168,55 @@ class MessagingTabFunctions {
       didGetData.value = true; // set to true as soon as the first conversation is ready (this should fire even if
       // there are no messages)
 
-      snapshot.docs.forEach((messageDoc) {
-        final data = messageDoc.data();
-        final messageID = messageDoc.get("id") as String;
-        final imageURL = data["imageURL"] as String? ?? "";
-        final audioURL = data["audioURL"] as String? ?? "";
-        final imagePath = data["imagePath"] as String? ?? "";
-        final audioPath = data["audioPath"] as String? ?? "";
-        final senderID = messageDoc.get("senderId") as String;
-        final senderName = messageDoc.get("senderName") as String;
-        final senderThumbnailURL = messageDoc.get("senderThumbnailURL") as String;
-        final systemTimeRaw = messageDoc.get("systemTime") as num;
-        final systemTime = systemTimeRaw.toDouble();
-        final text = messageDoc.get("text") as String;
-        final readBy = data["readBy"] as List<dynamic>? ?? [];
-        final readTimesMapRaw = data["readTime"] as Map<String, dynamic>? ?? {};
-        final readTimesMap = Map<String, num>.from(readTimesMapRaw);
-        final readNamesMapRaw = data["readName"] as Map<String, dynamic>? ?? {};
-        final readNamesMap = Map<String, String>.from(readNamesMapRaw);
+      if (snapshot.docs.length > 0)
+        snapshot.docs.forEach((messageDoc) {
+          final data = messageDoc.data();
+          final messageID = messageDoc.get("id") as String;
+          final imageURL = data["imageURL"] as String? ?? "";
+          final audioURL = data["audioURL"] as String? ?? "";
+          final imagePath = data["imagePath"] as String? ?? "";
+          final audioPath = data["audioPath"] as String? ?? "";
+          final senderID = messageDoc.get("senderId") as String;
+          final senderName = messageDoc.get("senderName") as String;
+          final senderThumbnailURL = messageDoc.get("senderThumbnailURL") as String;
+          final systemTimeRaw = messageDoc.get("systemTime") as num;
+          final systemTime = systemTimeRaw.toDouble();
+          final text = messageDoc.get("text") as String;
+          final readBy = data["readBy"] as List<dynamic>? ?? [];
+          final readTimesMapRaw = data["readTime"] as Map<String, dynamic>? ?? {};
+          final readTimesMap = Map<String, num>.from(readTimesMapRaw);
+          final readNamesMapRaw = data["readName"] as Map<String, dynamic>? ?? {};
+          final readNamesMap = Map<String, String>.from(readNamesMapRaw);
 
-        final message = ChatMessage(
-            id: messageID,
-            recipientId: "",
-            recipientName: "",
-            senderId: senderID,
-            senderName: senderName,
-            timeStamp: systemTime,
-            text: text,
-            podID: podID,
-            podName: podName,
-            senderThumbnailURL: senderThumbnailURL,
-            recipientThumbnailURL: "",
-            podThumbnailURL: podThumbnailURL,
-            imageURL: imageURL,
-            audioURL: audioURL,
-            imagePath: imagePath,
-            audioPath: audioPath,
-            readBy: List<String>.from(readBy),
-            readNames: readNamesMap,
-            readTimes: readTimesMap);
+          final message = ChatMessage(
+              id: messageID,
+              recipientId: "",
+              recipientName: "",
+              senderId: senderID,
+              senderName: senderName,
+              timeStamp: systemTime,
+              text: text,
+              podID: podID,
+              podName: podName,
+              senderThumbnailURL: senderThumbnailURL,
+              recipientThumbnailURL: "",
+              podThumbnailURL: podThumbnailURL,
+              imageURL: imageURL,
+              audioURL: audioURL,
+              imagePath: imagePath,
+              audioPath: audioPath,
+              readBy: List<String>.from(readBy),
+              readNames: readNamesMap,
+              readTimes: readTimesMap);
 
-        latestMessagesDict[podID] = message; // update the latest message that gets displayed for the pod
+          latestMessagesDict[podID] = message; // update the latest message that gets displayed for the pod
+          refreshLatestMessagesList(newDict: latestMessagesDict);
+          // conversation in the Messaging tab
+        });
+      else {
+        latestMessagesDict.remove(podID);
         refreshLatestMessagesList(newDict: latestMessagesDict);
-        // conversation in the Messaging tab
-      });
+      }
     });
     _latestMessageListenersDict[podID] = podMessageListener; // track the listener in case I need to remove it later
   }
@@ -316,7 +322,7 @@ class MessagingTabFunctions {
           latestMessagesDict[chatPartnerID] = chatMessage;
           refreshLatestMessagesList(newDict: latestMessagesDict);
         });
-      
+
       // if there are no messages in the conversation, remove the conversation from the Messaging tab
       else {
         latestMessagesDict.remove(chatPartnerID);

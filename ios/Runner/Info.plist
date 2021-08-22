@@ -32,6 +32,8 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Camera permission is required to take a picture using the camera</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>An API used by Podsquad has location capabilities. However, this feature is not utilized and Podsquad will not use your location.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Microphone permission is required to record voice messages</string>
 	<key>NSPhotoLibraryUsageDescription</key>

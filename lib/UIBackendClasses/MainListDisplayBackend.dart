@@ -96,6 +96,9 @@ abstract class MainListDisplayBackend {
 
     _lockIconDictionary.clear();
     listOfPeople.clear();
+    listOfPods.clear();
+    sortedListOfPeople.value.clear();
+    sortedListOfPods.value.clear();
     isShowingNobodyFound.value = false;
     didGetData.value = false;
   }

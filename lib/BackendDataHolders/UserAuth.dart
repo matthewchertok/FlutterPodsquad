@@ -26,7 +26,7 @@ class UserAuth {
     if (fcmToken != null){
       // don't await - this would slow down the app too much. Just trust that the deletion will happen in the
       // background.
-      firebaseFunctions.httpsCallable('deleteDeviceFCMToken').call({"userID": myPreviousID, "token": [fcmToken]})
+      firebaseFunctions.httpsCallable('deleteDeviceFCMToken').call({"userID": myPreviousID, "token": fcmToken})
           .catchError((error){
             print("Couldn't call a cloud function to delete the device FCM token: $error");
       });

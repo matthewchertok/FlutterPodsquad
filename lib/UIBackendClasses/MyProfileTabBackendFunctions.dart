@@ -34,7 +34,8 @@ class MyProfileTabBackendFunctions {
       bio: "",
       podScore: 0,
       thumbnailURL: "",
-      fullPhotoURL: "", fcmTokens: []));
+      fullPhotoURL: "",
+      fcmTokens: []));
 
   ///Stores my match survey data
   ValueNotifier<MatchSurveyData> myMatchSurveyData = ValueNotifier(MatchSurveyData(
@@ -91,7 +92,8 @@ class MyProfileTabBackendFunctions {
       birthday: myProfileData.value.birthday,
       joinedAt: DateTime.now().millisecondsSinceEpoch * 0.001,
       name: myProfileData.value.name,
-      thumbnailURL: myProfileData.value.thumbnailURL, fcmTokens: myProfileData.value.fcmTokens);
+      thumbnailURL: myProfileData.value.thumbnailURL,
+      fcmTokens: myProfileData.value.fcmTokens);
 
   ///Access this property for the required data to like, friend, block, or meet someone
   BasicProfileInfoDict get myDataToIncludeWhenLikingFriendingBlockingOrMeetingSomeone => BasicProfileInfoDict(
@@ -99,7 +101,8 @@ class MyProfileTabBackendFunctions {
       name: myProfileData.value.name,
       birthday: myProfileData.value.birthday,
       bio: myProfileData.value.bio,
-      thumbnailURL: myProfileData.value.thumbnailURL, fcmTokens: myProfileData.value.fcmTokens);
+      thumbnailURL: myProfileData.value.thumbnailURL,
+      fcmTokens: myProfileData.value.fcmTokens);
 
   ///Keep track of all stream subscriptions (realtime listeners) so I can remove them later
   List<StreamSubscription> listenerRegistrations = [];
@@ -122,7 +125,8 @@ class MyProfileTabBackendFunctions {
         bio: "bio",
         podScore: 0,
         thumbnailURL: "thumbnailURL",
-        fullPhotoURL: "fullPhotoURL", fcmTokens: []));
+        fullPhotoURL: "fullPhotoURL",
+        fcmTokens: []));
     myMatchSurveyData = ValueNotifier(MatchSurveyData(
         age: 1,
         career: 1,
@@ -207,43 +211,46 @@ class MyProfileTabBackendFunctions {
               bio: myBio ?? "",
               podScore: myPodScore ?? 0,
               thumbnailURL: myThumbnailURL ?? "",
-              fullPhotoURL: myFullPhotoURL ?? "", fcmTokens: fcmTokens);
+              fullPhotoURL: myFullPhotoURL ?? "",
+              fcmTokens: fcmTokens);
 
           //Now add in my extra images
           ///Maps like this: {imageID: {caption: "someCaption", imageURL: "someURLString", position: 0}}
-          final myImagesDict = docSnapshot.get("extraImages");
+          final myImagesDict = docData["extraImages"];
           mySortedExtraImagesList.value.clear(); // clear the value to force a state reset
           List<IdentifiableImage> imagesList = []; // first, read in all the images I currently have
-          myImagesDict.forEach((imageID, imageData) {
-            String? imageURLString = imageData["imageURL"];
-            int? position = imageData["position"];
-            String? caption = imageData["caption"];
-            if (imageURLString != null && position != null) {
-              final identifiableImage =
-                  IdentifiableImage(imageURL: imageURLString, caption: caption, position: position, id: imageID);
+          if (myImagesDict != null) {
+            myImagesDict.forEach((imageID, imageData) {
+              String? imageURLString = imageData["imageURL"];
+              int? position = imageData["position"];
+              String? caption = imageData["caption"];
+              if (imageURLString != null && position != null) {
+                final identifiableImage =
+                    IdentifiableImage(imageURL: imageURLString, caption: caption, position: position, id: imageID);
 
-              //Now let's add each image to my extra images list.
-              imagesList.add(identifiableImage); // now add the most recent image to the list
-            }
-          });
-          _myExtraImagesList =
-              imagesList; // changing this set-only variable will automatically sort all images by position and
-          // update mySortedExtraImagesList accordingly
-          myProfileData.value.extraImagesList = imagesList; // this isn't currently being used, but I'm adding it
-          // just for consistency
+                //Now let's add each image to my extra images list.
+                imagesList.add(identifiableImage); // now add the most recent image to the list
+              }
+            });
+            _myExtraImagesList =
+                imagesList; // changing this set-only variable will automatically sort all images by position and
+            // update mySortedExtraImagesList accordingly
+            myProfileData.value.extraImagesList = imagesList; // this isn't currently being used, but I'm adding it
+            // just for consistency
 
-          //remove any images that no longer exist in the database
-          final imageIDsInDatabase = myImagesDict.keys;
-          var imageList = mySortedExtraImagesList.value; // read in the current images list
-          mySortedExtraImagesList.value.forEach((imageOnDevice) {
-            final imageIDonDevice = imageOnDevice.id;
-            if (!imageIDsInDatabase.contains(imageIDonDevice)) {
-              imageList.removeWhere((element) => element.id == imageOnDevice.id); // remove the image from the
-              // device if it doesn't exist in the database as well
-              // mySortedExtraImagesList.value with the new value
-            }
-          });
-          _myExtraImagesList = imageList; // update the set-only variable, which will then update
+            //remove any images that no longer exist in the database
+            final imageIDsInDatabase = myImagesDict.keys;
+            var imageList = mySortedExtraImagesList.value; // read in the current images list
+            mySortedExtraImagesList.value.forEach((imageOnDevice) {
+              final imageIDonDevice = imageOnDevice.id;
+              if (!imageIDsInDatabase.contains(imageIDonDevice)) {
+                imageList.removeWhere((element) => element.id == imageOnDevice.id); // remove the image from the
+                // device if it doesn't exist in the database as well
+                // mySortedExtraImagesList.value with the new value
+              }
+            });
+            _myExtraImagesList = imageList; // update the set-only variable, which will then update
+          }
 
           final surveyData = docData["matchSurvey"] as Map?;
           if (surveyData != null) {
@@ -346,8 +353,10 @@ class MyProfileTabBackendFunctions {
         final personBirthday = personBirthdayRaw.toDouble();
         final personName = personProfileData["name"] as String? ?? "Name N/A";
         final personSchool = personProfileData["school"] as String? ?? "School N/A";
-        final personPreferredPronouns = personProfileData["preferredPronouns"] as String? ?? UsefulValues.nonbinaryPronouns;
-        final personPreferredRelationshipType = personProfileData["lookingFor"] as String? ?? UsefulValues.lookingForFriends;
+        final personPreferredPronouns =
+            personProfileData["preferredPronouns"] as String? ?? UsefulValues.nonbinaryPronouns;
+        final personPreferredRelationshipType =
+            personProfileData["lookingFor"] as String? ?? UsefulValues.lookingForFriends;
         var personBio = personProfileData["bio"] as String? ?? "";
         final personPodScoreInDatabaseRaw = personProfileData["podScore"] as num; //podScore might be a double in the
         // database if I change the formula later
@@ -374,7 +383,8 @@ class MyProfileTabBackendFunctions {
             bio: personBio,
             podScore: personPodScore,
             thumbnailURL: personThumbnailURL,
-            fullPhotoURL: personFullPhotoURL, fcmTokens: fcmTokens);
+            fullPhotoURL: personFullPhotoURL,
+            fcmTokens: fcmTokens);
 
         // get their match survey data and extra images, if available
         final surveyData = docData["matchSurvey"] as Map?;
@@ -455,7 +465,7 @@ class MyProfileTabBackendFunctions {
 
         // get their extra images
         final extraImagesMap = docData["extraImages"] as Map?;
-        if (extraImagesMap != null){
+        if (extraImagesMap != null) {
           List<IdentifiableImage> extraImagesList = [];
           extraImagesMap.forEach((imageID, imageData) {
             final position = imageData["position"] as int;
@@ -466,7 +476,6 @@ class MyProfileTabBackendFunctions {
           });
           profileData.extraImagesList = extraImagesList;
         }
-
 
         // Call the completion handler if everything succeeds so I can access the profile data and match survey data
         onCompletion(profileData);

@@ -5,10 +5,7 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <!-- Needed only if your app looks for Bluetooth devices.
         You must add an attribute to this permission, or declare the
         ACCESS_FINE_LOCATION permission, depending on the results when you
@@ -19,6 +16,12 @@
    <application
         android:label="Podsquad"
         android:icon="@mipmap/ic_launcher">
+
+       <!-- For Google Nearby -->
+       <meta-data
+           android:name="com.google.android.nearby.messages.API_KEY"
+           android:value="AIzaSyB5tq7IyA-tI5RXzw-h49tqDVAHK_dOywA" />
+
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
@@ -43,10 +46,6 @@
                 android:name="com.google.firebase.messaging.default_notification_color"
                 android:resource="@android:color/holo_blue_dark" />
 
-            <!-- For Google Nearby -->
-            <meta-data
-                android:name="com.google.android.nearby.messages.API_KEY"
-                android:value="AIzaSyAFdNMfNpASvuVViGHB7lL4dMtgwLKWip4" />
             <!-- Displays an Android View that continues showing the launch screen
                  Drawable until Flutter paints its first frame, then this splash
                  screen fades out. A splash screen is useful to avoid any visual

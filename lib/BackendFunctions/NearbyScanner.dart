@@ -10,6 +10,7 @@ import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
 import 'package:podsquad/UIBackendClasses/MyProfileTabBackendFunctions.dart';
 import 'package:podsquad/CommonlyUsedClasses/Extensions.dart';
 import 'PushNotificationSender.dart';
+import 'dart:io';
 
 ///Discovers users nearby
 class NearbyScanner {
@@ -28,21 +29,18 @@ class NearbyScanner {
   ///Begin searching for nearby users over Bluetooth
   Future<void> publishAndSubscribe() async {
     print("publishAndSubscribe called!");
-    //if (!Platform.isIOS) return; // for some reason, this package crashes on Android. So we can't use it.
     if (myFirebaseUserId.isEmpty) return; // don't proceed if I'm not signed in
 
     // config for iOS
-    await nearbyMessagesApi.setAPIKey("AIzaSyAFdNMfNpASvuVViGHB7lL4dMtgwLKWip4");
-
-    await nearbyMessagesApi.setPermissionAlert('Allow Bluetooth Permission?',
-        'Podsquad requires Bluetooth permission to discover nearby users.', 'Deny', 'Grant');
+    if (Platform.isIOS) {
+      await nearbyMessagesApi.setAPIKey("AIzaSyAFdNMfNpASvuVViGHB7lL4dMtgwLKWip4");
+      await nearbyMessagesApi.setPermissionAlert('Allow Bluetooth Permission?',
+          'Podsquad requires Bluetooth permission to discover nearby users.', 'Deny', 'Grant');
+    }
 
     // first, get the list of people I already met (so that I don't create repeated notifications if I meet the same
     // person multiple times)
     this._peopleIMetAndTimeMap = await _getListOfPeopleIAlreadyMet();
-
-    // if we're on iOS, we can use this library. Unfortunately, the library crashes on Android, so we have to use a
-    // platform channel and native code there.
 
     // This callback gets the message when an a nearby device sends one
     nearbyMessagesApi.onFound = (message) {
@@ -78,6 +76,7 @@ class NearbyScanner {
 
     // allow subscribing in the background
     await nearbyMessagesApi.backgroundSubscribe();
+    print("Currently publishing and subscribing");
   }
 
   ///Stop searching for nearby users over Bluetooth

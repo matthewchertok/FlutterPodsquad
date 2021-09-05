@@ -22,6 +22,14 @@
            android:name="com.google.android.nearby.messages.API_KEY"
            android:value="AIzaSyB5tq7IyA-tI5RXzw-h49tqDVAHK_dOywA" />
 
+       <meta-data
+           android:name="com.google.firebase.messaging.default_notification_icon"
+           android:resource="@drawable/notification_icon" />
+
+       <meta-data
+           android:name="com.google.firebase.messaging.default_notification_color"
+           android:resource="@android:color/holo_blue_dark" />
+
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
@@ -37,14 +45,6 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
-
-            <meta-data
-                android:name="com.google.firebase.messaging.default_notification_icon"
-                android:resource="@drawable/notification_icon" />
-
-            <meta-data
-                android:name="com.google.firebase.messaging.default_notification_color"
-                android:resource="@android:color/holo_blue_dark" />
 
             <!-- Displays an Android View that continues showing the launch screen
                  Drawable until Flutter paints its first frame, then this splash

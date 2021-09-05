@@ -7,6 +7,6 @@
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@drawable/android_splash_screen" />
+            android:src="@drawable/android_splash_screen_smaller" />
     </item>
 </layer-list>

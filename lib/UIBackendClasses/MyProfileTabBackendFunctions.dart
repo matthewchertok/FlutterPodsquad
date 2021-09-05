@@ -333,19 +333,15 @@ class MyProfileTabBackendFunctions {
     listenerRegistrations.add(profileDataDocumentListener);
   }
 
-  ///This listener serves only one purpose: use Firestore's realtime capabilities to fetch profile data from the
-  ///database (or cache if available, which is much faster and is the reason why I'm using a realtime listener instead
-  ///of a single getDocument() call. Once the listener gets the data, immediately remove it to reduce the number of
-  ///realtime connections. This has the advantage of using a realtime listener to access cached data, leading to
-  ///significantly faster loading times and reduced reads.
-  StreamSubscription? _dataListenerForSomoneElsesProfile;
-
+  ///Previously, I used a realtime listener here (which I immediately removed) to reduce reads by using the cache.
+  ///The problem was that by using the cache, the app would ignore updated data, leading to potentially
+  ///seriously-out-of-sync results. To solve that, I'll have to use a .get() call, which will use more reads but
+  ///ensure more accurate results.
   ///Never call this on the .shared instance of the class. Get any user's profile data and match survey answers. This
   /// function is useful to download a user's data when navigating to view their profile. onCompletion must take a
   /// ProfileData object as the input.
   void getPersonsProfileData({required String userID, required Function(ProfileData) onCompletion}) {
-    _dataListenerForSomoneElsesProfile =
-        ProfileDatabasePaths(userID: userID).userDataRef.snapshots().listen((docSnapshot) {
+    ProfileDatabasePaths(userID: userID).userDataRef.get().then((docSnapshot) {
       if (docSnapshot.exists) {
         // get their profile data
         final personProfileData = docSnapshot.get("profileData") as Map<String, dynamic>;
@@ -480,8 +476,6 @@ class MyProfileTabBackendFunctions {
         // Call the completion handler if everything succeeds so I can access the profile data and match survey data
         onCompletion(profileData);
       }
-
-      _dataListenerForSomoneElsesProfile?.cancel(); // cancel the listener once I'm done getting the data
     });
   }
 }

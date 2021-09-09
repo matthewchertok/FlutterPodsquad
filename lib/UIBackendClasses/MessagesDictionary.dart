@@ -705,7 +705,9 @@ class MessagesDictionary {
           podMessageDict.notifyListeners();
         });
 
-        completer.complete(snapshot.docs.length); // mark the future as complete once initial data is loaded
+        if (!completer.isCompleted) completer.complete(snapshot.docs.length); // mark the future as complete once
+        // initial data is
+        // loaded
       });
 
       final randomListenerID = Uuid().v1();

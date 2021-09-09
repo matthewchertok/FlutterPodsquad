@@ -846,7 +846,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
       // also continuously listen in case I meet someone while the view is open
       PeopleIMetBackendFunctions.shared.sortedListOfPeople.addListener(() {
         final peopleIMet = PeopleIMetBackendFunctions.shared.sortedListOfPeople.value;
-        setState(() {
+        if (mounted) setState(() {
           this._listOfPeople = peopleIMet;
         });
       });

@@ -700,25 +700,27 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         final scrollDirection = _customScrollViewController.position.userScrollDirection;
 
         // scroll up to hide the search bar
-        if (scrollDirection == ScrollDirection.reverse && _searchTextController.text.isEmpty)
-          setState(() {
-            _searchBarShowing = false;
-            print("Scrolling up!");
-          });
+        if (mounted) {
+          if (scrollDirection == ScrollDirection.reverse && _searchTextController.text.isEmpty)
+            setState(() {
+              _searchBarShowing = false;
+              print("Scrolling up!");
+            });
 
-        // scroll down to show the search bar
-        else if (scrollDirection == ScrollDirection.forward)
-          setState(() {
-            _searchBarShowing = true;
-            print("Scrolling down!");
-          });
+          // scroll down to show the search bar
+          else if (scrollDirection == ScrollDirection.forward)
+            setState(() {
+              _searchBarShowing = true;
+              print("Scrolling down!");
+            });
+        }
       });
     });
 
     // Determine when I'm searching for a person or pod
     _searchTextController.addListener(() {
       final text = _searchTextController.text;
-      setState(() {
+      if (mounted) setState(() {
         this.isSearching = text.trim().isNotEmpty;
       });
     });
@@ -750,7 +752,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
       // also continuously listen in case I join or leave a pod
       ShowMyPodsBackendFunctions.shared.sortedListOfPods.addListener(() {
         final myPods = ShowMyPodsBackendFunctions.shared.sortedListOfPods.value;
-        setState(() {
+        if (mounted) setState(() {
           this._listOfPods = myPods;
         });
       });
@@ -765,7 +767,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         // also continuously listen in case I like someone while the view is open
         SentLikesBackendFunctions.shared.sortedListOfPeople.addListener(() {
           final sentLikes = SentLikesBackendFunctions.shared.sortedListOfPeople.value;
-          setState(() {
+          if (mounted) setState(() {
             this._listOfPeople = sentLikes;
           });
         });
@@ -776,7 +778,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         // also continuously listen in case someone likes me while the view is open
         ReceivedLikesBackendFunctions.shared.sortedListOfPeople.addListener(() {
           final receivedLikes = ReceivedLikesBackendFunctions.shared.sortedListOfPeople.value;
-          setState(() {
+          if (mounted) setState(() {
             this._listOfPeople = receivedLikes;
           });
         });
@@ -792,7 +794,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         // also continuously listen in case I friend someone while the view is open
         SentFriendsBackendFunctions.shared.sortedListOfPeople.addListener(() {
           final sentFriends = SentFriendsBackendFunctions.shared.sortedListOfPeople.value;
-          setState(() {
+          if (mounted) setState(() {
             this._listOfPeople = sentFriends;
           });
         });
@@ -803,7 +805,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         // also continuously listen in case someone friends me while the view is open
         ReceivedFriendsBackendFunctions.shared.sortedListOfPeople.addListener(() {
           final receivedFriends = ReceivedFriendsBackendFunctions.shared.sortedListOfPeople.value;
-          setState(() {
+          if (mounted) setState(() {
             this._listOfPeople = receivedFriends;
           });
         });
@@ -831,7 +833,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         // also continuously listen in case someone blocks me while the view is open
         ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.addListener(() {
           final receivedBlocks = ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.value;
-          setState(() {
+          if (mounted) setState(() {
             this._listOfPeople = receivedBlocks;
           });
         });

@@ -314,7 +314,7 @@ class _MyProfileTabState extends State<MyProfileTab> {
     // but it doesn't register)
     MyProfileTabBackendFunctions.shared.myProfileData.addListener(() {
       final myProfileData = MyProfileTabBackendFunctions.shared.myProfileData.value;
-      setState(() {
+      if (mounted) setState(() {
         this._profileThumbnailURL = myProfileData.thumbnailURL;
       });
     });

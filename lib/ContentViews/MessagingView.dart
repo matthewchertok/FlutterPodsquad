@@ -718,6 +718,7 @@ class _MessagingViewState extends State<MessagingView> {
       // Send every active member a push notification if I just sent a pod message
       else {
         this._podActiveMemberIDsMap.forEach((memberID, memberTokens) {
+          if (memberID != myFirebaseUserId)
           pushSender.sendPushNotification(
               recipientDeviceTokens: memberTokens,
               title: chatPartnerOrPodName,

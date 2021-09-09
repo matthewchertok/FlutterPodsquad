@@ -719,13 +719,13 @@ class _MessagingViewState extends State<MessagingView> {
       else {
         this._podActiveMemberIDsMap.forEach((memberID, memberTokens) {
           if (memberID != myFirebaseUserId)
-          pushSender.sendPushNotification(
-              recipientDeviceTokens: memberTokens,
-              title: chatPartnerOrPodName,
-              body: "New message from $myName",
-              notificationType: NotificationTypes.podMessage,
-              podID: chatPartnerOrPodID,
-              podName: chatPartnerOrPodName);
+            pushSender.sendPushNotification(
+                recipientDeviceTokens: memberTokens,
+                title: chatPartnerOrPodName,
+                body: "New message from $myName",
+                notificationType: NotificationTypes.podMessage,
+                podID: chatPartnerOrPodID,
+                podName: chatPartnerOrPodName);
         });
       }
     }).catchError((error) {
@@ -789,15 +789,15 @@ class _MessagingViewState extends State<MessagingView> {
       if (theirConversationHiddenValue != null) {
         final didTheyHideTheChat = theirConversationHiddenValue["didHideChat"] as bool? ?? false;
         this.didChatPartnerHideTheConversation = didTheyHideTheChat;
-      }
-      else this.didChatPartnerHideTheConversation = false; // if the conversation is deleted, then they didn't hide it
+      } else
+        this.didChatPartnerHideTheConversation = false; // if the conversation is deleted, then they didn't hide it
 
       final myConversationHiddenValue = data?[myFirebaseUserId];
       if (myConversationHiddenValue != null) {
         final didIHideTheConversation = myConversationHiddenValue["didHideChat"] as bool? ?? false;
         this.didIHideTheConversation = didIHideTheConversation;
-      }
-      else this.didIHideTheConversation = false; // if the conversation is deleted, then I didn't hide it
+      } else
+        this.didIHideTheConversation = false; // if the conversation is deleted, then I didn't hide it
     });
     this._streamSubscriptions.add(streamSubscription);
   }
@@ -949,9 +949,9 @@ class _MessagingViewState extends State<MessagingView> {
       SentBlocksBackendFunctions.shared.sortedListOfPeople.addListener(() {
         final peopleIBlocked = SentBlocksBackendFunctions.shared.sortedListOfPeople.value;
         if (mounted)
-        setState(() {
-          this._didIBlockThem = peopleIBlocked.memberIDs().contains(chatPartnerOrPodID);
-        });
+          setState(() {
+            this._didIBlockThem = peopleIBlocked.memberIDs().contains(chatPartnerOrPodID);
+          });
       });
 
       /// Must directly read in the people who blocked me, because listeners do not automatically get
@@ -962,9 +962,9 @@ class _MessagingViewState extends State<MessagingView> {
       ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.addListener(() {
         final peopleWhoBlockedMe = ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.value;
         if (mounted)
-        setState(() {
-          this._amIBlocked = peopleWhoBlockedMe.memberIDs().contains(chatPartnerOrPodID);
-        });
+          setState(() {
+            this._amIBlocked = peopleWhoBlockedMe.memberIDs().contains(chatPartnerOrPodID);
+          });
         if (this._amIBlocked)
           showSingleButtonAlert(
                   context: context,
@@ -1139,27 +1139,29 @@ class _MessagingViewState extends State<MessagingView> {
 
     // Update in real time when the chat log changes (for direct messages)
     MessagesDictionary.shared.directMessagesDict.addListener(() {
-      if (mounted) setState(() {
-        var dms = MessagesDictionary.shared.directMessagesDict.value[chatPartnerOrPodID] ?? [];
-        var podMessages = MessagesDictionary.shared.podMessageDict.value[chatPartnerOrPodID] ?? [];
-        var combined = dms + podMessages;
-        combined = combined.toSet().toList(); // remove duplicates
-        combined.sort((b, a) => a.timeStamp.compareTo(b.timeStamp));
+      if (mounted)
+        setState(() {
+          var dms = MessagesDictionary.shared.directMessagesDict.value[chatPartnerOrPodID] ?? [];
+          var podMessages = MessagesDictionary.shared.podMessageDict.value[chatPartnerOrPodID] ?? [];
+          var combined = dms + podMessages;
+          combined = combined.toSet().toList(); // remove duplicates
+          combined.sort((b, a) => a.timeStamp.compareTo(b.timeStamp));
 
-        _updateAnimatedList(newList: combined);
-      });
+          _updateAnimatedList(newList: combined);
+        });
     });
 
     // Update in real time when the chat log changes (for pod messages)
     MessagesDictionary.shared.podMessageDict.addListener(() {
-      if (mounted) setState(() {
-        var dms = MessagesDictionary.shared.directMessagesDict.value[chatPartnerOrPodID] ?? [];
-        var podMessages = MessagesDictionary.shared.podMessageDict.value[chatPartnerOrPodID] ?? [];
-        var combined = dms + podMessages;
-        combined = combined.toSet().toList(); // remove duplicates
-        combined.sort((b, a) => a.timeStamp.compareTo(b.timeStamp));
-        _updateAnimatedList(newList: combined);
-      });
+      if (mounted)
+        setState(() {
+          var dms = MessagesDictionary.shared.directMessagesDict.value[chatPartnerOrPodID] ?? [];
+          var podMessages = MessagesDictionary.shared.podMessageDict.value[chatPartnerOrPodID] ?? [];
+          var combined = dms + podMessages;
+          combined = combined.toSet().toList(); // remove duplicates
+          combined.sort((b, a) => a.timeStamp.compareTo(b.timeStamp));
+          _updateAnimatedList(newList: combined);
+        });
     });
 
     // handle the text field when the keyboard appears

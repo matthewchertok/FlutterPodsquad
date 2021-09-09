@@ -34,9 +34,16 @@ class LikesDatabasePaths {
             final sender = PushNotificationSender();
             sender.sendPushNotification(
                 recipientDeviceTokens: otherPersonsProfileData.fcmTokens,
-                title: "${otherPersonsProfileData.name} liked you",
+                title: "${MyProfileTabBackendFunctions.shared.myProfileData.value.name} liked you",
                 body:
-                    "${PronounFormatter.makePronoun(preferredPronouns: otherPersonsProfileData.preferredPronoun, pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized: true)} probably ${otherPersonsProfileData.preferredPronoun == UsefulValues.nonbinaryPronouns ? "think" : "thinks"} you're attractive!",
+                    "${PronounFormatter.makePronoun(preferredPronouns: MyProfileTabBackendFunctions.shared
+                        .myProfileData.value.preferredPronoun,
+                        pronounTense:
+                    PronounTenses.HeSheThey,
+                        shouldBeCapitalized: true)} probably ${MyProfileTabBackendFunctions.shared.myProfileData
+                      .value.preferredPronoun
+                        == UsefulValues.nonbinaryPronouns ?
+                    "think" : "thinks"} you're attractive!",
                 notificationType: NotificationTypes.like);
 
             if (onCompletion != null) onCompletion(); // call the completion handler if there is one

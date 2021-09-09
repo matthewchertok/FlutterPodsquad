@@ -34,10 +34,14 @@ class FriendsDatabasePaths {
             //unlike a user if they are friended (can't like and friend someone simultaneously)
             firestoreDatabase.collection("likes").doc(documentID).delete();
 
-            // send them a push notification
+            // send them a push notification saying I friended them
             final sender = PushNotificationSender();
-            sender.sendPushNotification(recipientDeviceTokens: otherPersonsProfileData.fcmTokens, title: "${otherPersonsProfileData.name} friended you", body: "${PronounFormatter.makePronoun(preferredPronouns:
-                otherPersonsProfileData.preferredPronoun, pronounTense: PronounTenses.HeSheThey, shouldBeCapitalized:
+            sender.sendPushNotification(recipientDeviceTokens: otherPersonsProfileData.fcmTokens,
+                title: "${MyProfileTabBackendFunctions.shared.myProfileData.value.name} "
+                "friended you", body: "${PronounFormatter.makePronoun(preferredPronouns:
+                MyProfileTabBackendFunctions.shared.myProfileData.value.preferredPronoun, pronounTense: PronounTenses
+                    .HeSheThey,
+                    shouldBeCapitalized:
                 true)} probably found your bio interesting!", notificationType: NotificationTypes.friend);
           }).catchError((error) {
             print("An error occurred when friending someone: $error");

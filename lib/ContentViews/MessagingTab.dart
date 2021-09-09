@@ -311,7 +311,7 @@ class _MessagingTabState extends State<MessagingTab> {
     // Listen for all my DM conversations and get the latest message preview
     LatestDirectMessagesDictionary.shared.sortedLatestMessageList.addListener(() {
       final messages = LatestDirectMessagesDictionary.shared.sortedLatestMessageList.value;
-      setState(() {
+      if (mounted) setState(() {
         this._directMessagesList = messages;
       });
     });
@@ -319,7 +319,7 @@ class _MessagingTabState extends State<MessagingTab> {
     // Listen for all my pod message conversations and get the latest message preview
     LatestPodMessagesDictionary.shared.sortedLatestMessageList.addListener(() {
       final messages = LatestPodMessagesDictionary.shared.sortedLatestMessageList.value;
-      setState(() {
+      if (mounted) setState(() {
         this._podMessagesList = messages;
       });
     });
@@ -327,7 +327,7 @@ class _MessagingTabState extends State<MessagingTab> {
     // Listen for all DM conversations that I've hidden
     MessagesDictionary.shared.listOfDMConversationsIveHidden.addListener(() {
       final dmsIveHidden = MessagesDictionary.shared.listOfDMConversationsIveHidden.value;
-      setState(() {
+      if (mounted) setState(() {
         this._listOfIDsForDMConversationsIveHidden = dmsIveHidden;
       });
     });
@@ -335,7 +335,7 @@ class _MessagingTabState extends State<MessagingTab> {
     // Listen for all pod conversations that I've hidden
     MessagesDictionary.shared.listOfPodChatsIveHidden.addListener(() {
       final podsIveHidden = MessagesDictionary.shared.listOfPodChatsIveHidden.value;
-      setState(() {
+      if (mounted) setState(() {
         this._listOfIDsForPodChatsIveHidden = podsIveHidden;
       });
     });
@@ -343,28 +343,30 @@ class _MessagingTabState extends State<MessagingTab> {
     // Hide the search bar if the user swipes up, and show it if the user swipes down
     Future.delayed(Duration(milliseconds: 250), () {
       _customScrollViewController.addListener(() {
-        final scrollDirection = _customScrollViewController.position.userScrollDirection;
+        if (mounted) {
+          final scrollDirection = _customScrollViewController.position.userScrollDirection;
 
-        // scroll up to hide the search bar
-        if (scrollDirection == ScrollDirection.reverse && _searchTextController.text.isEmpty)
-          setState(() {
-            _searchBarShowing = false;
-            print("Scrolling up!");
-          });
+          // scroll up to hide the search bar
+          if (scrollDirection == ScrollDirection.reverse && _searchTextController.text.isEmpty)
+            setState(() {
+              _searchBarShowing = false;
+              print("Scrolling up!");
+            });
 
-        // scroll down to show the search bar
-        else if (scrollDirection == ScrollDirection.forward)
-          setState(() {
-            _searchBarShowing = true;
-            print("Scrolling down!");
-          });
+          // scroll down to show the search bar
+          else if (scrollDirection == ScrollDirection.forward)
+            setState(() {
+              _searchBarShowing = true;
+              print("Scrolling down!");
+            });
+        }
       });
     });
 
     /// Determine when I'm searching for a conversation
     _searchTextController.addListener(() {
       final text = _searchTextController.text;
-      setState(() {
+      if (mounted) setState(() {
         this.isSearching = text.trim().isNotEmpty;
       });
     });

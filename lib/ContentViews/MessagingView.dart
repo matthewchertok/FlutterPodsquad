@@ -1138,8 +1138,7 @@ class _MessagingViewState extends State<MessagingView> {
 
     // Update in real time when the chat log changes (for direct messages)
     MessagesDictionary.shared.directMessagesDict.addListener(() {
-      if (!this.mounted) return; // avoid setting state if the widget is disposed
-      setState(() {
+      if (mounted) setState(() {
         var dms = MessagesDictionary.shared.directMessagesDict.value[chatPartnerOrPodID] ?? [];
         var podMessages = MessagesDictionary.shared.podMessageDict.value[chatPartnerOrPodID] ?? [];
         var combined = dms + podMessages;
@@ -1152,8 +1151,7 @@ class _MessagingViewState extends State<MessagingView> {
 
     // Update in real time when the chat log changes (for pod messages)
     MessagesDictionary.shared.podMessageDict.addListener(() {
-      if (!this.mounted) return;
-      setState(() {
+      if (mounted) setState(() {
         var dms = MessagesDictionary.shared.directMessagesDict.value[chatPartnerOrPodID] ?? [];
         var podMessages = MessagesDictionary.shared.podMessageDict.value[chatPartnerOrPodID] ?? [];
         var combined = dms + podMessages;
@@ -1183,22 +1181,24 @@ class _MessagingViewState extends State<MessagingView> {
     // Hide the keyboard if the user scrolls up to see older messages. Also hide the read receipts row (if it isn't
     // already hidden from previous scrolling)
     _chatLogScrollController.addListener(() {
-      final isScrolling = _chatLogScrollController.position.isScrollingNotifier.value;
-      final scrollDirection = _chatLogScrollController.position.userScrollDirection;
-      if (isScrolling && scrollDirection == ScrollDirection.reverse) {
-        if (_keyboardVisible) hideKeyboard(context: context);
-        if (!this._didScrollToHideReadReceipts)
-          setState(() {
-            this._didScrollToHideReadReceipts = true;
-          });
-      }
+      if (mounted) {
+        final isScrolling = _chatLogScrollController.position.isScrollingNotifier.value;
+        final scrollDirection = _chatLogScrollController.position.userScrollDirection;
+        if (isScrolling && scrollDirection == ScrollDirection.reverse) {
+          if (_keyboardVisible) hideKeyboard(context: context);
+          if (!this._didScrollToHideReadReceipts)
+            setState(() {
+              this._didScrollToHideReadReceipts = true;
+            });
+        }
 
-      // if the user scrolls all the way back down to the bottom of the chat log, allow the read receipts row to
-      // show again. Set extentBefore (not extentAfter) to 0 because the chat log CustomScrollView is reversed.
-      if (_chatLogScrollController.position.extentBefore == 0) {
-        setState(() {
-          this._didScrollToHideReadReceipts = false;
-        });
+        // if the user scrolls all the way back down to the bottom of the chat log, allow the read receipts row to
+        // show again. Set extentBefore (not extentAfter) to 0 because the chat log CustomScrollView is reversed.
+        if (_chatLogScrollController.position.extentBefore == 0) {
+          setState(() {
+            this._didScrollToHideReadReceipts = false;
+          });
+        }
       }
     });
 

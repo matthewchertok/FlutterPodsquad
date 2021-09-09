@@ -81,7 +81,7 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
       ShowMyPodsBackendFunctions.shared.sortedListOfPods.addListener(() {
         final myPods = ShowMyPodsBackendFunctions.shared.sortedListOfPods.value;
         // No need to sort here since MainListDisplay view will sort the list alphabetically
-        setState(() {
+        if (mounted) setState(() {
           this._personsPodMemberships = myPods;
         });
       });
@@ -267,7 +267,7 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
     // Add listeners that will update if I like/friend/block/report the user
     SentLikesBackendFunctions.shared.sortedListOfPeople.addListener(() {
       final didLikeUser = SentLikesBackendFunctions.shared.sortedListOfPeople.value.contains(personData);
-      setState(() {
+      if (mounted) setState(() {
         this.didLikeUser = didLikeUser;
         print(
             "I liked someone! Here's that person: ${SentLikesBackendFunctions.shared.sortedListOfPeople.value.last.name}. Thus, didLikeUser is equal to $didLikeUser because the user's ID is ${SentLikesBackendFunctions.shared.sortedListOfPeople.value.last.userID}");
@@ -276,7 +276,7 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
 
     SentFriendsBackendFunctions.shared.sortedListOfPeople.addListener(() {
       final didFriendUser = SentFriendsBackendFunctions.shared.sortedListOfPeople.value.contains(personData);
-      setState(() {
+      if (mounted) setState(() {
         this.didFriendUser = didFriendUser;
       });
     });
@@ -291,7 +291,7 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
 
     ReportedPeopleBackendFunctions.shared.peopleIReportedList.addListener(() {
       final didReportUser = ReportedPeopleBackendFunctions.shared.peopleIReportedList.value.contains(personID);
-      setState(() {
+      if (mounted) setState(() {
         this.didReportUser = didReportUser;
       });
     });

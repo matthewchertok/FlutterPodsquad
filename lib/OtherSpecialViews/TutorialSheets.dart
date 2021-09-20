@@ -47,7 +47,7 @@ Future<void> showLoginTutorialIfNecessary({required BuildContext context}) async
             title: Text("How Does It Work?", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
             subtitle: Text("Podsquad uses Bluetooth to detect nearby users and "
-                "does not required your location.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
+                "does not require your location.", style: TextStyle(color: isDarkMode ? CupertinoColors.white :
             CupertinoColors.black)),
             leading: Icon(CupertinoIcons.hand_point_right, color: CupertinoColors.inactiveGray),
           ),

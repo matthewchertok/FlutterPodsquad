@@ -178,7 +178,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
               padding: EdgeInsets.all(8),
               child: PersonOrPodListRow(
                 personOrPodID: person.userID,
-                personOrPodName: person.name,
+                personOrPodName: person.name, personBirthday: person.birthday,
                 personOrPodThumbnailURL: person.thumbnailURL,
                 personOrPodBio: person.bio,
                 timeIMetThePerson: person.timeIMetThePerson,
@@ -251,7 +251,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
               padding: EdgeInsets.all(8),
               child: PersonOrPodListRow(
                 personOrPodID: person.userID,
-                personOrPodName: person.name,
+                personOrPodName: person.name, personBirthday: person.birthday,
                 personOrPodThumbnailURL: person.thumbnailURL,
                 personOrPodBio: person.bio,
                 timeIMetThePerson: person.timeIMetThePerson,
@@ -425,7 +425,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
               padding: EdgeInsets.all(8),
               child: PersonOrPodListRow(
                 personOrPodID: person.userID,
-                personOrPodName: person.name,
+                personOrPodName: person.name, personBirthday: person.birthday,
                 personOrPodThumbnailURL: person.thumbnailURL,
                 personOrPodBio: person.bio,
                 timeIMetThePerson: person.timeIMetThePerson,

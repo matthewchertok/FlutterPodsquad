@@ -165,9 +165,11 @@ class MyProfileTabBackendFunctions {
     final profileDataDocumentListener =
         ProfileDatabasePaths(userID: myFirebaseUserId).userDataRef.snapshots().listen((docSnapshot) {
       if (docSnapshot.exists) {
-        this.myProfileDocument = docSnapshot.data() as Map<String, dynamic>?;
+        final docData = docSnapshot.data() as Map<String, dynamic>?;
+        this.myProfileDocument = docData;
+        if (docData == null) return;
 
-        final value = docSnapshot.get("profileData") as Map<String, dynamic>?;
+        final value = docData["profileData"] as Map<String, dynamic>?;
         if (value != null) {
           num? myBirthdayRaw = value["birthday"];
           double? myBirthday = myBirthdayRaw?.toDouble();
@@ -183,7 +185,6 @@ class MyProfileTabBackendFunctions {
           String? myFullPhotoURL = value["fullPhotoURL"];
 
           // get my FCM device tokens
-          final docData = docSnapshot.data() as Map;
           final fcmTokensRaw = docData["fcmTokens"] as List<dynamic>? ?? [];
           final fcmTokens = List<String>.from(fcmTokensRaw);
 
@@ -344,7 +345,10 @@ class MyProfileTabBackendFunctions {
     ProfileDatabasePaths(userID: userID).userDataRef.get().then((docSnapshot) {
       if (docSnapshot.exists) {
         // get their profile data
-        final personProfileData = docSnapshot.get("profileData") as Map<String, dynamic>;
+        final docData = docSnapshot.data() as Map<String, dynamic>?;
+        if (docData == null) return;
+        final personProfileData = docData["profileData"] as Map<String, dynamic>?;
+        if (personProfileData == null) return;
         final personBirthdayRaw = personProfileData["birthday"] as num? ?? 0;
         final personBirthday = personBirthdayRaw.toDouble();
         final personName = personProfileData["name"] as String? ?? "Name N/A";
@@ -360,7 +364,6 @@ class MyProfileTabBackendFunctions {
         // display
 
         // get their FCM device tokens
-        final docData = docSnapshot.data() as Map;
         final fcmTokensRaw = docData["fcmTokens"] as List<dynamic>? ?? [];
         final fcmTokens = List<String>.from(fcmTokensRaw);
 

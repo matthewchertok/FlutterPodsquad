@@ -1426,6 +1426,8 @@ class _MessagingViewState extends State<MessagingView> {
                                       if (message.senderId != myFirebaseUserId)
                                         IconSlideAction(
                                           icon: CupertinoIcons.doc_on_clipboard,
+                                          color: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
+                                          foregroundColor: isDarkMode ? CupertinoColors.white : CupertinoColors.black,
                                           onTap: () {
                                             Clipboard.setData(ClipboardData(text: message.text));
                                           },
@@ -1459,6 +1461,8 @@ class _MessagingViewState extends State<MessagingView> {
                                       if (message.senderId == myFirebaseUserId)
                                         IconSlideAction(
                                           icon: CupertinoIcons.doc_on_clipboard,
+                                          color: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
+                                          foregroundColor: isDarkMode ? CupertinoColors.white : CupertinoColors.black,
                                           onTap: () {
                                             Clipboard.setData(ClipboardData(text: message.text));
                                           },

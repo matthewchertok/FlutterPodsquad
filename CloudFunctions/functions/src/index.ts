@@ -1134,7 +1134,8 @@ async function uploadDMMessage(conversationId: string, messageId: string, recipi
   });
 
   // send the recipient a push notification confirming the message was sent
-  let notificationPayload = { "title": `New message from ${senderName}`, "body": messageText, "sound": "notificationTone.wav", "badge": "1", "click_action": "message" };
+  let notificationPayload = { "title": `New message from ${senderName}`, "body": messageText,
+  "sound": "notification_tone.wav", "badge": "1", "click_action": "message" };
   let dataPayload = { "senderID": senderId, "senderName": senderName, "notificationType": "message", "podID": "nil", "podName": "nil" };
   let payload = { notification: notificationPayload, data: dataPayload };
   messaging().sendToTopic(recipientId, payload);
@@ -1190,7 +1191,7 @@ async function uploadPodMessage(podID: string, podName: string, senderId: string
     });
 
     // initialize a push notification
-    let notificationPayload = { "title": podName, "body": `${senderName}: ${messageText}`, "sound": "notificationTone.wav", "badge": "1", "click_action": "message" };
+    let notificationPayload = { "title": podName, "body": `${senderName}: ${messageText}`, "sound": "notification_tone.wav", "badge": "1", "click_action": "message" };
     let dataPayload = { "senderID": senderId, "senderName": senderName, "notificationType": "pod_message", "podID": podID, "podName": podName };
     let payload = { notification: notificationPayload, data: dataPayload };
 
@@ -1217,7 +1218,7 @@ export const sendPushNotification = functions.https.onCall(async data => {
   let podID = data.podID as string ?? "nil";
   let podName = data.podName as string ?? "nil";
 
-  let notificationPayload = { "title": title, "body": body, "sound": "notificationTone.wav", "badge": "1", "click_action": clickAction };
+  let notificationPayload = { "title": title, "body": body, "sound": "notification_tone.wav", "badge": "1", "click_action": clickAction };
   let dataPayload = { "senderID": senderID, "senderName": senderName, "notificationType": notificationType, "podID": podID, "podName": podName };
   let payload = { notification: notificationPayload, data: dataPayload };
 

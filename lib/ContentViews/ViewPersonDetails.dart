@@ -508,8 +508,11 @@ class _ViewPersonDetailsState extends State<ViewPersonDetails> {
                               Text(
                                 personData.bio.isNotEmpty
                                     ? personData.bio
-                                    : "${personData.name.firstName()} has not "
-                                        "written a bio!",
+                                    : (personData.userID == myFirebaseUserId ? "You haven't written a bio yet!" : "${personData
+                                    .name
+                                    .firstName
+                                  ()} hasn't "
+                                        "written a bio yet!"),
                                 style: TextStyle(
                                     fontSize: 15.scaledForScreenSize(context: context),
                                     color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),

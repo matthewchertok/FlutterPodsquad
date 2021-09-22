@@ -115,18 +115,7 @@ class MyProfileTabBackendFunctions {
     listenerRegistrations = [];
     _myExtraImagesList = [];
     isLoadingProfileImage.value = false;
-    myProfileData = ValueNotifier(ProfileData(
-        userID: "userID",
-        name: "name",
-        preferredPronoun: "preferredPronoun",
-        preferredRelationshipType: "preferredRelationshipType",
-        birthday: 0,
-        school: "school",
-        bio: "bio",
-        podScore: 0,
-        thumbnailURL: "thumbnailURL",
-        fullPhotoURL: "fullPhotoURL",
-        fcmTokens: []));
+    myProfileData = ValueNotifier(ProfileData.blank);
     myMatchSurveyData = ValueNotifier(MatchSurveyData(
         age: 1,
         career: 1,
@@ -366,8 +355,6 @@ class MyProfileTabBackendFunctions {
         // get their FCM device tokens
         final fcmTokensRaw = docData["fcmTokens"] as List<dynamic>? ?? [];
         final fcmTokens = List<String>.from(fcmTokensRaw);
-
-        if (personBio.isEmpty) personBio = "Bio";
 
         final personThumbnailURL = personProfileData["photoThumbnailURL"] as String? ?? "photoThumbnailURL";
         final personFullPhotoURL = personProfileData["fullPhotoURL"] as String? ?? "fullPhotoURL";

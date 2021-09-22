@@ -441,9 +441,10 @@ class _MessagingViewState extends State<MessagingView> {
       title: Text("Delete Message"),
       content: Text(message.podID == null
           ? "Are you "
-              "sure you want to delete this message? It will be removed for $chatPartnerOrPodName as well!"
+              "sure you want to delete this message? It will be removed for ${chatPartnerOrPodName.firstName()} as well!"
           : "Are you "
-              "sure you want to delete this message? It will be removed for all members of ${message.podName} as well!"),
+              "sure you want to delete this message? It will be removed for all members of $chatPartnerOrPodName as "
+          "well!"),
       actions: [
         // cancel button
         CupertinoButton(

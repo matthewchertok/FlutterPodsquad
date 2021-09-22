@@ -1235,7 +1235,7 @@ export const deleteDeviceFCMToken = functions.https.onCall(async data => {
 
   // remove the specified token
   firestore().collection("users").doc(userID).update({
-    "fcmTokens": firestore.FieldValue.arrayRemove([token])
+    "fcmTokens": firestore.FieldValue.arrayRemove(token)
   });
 });
 

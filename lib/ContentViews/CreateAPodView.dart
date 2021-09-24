@@ -212,15 +212,27 @@ class _CreateAPodViewState extends State<CreateAPodView> {
     final deleteFullImage = PodsDatabasePaths(podID: _podData.podID, imageName: "full_image").podImageRef.delete(); //
     // delete full image
 
-    if (PodsDatabasePaths(podID: _podData.podID).podDocument.path.isNotEmpty) await deleteDoc;
-    if (PodsDatabasePaths(podID: _podData.podID, imageName: "thumbnail").podImageRef.fullPath.isNotEmpty) await
-    deleteThumbnail;
-    if (PodsDatabasePaths(podID: _podData.podID, imageName: "full_image").podImageRef.fullPath.isNotEmpty) await
-    deleteFullImage;
+    try {
+      await deleteDoc;
+    } catch(error) {
+      print("Pod has not been created. Document doesn't exist; nothing to delete");
+    }
+
+    try {
+      await deleteThumbnail;
+    } catch(error) {
+      print("No thumbnail has been uploaded. Thumbnail doesn't exist; nothing to delete");
+    }
+
+    try {
+      await deleteFullImage;
+    } catch (error) {
+      print("No full image has been uploaded. Full image doesn't exist; nothing to delete");
+    }
 
     // we also must clear the name, description, anyoneCanJoin, and podData fields so there isn't a disconnect
     // between what the user sees and what's in the database
-    setState(() {
+    if (mounted) setState(() {
       _imageFile = null;
 
       // Reset the thumbnail and full photo data, since those get deleted from the database if I close out of the

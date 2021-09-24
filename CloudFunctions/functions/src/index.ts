@@ -226,15 +226,15 @@ export const deleteUserData = functions.https.onCall(data => {
 
     // now delete all the extra images from storage
     let docData = document.data();
-    if (docData != null){
-    let extraImages = docData["extraImages"] as Map<string, any> | null
-    if (extraImages != null) {
-      for (const [_imageID, imageData] of Object.entries(extraImages)){
-        const imagePath = imageData["imagePath"] as string;
-        storage().bucket().file(imagePath).delete(); // delete the extra image (there can be up to 5 right now)
+    if (docData != null) {
+      let extraImages = docData["extraImages"] as Map<string, any> | null;
+      if (extraImages != null) {
+        for (const [_imageID, imageData] of Object.entries(extraImages)) {
+          const imagePath = imageData["imagePath"] as string;
+          storage().bucket().file(imagePath).delete(); // delete the extra image (there can be up to 5 right now)
+        }
       }
     }
-  }
 
     document.ref.delete(); // delete the document containing the user's profile data
   });
@@ -1134,8 +1134,10 @@ async function uploadDMMessage(conversationId: string, messageId: string, recipi
   });
 
   // send the recipient a push notification confirming the message was sent
-  let notificationPayload = { "title": `New message from ${senderName}`, "body": messageText,
-  "sound": "notification_tone.wav", "badge": "1", "click_action": "message" };
+  let notificationPayload = {
+    "title": `New message from ${senderName}`, "body": messageText,
+    "sound": "notification_tone.wav", "badge": "1", "click_action": "message"
+  };
   let dataPayload = { "senderID": senderId, "senderName": senderName, "notificationType": "message", "podID": "nil", "podName": "nil" };
   let payload = { notification: notificationPayload, data: dataPayload };
   messaging().sendToTopic(recipientId, payload);
@@ -1237,5 +1239,27 @@ export const deleteDeviceFCMToken = functions.https.onCall(async data => {
   firestore().collection("users").doc(userID).update({
     "fcmTokens": firestore.FieldValue.arrayRemove(token)
   });
+});
+
+// delete pod data if pod creation is cancelled
+export const deletePodDataIfPodCreationCancelled = functions.https.onCall(async data => {
+  let podID = data.podID as string;
+  let thumbnailPath = data.thumbnailPath as string;
+  let fullImagePath = data.fullImagePath as string;
+
+  // delete the pod document from Firestore if it exists
+  firestore().collection("pods").doc(podID).delete();
+
+  // delete the pod thumbnail from Storage if it exists
+  let thumbnailFile = storage().bucket().file(thumbnailPath);
+  if (await thumbnailFile.exists()) {
+    thumbnailFile.delete();
+  }
+
+  // delete the pod full image from Storage if it exists
+  let fullImageFile = storage().bucket().file(fullImagePath);
+  if (await fullImageFile.exists()) {
+    fullImageFile.delete();
+  }
 });
 

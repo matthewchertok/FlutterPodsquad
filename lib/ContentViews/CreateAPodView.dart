@@ -205,53 +205,41 @@ class _CreateAPodViewState extends State<CreateAPodView> {
   /// the pod from the database and remove its photos from Storage.
   Future<void> _cleanUpDataIfPodCreationCancelled() async {
     if (!isCreatingNewPod) return; // don't execute the function if I'm editing an existing pod
-    final deleteDoc = PodsDatabasePaths(podID: _podData.podID).podDocument.delete(); // delete the pod document in
-    // Firestore
-    final deleteThumbnail = PodsDatabasePaths(podID: _podData.podID, imageName: "thumbnail").podImageRef.delete(); //
-    // delete thumbnail (Storage)
-    final deleteFullImage = PodsDatabasePaths(podID: _podData.podID, imageName: "full_image").podImageRef.delete(); //
-    // delete full image
+    final thumbnailPath = PodsDatabasePaths(podID: _podData.podID, imageName: "thumbnail").podImageRef.fullPath;
+    final fullImagePath = PodsDatabasePaths(podID: _podData.podID, imageName: "full_image").podImageRef.fullPath;
 
-    try {
-      await deleteDoc;
-    } catch(error) {
-      print("Pod has not been created. Document doesn't exist; nothing to delete");
-    }
-
-    try {
-      await deleteThumbnail;
-    } catch(error) {
-      print("No thumbnail has been uploaded. Thumbnail doesn't exist; nothing to delete");
-    }
-
-    try {
-      await deleteFullImage;
-    } catch (error) {
-      print("No full image has been uploaded. Full image doesn't exist; nothing to delete");
-    }
+    // call a cloud function to clean up data if pod creation is cancelled
+    await firebaseFunctions.httpsCallable("deletePodDataIfPodCreationCancelled").call({
+      "podID": _podData.podID,
+      "thumbnailPath": thumbnailPath,
+      "fullImagePath": fullImagePath
+    }).catchError((error) {
+      print("Unable to call a cloud function to clean up pod data");
+    });
 
     // we also must clear the name, description, anyoneCanJoin, and podData fields so there isn't a disconnect
     // between what the user sees and what's in the database
-    if (mounted) setState(() {
-      _imageFile = null;
+    if (mounted)
+      setState(() {
+        _imageFile = null;
 
-      // Reset the thumbnail and full photo data, since those get deleted from the database if I close out of the
-      // screen before creating the pod
-      final dateCreated = DateTime.now().millisecondsSinceEpoch * 0.001;
-      this._podData = PodData(
-          name: "",
-          dateCreated: dateCreated,
-          description: _descriptionController.text,
-          anyoneCanJoin: false,
-          podID: podID ?? Uuid().v1(),
-          podCreatorID: myFirebaseUserId,
-          thumbnailURL: "",
-          thumbnailPath: "",
-          fullPhotoURL: "",
-          fullPhotoPath: "",
-          podScore: 0);
-      isCreatingNewPod = true;
-    });
+        // Reset the thumbnail and full photo data, since those get deleted from the database if I close out of the
+        // screen before creating the pod
+        final dateCreated = DateTime.now().millisecondsSinceEpoch * 0.001;
+        this._podData = PodData(
+            name: "",
+            dateCreated: dateCreated,
+            description: _descriptionController.text,
+            anyoneCanJoin: false,
+            podID: podID ?? Uuid().v1(),
+            podCreatorID: myFirebaseUserId,
+            thumbnailURL: "",
+            thumbnailPath: "",
+            fullPhotoURL: "",
+            fullPhotoPath: "",
+            podScore: 0);
+        isCreatingNewPod = true;
+      });
   }
 
   @override
@@ -346,10 +334,10 @@ class _CreateAPodViewState extends State<CreateAPodView> {
                             child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            Text(_anyoneCanJoin ? "Anyone can join (open)" : "Invite only (closed)", style: TextStyle
-                              (color: isDarkMode
-                                ? CupertinoColors.white
-                                : CupertinoColors.black),),
+                            Text(
+                              _anyoneCanJoin ? "Anyone can join (open)" : "Invite only (closed)",
+                              style: TextStyle(color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
+                            ),
                             Spacer(),
                             CupertinoSwitch(
                               value: _anyoneCanJoin,
@@ -372,10 +360,12 @@ class _CreateAPodViewState extends State<CreateAPodView> {
 
                         // Pod description
                         CupertinoTextFormFieldRow(
-                            textCapitalization: TextCapitalization.sentences,
-                            controller: _descriptionController,
-                            placeholder: "Describe this"
-                                " pod", maxLines: null,),
+                          textCapitalization: TextCapitalization.sentences,
+                          controller: _descriptionController,
+                          placeholder: "Describe this"
+                              " pod",
+                          maxLines: null,
+                        ),
 
                         // create or update pod button
                         CupertinoButton(
@@ -419,7 +409,8 @@ class _CreateAPodViewState extends State<CreateAPodView> {
                 }),
           )
         ],
-      ), onForegroundLost: _cleanUpDataIfPodCreationCancelled,
+      ),
+      onForegroundLost: _cleanUpDataIfPodCreationCancelled,
     ));
   }
 }

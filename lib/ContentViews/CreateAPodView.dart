@@ -212,7 +212,7 @@ class _CreateAPodViewState extends State<CreateAPodView> {
     final deleteFullImage = PodsDatabasePaths(podID: _podData.podID, imageName: "full_image").podImageRef.delete(); //
     // delete full image
 
-    await deleteDoc;
+    if (PodsDatabasePaths(podID: _podData.podID).podDocument.path.isNotEmpty) await deleteDoc;
     await deleteThumbnail;
     await deleteFullImage;
 

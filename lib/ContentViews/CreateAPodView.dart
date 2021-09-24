@@ -205,15 +205,11 @@ class _CreateAPodViewState extends State<CreateAPodView> {
   /// the pod from the database and remove its photos from Storage.
   Future<void> _cleanUpDataIfPodCreationCancelled() async {
     if (!isCreatingNewPod) return; // don't execute the function if I'm editing an existing pod
-    final thumbnailPath = PodsDatabasePaths(podID: _podData.podID, imageName: "thumbnail").podImageRef.fullPath;
-    final fullImagePath = PodsDatabasePaths(podID: _podData.podID, imageName: "full_image").podImageRef.fullPath;
 
     // call a cloud function to clean up data if pod creation is cancelled
-    await firebaseFunctions.httpsCallable("deletePodDataIfPodCreationCancelled").call({
-      "podID": _podData.podID,
-      "thumbnailPath": thumbnailPath,
-      "fullImagePath": fullImagePath
-    }).catchError((error) {
+    await firebaseFunctions
+        .httpsCallable("markIncompletePodForDeletion")
+        .call({"podID": _podData.podID}).catchError((error) {
       print("Unable to call a cloud function to clean up pod data");
     });
 

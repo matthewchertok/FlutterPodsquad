@@ -1247,19 +1247,38 @@ export const deletePodDataIfPodCreationCancelled = functions.https.onCall(async 
   let thumbnailPath = data.thumbnailPath as string;
   let fullImagePath = data.fullImagePath as string;
 
+  var promises: Promise<any>[] = [];
+
   // delete the pod document from Firestore if it exists
-  firestore().collection("pods").doc(podID).delete();
+  var deletePodDocPromise = firestore().collection("pods").doc(podID).delete().catch((error) => {
+    console.log("Couldn't delete the pod document: " + error);
+  });
+  promises.push(deletePodDocPromise);
 
   // delete the pod thumbnail from Storage if it exists
   let thumbnailFile = storage().bucket().file(thumbnailPath);
   if (await thumbnailFile.exists()) {
-    thumbnailFile.delete();
+    var deleteThumbnailPromise = thumbnailFile.delete().catch((error) => {
+      console.log("Couldn't delete the pod thumbnail: " + error);
+    });
+    promises.push(deleteThumbnailPromise);
+  } else {
+    console.log("Didn't need to delete the pod thumbnail: it doesn't exist");
   }
 
   // delete the pod full image from Storage if it exists
   let fullImageFile = storage().bucket().file(fullImagePath);
   if (await fullImageFile.exists()) {
-    fullImageFile.delete();
+    var deleteFullImagePromise = fullImageFile.delete().catch((error) => {
+      console.log("Couldn't delete the pod full image: " + error);
+    });
+    promises.push(deleteFullImagePromise);
   }
+  else {
+    console.log("Didn't need to delete the pod full image: it doesn't exist");
+  }
+
+  console.log("Deleted pod with ID " + podID + " with images located at " + thumbnailPath + " and " + fullImagePath);
+  return Promise.all(promises);
 });
 

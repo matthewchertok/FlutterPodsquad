@@ -1431,6 +1431,8 @@ class _MessagingViewState extends State<MessagingView> {
                                           foregroundColor: isDarkMode ? CupertinoColors.white : CupertinoColors.black,
                                           onTap: () {
                                             Clipboard.setData(ClipboardData(text: message.text));
+                                            showSingleButtonAlert(context: context, title: "Message Copied!",
+                                                dismissButtonLabel: "OK");
                                           },
                                           caption: "Copy",
                                         ),
@@ -1466,6 +1468,8 @@ class _MessagingViewState extends State<MessagingView> {
                                           foregroundColor: isDarkMode ? CupertinoColors.white : CupertinoColors.black,
                                           onTap: () {
                                             Clipboard.setData(ClipboardData(text: message.text));
+                                            showSingleButtonAlert(context: context, title: "Message Copied!",
+                                                dismissButtonLabel: "OK");
                                           },
                                           caption: "Copy",
                                         ),

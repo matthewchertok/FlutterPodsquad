@@ -69,22 +69,9 @@ class _CreateAPodViewState extends State<CreateAPodView> {
     if (pickedImage == null) return;
     await _cropImage(sourcePath: pickedImage.path);
 
-    // Upload to the database
-    if (this._imageFile != null && this.podID != null) {
-      final task = ResizeAndUploadImage.sharedInstance.uploadPodImage(image: this._imageFile!, podID: this.podID!);
-      final result = await task;
-      final thumbnailURL = result?[0];
-      final thumbnailPath = result?[1];
-      final fullPhotoURL = result?[2];
-      final fullPhotoPath = result?[3];
-      if (thumbnailURL != null && fullPhotoURL != null && thumbnailPath != null && fullPhotoPath != null)
-        if (mounted) setState(() {
-          _podData.thumbnailURL = thumbnailURL;
-          _podData.thumbnailPath = thumbnailPath;
-          _podData.fullPhotoURL = fullPhotoURL;
-          _podData.fullPhotoPath = fullPhotoPath;
-        });
-    }
+    // if I'm not creating a new pod, then upload the new image to the database right after I pick it. However, if I
+    // am creating a new pod, I want to make sure I actually create the pod before I upload the image.
+    if (!isCreatingNewPod) await this._uploadImage();
   }
 
   /// Allow the user to select a square crop from their image
@@ -95,9 +82,30 @@ class _CreateAPodViewState extends State<CreateAPodView> {
         androidUiSettings: AndroidUiSettings(
             toolbarTitle: "Crop Image", initAspectRatio: CropAspectRatioPreset.square, lockAspectRatio: true),
         iosUiSettings: IOSUiSettings(minimumAspectRatio: 1.0, title: "Crop Image"));
-    if (mounted) setState(() {
-      this._imageFile = croppedImage;
-    });
+    if (mounted)
+      setState(() {
+        this._imageFile = croppedImage;
+      });
+  }
+
+  /// Upload an image to the database
+  Future<void> _uploadImage() async {
+    if (this._imageFile != null && this.podID != null) {
+      final task = ResizeAndUploadImage.sharedInstance.uploadPodImage(image: this._imageFile!, podID: this.podID!);
+      final result = await task;
+      final thumbnailURL = result?[0];
+      final thumbnailPath = result?[1];
+      final fullPhotoURL = result?[2];
+      final fullPhotoPath = result?[3];
+      if (thumbnailURL != null && fullPhotoURL != null && thumbnailPath != null && fullPhotoPath != null && mounted)
+        setState(() {
+          _podData.thumbnailURL = thumbnailURL;
+          _podData.thumbnailPath = thumbnailPath;
+          _podData.fullPhotoURL = fullPhotoURL;
+          _podData.fullPhotoPath = fullPhotoPath;
+          this._imageFile = null; // clear the imageFile and read from the database once it's uploaded
+        });
+    }
   }
 
   /// Set the pod data in the database
@@ -121,36 +129,30 @@ class _CreateAPodViewState extends State<CreateAPodView> {
           content: "Please "
               "provide a brief description of your pod, such as a summary of ideal members' hobbies and interests.",
           dismissButtonLabel: "OK");
-    else if (_podData.thumbnailURL.isEmpty || _podData.thumbnailPath.isEmpty)
+    else if (this._imageFile == null && (_podData.thumbnailURL.isEmpty || _podData.thumbnailPath.isEmpty))
       showSingleButtonAlert(
           context: context,
           title: "Image Required",
           content: "Your pod must include an image. Tap the camera or gallery icon to select one!",
           dismissButtonLabel: "OK");
-    else if (_podData.fullPhotoURL.isEmpty || _podData.fullPhotoPath.isEmpty)
-      showSingleButtonAlert(
-          context: context,
-          title: "Image Uploading",
-          content: "Please wait a moment for your image to upload, then try again.",
-          dismissButtonLabel: "OK");
-
     if (podName.isEmpty ||
         description.isEmpty ||
-        _podData.thumbnailURL.isEmpty ||
-        _podData.fullPhotoURL.isEmpty ||
-        _podData.thumbnailPath.isEmpty ||
-        _podData.fullPhotoPath.isEmpty) return;
+        (this._imageFile == null && _podData.thumbnailURL.isEmpty) ||
+        (this._imageFile == null && _podData.fullPhotoURL.isEmpty) ||
+        (this._imageFile == null && _podData.thumbnailPath.isEmpty) ||
+        (this._imageFile == null && _podData.fullPhotoPath.isEmpty)) return;
 
     // update _podData to fill in the missing data
     // create the dictionary to upload to Firestore
-    if (mounted) setState(() {
-      // The other fields have already been set
-      this._podData.name = podName;
-      if (isCreatingNewPod) this._podData.dateCreated = timeSinceEpochInSeconds;
-      this._podData.description = description;
-      this._podData.anyoneCanJoin = _anyoneCanJoin;
-      if (isCreatingNewPod) this._podData.podScore = 0;
-    });
+    if (mounted)
+      setState(() {
+        // The other fields have already been set
+        this._podData.name = podName;
+        if (isCreatingNewPod) this._podData.dateCreated = timeSinceEpochInSeconds;
+        this._podData.description = description;
+        this._podData.anyoneCanJoin = _anyoneCanJoin;
+        if (isCreatingNewPod) this._podData.podScore = 0;
+      });
 
     // Set this in Firestore
     final podDictionary = {
@@ -167,10 +169,16 @@ class _CreateAPodViewState extends State<CreateAPodView> {
       "podScore": _podData.podScore
     };
 
+    // Create the profile data document
     final task = PodsDatabasePaths(podID: _podData.podID)
         .podDocument
         .set({"profileData": podDictionary}, SetOptions(merge: true));
     await task;
+
+    // Upload the image to Storage and update the URL in Firestore (if creating a new pod)
+    if (isCreatingNewPod) await this._uploadImage();
+
+    // Show confirmation that the pod was created
     showSingleButtonAlert(
         context: context, title: isCreatingNewPod ? "Pod Created!" : "Pod Updated!", dismissButtonLabel: "OK");
 
@@ -181,8 +189,8 @@ class _CreateAPodViewState extends State<CreateAPodView> {
 
     // Regardless of whether joining the pod succeeds (it should though), the pod has been created. Thus, I should
     // set isCreatingNewPod to false (if necessary)
-    if (isCreatingNewPod)
-      if (mounted) setState(() {
+    if (isCreatingNewPod && mounted)
+      setState(() {
         this.isCreatingNewPod = false;
       });
 
@@ -192,12 +200,13 @@ class _CreateAPodViewState extends State<CreateAPodView> {
   /// Get the pod data when the view appears (if editing, not creating a pod)
   void _getPodData({required String podID}) {
     PodsDatabasePaths(podID: podID).getPodData(onCompletion: (podData) {
-      if (mounted) setState(() {
-        this._podData = podData;
-        this._nameController.text = podData.name;
-        this._descriptionController.text = podData.description;
-        this._anyoneCanJoin = podData.anyoneCanJoin;
-      });
+      if (mounted)
+        setState(() {
+          this._podData = podData;
+          this._nameController.text = podData.name;
+          this._descriptionController.text = podData.description;
+          this._anyoneCanJoin = podData.anyoneCanJoin;
+        });
     });
   }
 
@@ -218,26 +227,27 @@ class _CreateAPodViewState extends State<CreateAPodView> {
 
     // we also must clear the name, description, anyoneCanJoin, and podData fields so there isn't a disconnect
     // between what the user sees and what's in the database
-    if (mounted) setState(() {
-      _imageFile = null;
+    if (mounted)
+      setState(() {
+        _imageFile = null;
 
-      // Reset the thumbnail and full photo data, since those get deleted from the database if I close out of the
-      // screen before creating the pod
-      final dateCreated = DateTime.now().millisecondsSinceEpoch * 0.001;
-      this._podData = PodData(
-          name: "",
-          dateCreated: dateCreated,
-          description: _descriptionController.text,
-          anyoneCanJoin: false,
-          podID: podID ?? Uuid().v1(),
-          podCreatorID: myFirebaseUserId,
-          thumbnailURL: "",
-          thumbnailPath: "",
-          fullPhotoURL: "",
-          fullPhotoPath: "",
-          podScore: 0);
-      isCreatingNewPod = true;
-    });
+        // Reset the thumbnail and full photo data, since those get deleted from the database if I close out of the
+        // screen before creating the pod
+        final dateCreated = DateTime.now().millisecondsSinceEpoch * 0.001;
+        this._podData = PodData(
+            name: "",
+            dateCreated: dateCreated,
+            description: _descriptionController.text,
+            anyoneCanJoin: false,
+            podID: podID ?? Uuid().v1(),
+            podCreatorID: myFirebaseUserId,
+            thumbnailURL: "",
+            thumbnailPath: "",
+            fullPhotoURL: "",
+            fullPhotoPath: "",
+            podScore: 0);
+        isCreatingNewPod = true;
+      });
   }
 
   @override
@@ -278,13 +288,26 @@ class _CreateAPodViewState extends State<CreateAPodView> {
                       Padding(
                         padding: EdgeInsets.all(20),
                         child: CupertinoButton(
-                          child: _podData.thumbnailURL.isNotEmpty
-                              ? DecoratedImage(
-                                  imageURL: _podData.thumbnailURL,
-                                  width: 125.scaledForScreenSize(context: context),
-                                  height: 125.scaledForScreenSize(context: context),
-                                )
-                              : Icon(CupertinoIcons.photo_on_rectangle),
+                          child:
+                              // if we have an image from the file system, show it (by default, assume that we don't)
+                              (this._imageFile?.existsSync() ?? false)
+                                  ? DecoratedImage(
+                                      imageFile: this._imageFile,
+                                      width: 125.scaledForScreenSize(context: context),
+                                      height: 125.scaledForScreenSize(context: context),
+                                    )
+
+                                  // if we don't have an image from the file system but we do have an image in Firebase
+                                  // storage, then load that image
+                                  : (_podData.thumbnailURL.isNotEmpty
+                                      ? DecoratedImage(
+                                          imageURL: _podData.thumbnailURL,
+                                          width: 125.scaledForScreenSize(context: context),
+                                          height: 125.scaledForScreenSize(context: context),
+                                        )
+                                      :
+                                      // Show a placeholder icon if we're creating a new pod
+                                      Icon(CupertinoIcons.photo_on_rectangle)),
                           onPressed: () {
                             // navigate to ViewPodDetails as long as the pod exists (i.e. not creating a new pod)
                             if (!isCreatingNewPod && podID != null)
@@ -340,9 +363,10 @@ class _CreateAPodViewState extends State<CreateAPodView> {
                             CupertinoSwitch(
                               value: _anyoneCanJoin,
                               onChanged: (anyoneCanJoin) {
-                                if (mounted) setState(() {
-                                  this._anyoneCanJoin = anyoneCanJoin;
-                                });
+                                if (mounted)
+                                  setState(() {
+                                    this._anyoneCanJoin = anyoneCanJoin;
+                                  });
                               },
                               activeColor: accentColor,
                             )
@@ -395,7 +419,7 @@ class _CreateAPodViewState extends State<CreateAPodView> {
                             Padding(
                                 padding: EdgeInsets.all(10),
                                 child: Text(
-                                  "Uploading Image...",
+                                  isCreatingNewPod ? "Creating Pod..." : "Uploading Image...",
                                   style: TextStyle(color: isDarkMode ? CupertinoColors.white : CupertinoColors.black),
                                 ))
                           ],

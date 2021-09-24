@@ -78,7 +78,7 @@ class _CreateAPodViewState extends State<CreateAPodView> {
       final fullPhotoURL = result?[2];
       final fullPhotoPath = result?[3];
       if (thumbnailURL != null && fullPhotoURL != null && thumbnailPath != null && fullPhotoPath != null)
-        setState(() {
+        if (mounted) setState(() {
           _podData.thumbnailURL = thumbnailURL;
           _podData.thumbnailPath = thumbnailPath;
           _podData.fullPhotoURL = fullPhotoURL;
@@ -95,7 +95,7 @@ class _CreateAPodViewState extends State<CreateAPodView> {
         androidUiSettings: AndroidUiSettings(
             toolbarTitle: "Crop Image", initAspectRatio: CropAspectRatioPreset.square, lockAspectRatio: true),
         iosUiSettings: IOSUiSettings(minimumAspectRatio: 1.0, title: "Crop Image"));
-    setState(() {
+    if (mounted) setState(() {
       this._imageFile = croppedImage;
     });
   }
@@ -143,7 +143,7 @@ class _CreateAPodViewState extends State<CreateAPodView> {
 
     // update _podData to fill in the missing data
     // create the dictionary to upload to Firestore
-    setState(() {
+    if (mounted) setState(() {
       // The other fields have already been set
       this._podData.name = podName;
       if (isCreatingNewPod) this._podData.dateCreated = timeSinceEpochInSeconds;
@@ -182,7 +182,7 @@ class _CreateAPodViewState extends State<CreateAPodView> {
     // Regardless of whether joining the pod succeeds (it should though), the pod has been created. Thus, I should
     // set isCreatingNewPod to false (if necessary)
     if (isCreatingNewPod)
-      setState(() {
+      if (mounted) setState(() {
         this.isCreatingNewPod = false;
       });
 
@@ -192,7 +192,7 @@ class _CreateAPodViewState extends State<CreateAPodView> {
   /// Get the pod data when the view appears (if editing, not creating a pod)
   void _getPodData({required String podID}) {
     PodsDatabasePaths(podID: podID).getPodData(onCompletion: (podData) {
-      setState(() {
+      if (mounted) setState(() {
         this._podData = podData;
         this._nameController.text = podData.name;
         this._descriptionController.text = podData.description;
@@ -205,37 +205,39 @@ class _CreateAPodViewState extends State<CreateAPodView> {
   /// the pod from the database and remove its photos from Storage.
   Future<void> _cleanUpDataIfPodCreationCancelled() async {
     if (!isCreatingNewPod) return; // don't execute the function if I'm editing an existing pod
+    final deleteDoc = PodsDatabasePaths(podID: _podData.podID).podDocument.delete(); // delete the pod document in
+    // Firestore
+    final deleteThumbnail = PodsDatabasePaths(podID: _podData.podID, imageName: "thumbnail").podImageRef.delete(); //
+    // delete thumbnail (Storage)
+    final deleteFullImage = PodsDatabasePaths(podID: _podData.podID, imageName: "full_image").podImageRef.delete(); //
+    // delete full image
 
-    // call a cloud function to clean up data if pod creation is cancelled
-    await firebaseFunctions
-        .httpsCallable("markIncompletePodForDeletion")
-        .call({"podID": _podData.podID}).catchError((error) {
-      print("Unable to call a cloud function to clean up pod data");
-    });
+    await deleteDoc;
+    await deleteThumbnail;
+    await deleteFullImage;
 
     // we also must clear the name, description, anyoneCanJoin, and podData fields so there isn't a disconnect
     // between what the user sees and what's in the database
-    if (mounted)
-      setState(() {
-        _imageFile = null;
+    if (mounted) setState(() {
+      _imageFile = null;
 
-        // Reset the thumbnail and full photo data, since those get deleted from the database if I close out of the
-        // screen before creating the pod
-        final dateCreated = DateTime.now().millisecondsSinceEpoch * 0.001;
-        this._podData = PodData(
-            name: "",
-            dateCreated: dateCreated,
-            description: _descriptionController.text,
-            anyoneCanJoin: false,
-            podID: podID ?? Uuid().v1(),
-            podCreatorID: myFirebaseUserId,
-            thumbnailURL: "",
-            thumbnailPath: "",
-            fullPhotoURL: "",
-            fullPhotoPath: "",
-            podScore: 0);
-        isCreatingNewPod = true;
-      });
+      // Reset the thumbnail and full photo data, since those get deleted from the database if I close out of the
+      // screen before creating the pod
+      final dateCreated = DateTime.now().millisecondsSinceEpoch * 0.001;
+      this._podData = PodData(
+          name: "",
+          dateCreated: dateCreated,
+          description: _descriptionController.text,
+          anyoneCanJoin: false,
+          podID: podID ?? Uuid().v1(),
+          podCreatorID: myFirebaseUserId,
+          thumbnailURL: "",
+          thumbnailPath: "",
+          fullPhotoURL: "",
+          fullPhotoPath: "",
+          podScore: 0);
+      isCreatingNewPod = true;
+    });
   }
 
   @override
@@ -338,7 +340,7 @@ class _CreateAPodViewState extends State<CreateAPodView> {
                             CupertinoSwitch(
                               value: _anyoneCanJoin,
                               onChanged: (anyoneCanJoin) {
-                                setState(() {
+                                if (mounted) setState(() {
                                   this._anyoneCanJoin = anyoneCanJoin;
                                 });
                               },

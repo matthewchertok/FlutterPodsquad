@@ -1323,7 +1323,8 @@ class _MessagingViewState extends State<MessagingView> {
                   // Chat log
                   Localizations(
                     locale: Locale('en', 'US'),
-                    delegates: [DefaultWidgetsLocalizations.delegate, DefaultMaterialLocalizations.delegate],
+                    delegates: [DefaultWidgetsLocalizations.delegate, DefaultMaterialLocalizations.delegate,
+                      DefaultCupertinoLocalizations.delegate],
 
                     // reverse the pull down/pull up since the list is reversed
                     child: SmartRefresher(

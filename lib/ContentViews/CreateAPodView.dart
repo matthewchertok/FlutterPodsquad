@@ -332,7 +332,10 @@ class _CreateAPodViewState extends State<CreateAPodView> {
                             child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            Text(_anyoneCanJoin ? "Anyone can join (open)" : "Invite only (closed)"),
+                            Text(_anyoneCanJoin ? "Anyone can join (open)" : "Invite only (closed)", style: TextStyle
+                              (color: isDarkMode
+                                ? CupertinoColors.white
+                                : CupertinoColors.black),),
                             Spacer(),
                             CupertinoSwitch(
                               value: _anyoneCanJoin,

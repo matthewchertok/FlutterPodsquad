@@ -213,8 +213,10 @@ class _CreateAPodViewState extends State<CreateAPodView> {
     // delete full image
 
     if (PodsDatabasePaths(podID: _podData.podID).podDocument.path.isNotEmpty) await deleteDoc;
-    await deleteThumbnail;
-    await deleteFullImage;
+    if (PodsDatabasePaths(podID: _podData.podID, imageName: "thumbnail").podImageRef.fullPath.isNotEmpty) await
+    deleteThumbnail;
+    if (PodsDatabasePaths(podID: _podData.podID, imageName: "full_image").podImageRef.fullPath.isNotEmpty) await
+    deleteFullImage;
 
     // we also must clear the name, description, anyoneCanJoin, and podData fields so there isn't a disconnect
     // between what the user sees and what's in the database

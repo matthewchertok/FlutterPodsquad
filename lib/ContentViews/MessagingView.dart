@@ -1425,7 +1425,6 @@ class _MessagingViewState extends State<MessagingView> {
                                           backgroundColor: CupertinoColors.destructiveRed,
                                           foregroundColor: CupertinoColors.white,
                                           icon: CupertinoIcons.trash,
-                                          label: "Delete",
                                         ),
 
                                       // copy message
@@ -1439,13 +1438,11 @@ class _MessagingViewState extends State<MessagingView> {
                                           icon: CupertinoIcons.doc_on_clipboard,
                                           backgroundColor: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
                                           foregroundColor: isDarkMode ? CupertinoColors.white : CupertinoColors.black,
-                                          label: "Copy",
                                         ),
 
                                       // message time stamp
                                       if (message.senderId != myFirebaseUserId)
-                                        Padding(
-                                          padding: EdgeInsets.all(10),
+                                        Container(constraints: BoxConstraints(maxWidth: 40),
                                           child: Text(
                                             TimeAndDateFunctions.timeStampText(timeStamp),
                                             style: TextStyle(fontSize: 10, color: CupertinoColors.inactiveGray),
@@ -1457,8 +1454,7 @@ class _MessagingViewState extends State<MessagingView> {
                                     endActionPane: ActionPane(motion: ScrollMotion(), children: [
                                       // message time stamp
                                       if (message.senderId == myFirebaseUserId)
-                                        Padding(
-                                          padding: EdgeInsets.all(10),
+                                        Container(constraints: BoxConstraints(maxWidth: 40),
                                           child: Text(
                                             TimeAndDateFunctions.timeStampText(timeStamp),
                                             style: TextStyle(fontSize: 10, color: CupertinoColors.inactiveGray),
@@ -1476,7 +1472,6 @@ class _MessagingViewState extends State<MessagingView> {
                                           backgroundColor: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
                                           foregroundColor: isDarkMode ? CupertinoColors.white : CupertinoColors.black,
                                           icon: CupertinoIcons.doc_on_clipboard,
-                                          label: "Copy",
                                         ),
 
                                       // delete the message
@@ -1488,7 +1483,6 @@ class _MessagingViewState extends State<MessagingView> {
                                           icon: CupertinoIcons.trash,
                                           backgroundColor: CupertinoColors.destructiveRed,
                                           foregroundColor: CupertinoColors.white,
-                                          label: "Delete",
                                         )
                                     ]),
                                   ),

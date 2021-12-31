@@ -1271,7 +1271,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                         padding: EdgeInsets.all(20),
                         child: Text(
                           isSearching ? _noResultsFoundText() : _nobodyToDisplayText(),
-                          style: TextStyle(color: CupertinoColors.inactiveGray),
+                          style: TextStyle(color: CupertinoColors.inactiveGray), textAlign: TextAlign.center,
                         )),
 
                   if (isPodMode && this._displayedListOfPods.isEmpty)
@@ -1279,7 +1279,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                         padding: EdgeInsets.all(20),
                         child: Text(
                           isSearching ? _noResultsFoundText() : _nobodyToDisplayText(),
-                          style: TextStyle(color: CupertinoColors.inactiveGray),
+                          style: TextStyle(color: CupertinoColors.inactiveGray), textAlign: TextAlign.center,
                         )),
                 ],
               ),

@@ -10,7 +10,6 @@ import 'package:podsquad/ContentViews/MessagingView.dart';
 import 'package:podsquad/DatabasePaths/MessagingDatabasePaths.dart';
 import 'package:podsquad/DatabasePaths/PodsDatabasePaths.dart';
 import 'package:podsquad/ListRowViews/LatestMessageRow.dart';
-import 'package:podsquad/OtherSpecialViews/PodModeButton.dart';
 import 'package:podsquad/OtherSpecialViews/SearchTextField.dart';
 import 'package:podsquad/TabLayoutViews/WelcomeView.dart';
 import 'package:podsquad/UIBackendClasses/MessagesDictionary.dart';
@@ -27,6 +26,7 @@ class MessagingTab extends StatefulWidget {
 
 class _MessagingTabState extends State<MessagingTab> {
   _MessagingTabState({required this.showingHiddenChats});
+
   final showingHiddenChats;
   final _customScrollViewController = ScrollController();
   final _searchTextController = TextEditingController();
@@ -42,9 +42,10 @@ class _MessagingTabState extends State<MessagingTab> {
     combinedList.sort((b, a) => a.timeStamp.compareTo(b.timeStamp));
 
     if (!isSearching) // return all conversations that aren't hidden
-      return combinedList.where((element) =>
-          !_listOfIDsForDMConversationsIveHidden.contains(element.chatPartnerId) &&
-          !_listOfIDsForPodChatsIveHidden.contains(element.podID))
+      return combinedList
+          .where((element) =>
+              !_listOfIDsForDMConversationsIveHidden.contains(element.chatPartnerId) &&
+              !_listOfIDsForPodChatsIveHidden.contains(element.podID))
           .toList();
     else
       return combinedList
@@ -64,17 +65,18 @@ class _MessagingTabState extends State<MessagingTab> {
     combinedList.sort((b, a) => a.timeStamp.compareTo(b.timeStamp));
 
     if (!isSearching) // return all conversations that are hidden
-      return combinedList.where((element) =>
-      _listOfIDsForDMConversationsIveHidden.contains(element.chatPartnerId) ||
-          _listOfIDsForPodChatsIveHidden.contains(element.podID))
+      return combinedList
+          .where((element) =>
+              _listOfIDsForDMConversationsIveHidden.contains(element.chatPartnerId) ||
+              _listOfIDsForPodChatsIveHidden.contains(element.podID))
           .toList();
     else
       return combinedList
           .where((element) =>
-      (element.chatPartnerName.toLowerCase().contains(_searchTextController.text.trim().toLowerCase()) ||
-          element.text.toLowerCase().contains(_searchTextController.text.trim().toLowerCase())) &&
-          (_listOfIDsForDMConversationsIveHidden.contains(element.chatPartnerId) ||
-          _listOfIDsForPodChatsIveHidden.contains(element.podID)))
+              (element.chatPartnerName.toLowerCase().contains(_searchTextController.text.trim().toLowerCase()) ||
+                  element.text.toLowerCase().contains(_searchTextController.text.trim().toLowerCase())) &&
+              (_listOfIDsForDMConversationsIveHidden.contains(element.chatPartnerId) ||
+                  _listOfIDsForPodChatsIveHidden.contains(element.podID)))
           .toList();
   }
 
@@ -311,33 +313,37 @@ class _MessagingTabState extends State<MessagingTab> {
     // Listen for all my DM conversations and get the latest message preview
     LatestDirectMessagesDictionary.shared.sortedLatestMessageList.addListener(() {
       final messages = LatestDirectMessagesDictionary.shared.sortedLatestMessageList.value;
-      if (mounted) setState(() {
-        this._directMessagesList = messages;
-      });
+      if (mounted)
+        setState(() {
+          this._directMessagesList = messages;
+        });
     });
 
     // Listen for all my pod message conversations and get the latest message preview
     LatestPodMessagesDictionary.shared.sortedLatestMessageList.addListener(() {
       final messages = LatestPodMessagesDictionary.shared.sortedLatestMessageList.value;
-      if (mounted) setState(() {
-        this._podMessagesList = messages;
-      });
+      if (mounted)
+        setState(() {
+          this._podMessagesList = messages;
+        });
     });
 
     // Listen for all DM conversations that I've hidden
     MessagesDictionary.shared.listOfDMConversationsIveHidden.addListener(() {
       final dmsIveHidden = MessagesDictionary.shared.listOfDMConversationsIveHidden.value;
-      if (mounted) setState(() {
-        this._listOfIDsForDMConversationsIveHidden = dmsIveHidden;
-      });
+      if (mounted)
+        setState(() {
+          this._listOfIDsForDMConversationsIveHidden = dmsIveHidden;
+        });
     });
 
     // Listen for all pod conversations that I've hidden
     MessagesDictionary.shared.listOfPodChatsIveHidden.addListener(() {
       final podsIveHidden = MessagesDictionary.shared.listOfPodChatsIveHidden.value;
-      if (mounted) setState(() {
-        this._listOfIDsForPodChatsIveHidden = podsIveHidden;
-      });
+      if (mounted)
+        setState(() {
+          this._listOfIDsForPodChatsIveHidden = podsIveHidden;
+        });
     });
 
     // Hide the search bar if the user swipes up, and show it if the user swipes down
@@ -366,9 +372,10 @@ class _MessagingTabState extends State<MessagingTab> {
     /// Determine when I'm searching for a conversation
     _searchTextController.addListener(() {
       final text = _searchTextController.text;
-      if (mounted) setState(() {
-        this.isSearching = text.trim().isNotEmpty;
-      });
+      if (mounted)
+        setState(() {
+          this.isSearching = text.trim().isNotEmpty;
+        });
     });
 
     // reset the selected index so no rows are highlighted initially
@@ -390,133 +397,155 @@ class _MessagingTabState extends State<MessagingTab> {
   Widget build(BuildContext context) {
     final messagesList = this.showingHiddenChats ? _hiddenMessagesList : _displayedMessagesList;
     return CupertinoPageScaffold(
-      child: SafeArea(child: CustomScrollView(
-        controller: _customScrollViewController,
-        physics: AlwaysScrollableScrollPhysics(),
-        slivers: [
-          CupertinoSliverNavigationBar(
-            padding: EdgeInsetsDirectional.all(5),
-            leading: this.showingHiddenChats ? null : CupertinoButton(
-              child: Icon(CupertinoIcons.line_horizontal_3),
-              onPressed: () {
-                drawerKey.currentState?.openDrawer(); // open the likes/friends/blocks drawer;
-              },
-              padding: EdgeInsets.zero,
+      child: SafeArea(
+        child: CustomScrollView(
+          controller: _customScrollViewController,
+          physics: AlwaysScrollableScrollPhysics(),
+          slivers: [
+            CupertinoSliverNavigationBar(
+              padding: EdgeInsetsDirectional.all(5),
+              leading: this.showingHiddenChats
+                  ? null
+                  : CupertinoButton(
+                      child: Icon(CupertinoIcons.line_horizontal_3),
+                      onPressed: () {
+                        drawerKey.currentState?.openDrawer(); // open the likes/friends/blocks drawer;
+                      },
+                      padding: EdgeInsets.zero,
+                    ),
+              trailing: this.showingHiddenChats
+                  ? null
+                  : _hiddenMessagesList.length > 0
+                      ? CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          child: Icon(CupertinoIcons.eye_slash_fill),
+                          onPressed: () {
+                            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(
+                                builder: (context) => MessagingTab(
+                                      showingHiddenChats: true,
+                                    )));
+                          })
+                      : null,
+              largeTitle: Text(this.showingHiddenChats ? "Hidden Chats" : "Messages"),
+              stretch: true,
             ),
-            trailing: this.showingHiddenChats ? null : _hiddenMessagesList.length > 0 ?
-        CupertinoButton(padding: EdgeInsets.zero, child: Icon(CupertinoIcons.eye_slash_fill), onPressed: (){
-      Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => MessagingTab(showingHiddenChats: true,)));
-    }) : null,
-            largeTitle: Text(this.showingHiddenChats ? "Hidden Chats" : "Messages"),
-            stretch: true,
-          ),
-          SliverList(
-              delegate: SliverChildListDelegate(
-                [
-                  Column(
-                    children: [
-                      // collapsible search bar                   ,
-                      AnimatedSwitcher(
-                          transitionBuilder: (child, animation) {
-                            return SizeTransition(
-                              sizeFactor: animation,
-                              child: child,
-                            );
-                          },
-                          duration: Duration(milliseconds: 250),
-                          child: _searchBarShowing
-                              ? Padding(
-                            padding: EdgeInsets.only(bottom: 10),
-                            child: SearchTextField(
-                              controller: _searchTextController,
-                            ),
-                          )
-                              : Container()),
-
-                      // Depending on the view type, show either hidden chats or non-hidden chats (defaults to non-hidden
-                      // chats, obviously)
-                      for (var message in messagesList)
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              this._selectedIndex = messagesList.indexWhere((element) => element == message);
-                            });
-                            Navigator.of(context, rootNavigator: true)
-                                .push(CupertinoPageRoute(
-                                builder: (context) => MessagingView(
-                                  chatPartnerOrPodID:
-                                  message.podID != null ? message.podID! : message.chatPartnerId,
-                                  chatPartnerOrPodName:
-                                  message.podName != null ? message.podName! : message.chatPartnerName,
-                                  chatPartnerThumbnailURL: message.chatPartnerThumbnailURL,
-                                  isPodMode: message.podID != null,
-                                )))
-                                .then((value) {
-                              setState(() {
-                                this._selectedIndex = null; // clear the selected index to remove row highlighting
-                              });
-                            });
-                          },
-                          child: Slidable(
-                            child: Card(
-                              color: _selectedIndex == messagesList.indexWhere((element) => element == message)
-                                  ? Colors.white60
-                                  : (isDarkMode ? CupertinoColors.darkBackgroundGray : CupertinoColors.systemBackground),
-                              child: Padding(
-                                padding: EdgeInsets.all(8),
-                                child: LatestMessageRow(
-                                  chatPartnerOrPodName: message.podID != null ? message.podName! : message.chatPartnerName,
-                                  chatPartnerOrPodThumbnailURL: message.chatPartnerThumbnailURL,
-                                  content: message.text,
-                                  timeStamp: message.timeStamp, readBy: message.readBy,
+            SliverList(
+                delegate: SliverChildListDelegate(
+              [
+                Column(
+                  children: [
+                    // collapsible search bar                   ,
+                    AnimatedSwitcher(
+                        transitionBuilder: (child, animation) {
+                          return SizeTransition(
+                            sizeFactor: animation,
+                            child: child,
+                          );
+                        },
+                        duration: Duration(milliseconds: 250),
+                        child: _searchBarShowing
+                            ? Padding(
+                                padding: EdgeInsets.only(bottom: 10),
+                                child: SearchTextField(
+                                  controller: _searchTextController,
                                 ),
+                              )
+                            : Container()),
+
+                    // Depending on the view type, show either hidden chats or non-hidden chats (defaults to non-hidden
+                    // chats, obviously)
+                    for (var message in messagesList)
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            this._selectedIndex = messagesList.indexWhere((element) => element == message);
+                          });
+                          Navigator.of(context, rootNavigator: true)
+                              .push(CupertinoPageRoute(
+                                  builder: (context) => MessagingView(
+                                        chatPartnerOrPodID:
+                                            message.podID != null ? message.podID! : message.chatPartnerId,
+                                        chatPartnerOrPodName:
+                                            message.podName != null ? message.podName! : message.chatPartnerName,
+                                        chatPartnerThumbnailURL: message.chatPartnerThumbnailURL,
+                                        isPodMode: message.podID != null,
+                                      )))
+                              .then((value) {
+                            setState(() {
+                              this._selectedIndex = null; // clear the selected index to remove row highlighting
+                            });
+                          });
+                        },
+                        child: Slidable(
+                          child: Card(
+                            color: _selectedIndex == messagesList.indexWhere((element) => element == message)
+                                ? Colors.white60
+                                : (isDarkMode ? CupertinoColors.darkBackgroundGray : CupertinoColors.systemBackground),
+                            child: Padding(
+                              padding: EdgeInsets.all(8),
+                              child: LatestMessageRow(
+                                chatPartnerOrPodName:
+                                    message.podID != null ? message.podName! : message.chatPartnerName,
+                                chatPartnerOrPodThumbnailURL: message.chatPartnerThumbnailURL,
+                                content: message.text,
+                                timeStamp: message.timeStamp,
+                                readBy: message.readBy,
                               ),
                             ),
-                            actionPane: SlidableDrawerActionPane(),
-
-                            // The Hide button is on the left, and the Delete button is on the right
-                            actions: [
-                              // hide a conversation
-                              if (!showingHiddenChats)
-                                IconSlideAction(
-                                    color: CupertinoColors.systemYellow,
-                                    icon: CupertinoIcons.eye_slash_fill,
-                                    caption: "Hide",
-                                    onTap: () {
-                                      this._hideConversation(message: message);
-                                    })
-
-                              else IconSlideAction(color: CupertinoColors.activeGreen, icon: CupertinoIcons.eye_fill, caption:
-                              "Un-hide", onTap: (){
-                                this._unHideConversation(message: message);
-                              },)
-                            ],
-                            secondaryActions: [
-                              // delete a conversation
-                              IconSlideAction(
-                                color: CupertinoColors.destructiveRed,
-                                icon: CupertinoIcons.trash,
-                                caption: "Delete",
-                                onTap: () {
-                                  this._deleteConversation(message: message);
-                                },
-                              )
-                            ],
                           ),
-                        ),
-                      if (this.showingHiddenChats && this._hiddenMessagesList.isEmpty || !this.showingHiddenChats && this
-                          ._displayedMessagesList.isEmpty)
-                        Padding(padding: EdgeInsets.all(20), child: Text(
-                            isSearching ? "No results found" : "You don't have any messages",
-                            style: TextStyle(color: CupertinoColors.inactiveGray),
-                          ),),
+                          startActionPane: ActionPane(motion: const ScrollMotion(), children: [
+                            if (!showingHiddenChats)
+                              SlidableAction(
+                                onPressed: (context) {
+                                  this._hideConversation(message: message);
+                                },
+                                backgroundColor: CupertinoColors.systemYellow,
+                                foregroundColor: CupertinoColors.white,
+                                icon: CupertinoIcons.eye_slash_fill,
+                                label: "Hide",
+                              ),
+                            if (showingHiddenChats)
+                              SlidableAction(
+                                onPressed: (context) {
+                                  this._unHideConversation(message: message);
+                                },
+                                backgroundColor: CupertinoColors.activeGreen,
+                                foregroundColor: CupertinoColors.white,
+                                icon: CupertinoIcons.eye_fill,
+                                label: "Un-hide",
+                              )
+                          ]),
 
-                    ],
-                  ),
-                ],
-              ))
-        ],
-      ),),
+                          // The Hide button is on the left, and the Delete button is on the right
+                          endActionPane: ActionPane(motion: ScrollMotion(), children: [
+                            SlidableAction(
+                              onPressed: (context) {
+                                this._deleteConversation(message: message);
+                              },
+                              backgroundColor: CupertinoColors.destructiveRed,
+                              foregroundColor: CupertinoColors.white,
+                              icon: CupertinoIcons.trash,
+                              label: "Delete",
+                            )
+                          ]),
+                        ),
+                      ),
+                    if (this.showingHiddenChats && this._hiddenMessagesList.isEmpty ||
+                        !this.showingHiddenChats && this._displayedMessagesList.isEmpty)
+                      Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Text(
+                          isSearching ? "No results found" : "You don't have any messages",
+                          style: TextStyle(color: CupertinoColors.inactiveGray),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ))
+          ],
+        ),
+      ),
     );
   }
 }

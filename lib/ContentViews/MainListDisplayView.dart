@@ -146,7 +146,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
 
   /// Return either a standard PersonListRow or whether to include a Slidable for interacting with pod
   /// members.
-  Widget _personListRow({required ProfileData person}) {
+  Widget _personListRow({required ProfileData person, required BuildContext context}) {
     // if we're just displaying a list of people with no interaction needed, return a PersonOrPodListRow object.
     // Also, even if we are displaying pod members, I can't block myself.
     if (!interactingWithPodMembers || person.userID == myFirebaseUserId) {
@@ -159,7 +159,8 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
             padding: EdgeInsets.all(8),
             child: PersonOrPodListRow(
               personOrPodID: person.userID,
-              personOrPodName: person.name, personBirthday: person.birthday,
+              personOrPodName: person.name,
+              personBirthday: person.birthday,
               personOrPodThumbnailURL: person.thumbnailURL,
               personOrPodBio: person.bio,
               timeIMetThePerson: person.timeIMetThePerson,
@@ -178,21 +179,17 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
               padding: EdgeInsets.all(8),
               child: PersonOrPodListRow(
                 personOrPodID: person.userID,
-                personOrPodName: person.name, personBirthday: person.birthday,
+                personOrPodName: person.name,
+                personBirthday: person.birthday,
                 personOrPodThumbnailURL: person.thumbnailURL,
                 personOrPodBio: person.bio,
                 timeIMetThePerson: person.timeIMetThePerson,
               ),
             ),
           ),
-          actionPane: SlidableDrawerActionPane(),
-          actions: [
-            // un-meet the person
-            IconSlideAction(
-              caption: "Un-Meet",
-              color: CupertinoColors.destructiveRed,
-              icon: CupertinoIcons.person_badge_minus,
-              onTap: () {
+          startActionPane: ActionPane(motion: const ScrollMotion(), children: [
+            SlidableAction(
+              onPressed: (context) {
                 final unMeetPersonAlert = CupertinoAlertDialog(
                   title: Text("Un-Meet ${person.name}?"),
                   content: Text("You and ${person.name.firstName()} will no longer "
@@ -234,8 +231,12 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                 );
                 showCupertinoDialog(context: context, builder: (context) => unMeetPersonAlert);
               },
+              backgroundColor: CupertinoColors.destructiveRed,
+              foregroundColor: CupertinoColors.white,
+              icon: CupertinoIcons.person_badge_minus,
+              label: "un-Meet",
             )
-          ],
+          ]),
         );
       }
     } else {
@@ -251,21 +252,17 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
               padding: EdgeInsets.all(8),
               child: PersonOrPodListRow(
                 personOrPodID: person.userID,
-                personOrPodName: person.name, personBirthday: person.birthday,
+                personOrPodName: person.name,
+                personBirthday: person.birthday,
                 personOrPodThumbnailURL: person.thumbnailURL,
                 personOrPodBio: person.bio,
                 timeIMetThePerson: person.timeIMetThePerson,
               ),
             ),
           ),
-          actionPane: SlidableDrawerActionPane(),
-          actions: [
-            // remove them from the pod if they aren't the pod creator
-            IconSlideAction(
-              caption: "Remove",
-              color: CupertinoColors.systemBlue,
-              icon: CupertinoIcons.person_badge_minus,
-              onTap: () {
+          startActionPane: ActionPane(motion: const ScrollMotion(), children: [
+            SlidableAction(
+              onPressed: (context) {
                 final podID = podData?.podID;
                 final podCreatorID = podData?.podCreatorID;
                 if (podID != null && podCreatorID != null) {
@@ -307,7 +304,8 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                                       ],
                                     );
                                     showCupertinoDialog(context: context, builder: (context) => successAlert);
-                                  }, personTokens: person.fcmTokens);
+                                  },
+                                  personTokens: person.fcmTokens);
                             })
                       ],
                     );
@@ -333,15 +331,15 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                   }
                 }
               },
+              label: "Remove",
+              backgroundColor: CupertinoColors.systemBlue,
+              foregroundColor: CupertinoColors.white,
+              icon: CupertinoIcons.person_badge_minus,
             )
-          ],
-          secondaryActions: [
-            // block them from the pod if they aren't the pod creator
-            IconSlideAction(
-              caption: "Block",
-              color: CupertinoColors.destructiveRed,
-              icon: CupertinoIcons.person_crop_circle_badge_xmark,
-              onTap: () {
+          ]),
+          endActionPane: ActionPane(motion: ScrollMotion(), children: [
+            SlidableAction(
+              onPressed: (context) {
                 final podID = podData?.podID;
                 final podCreatorID = podData?.podCreatorID;
                 if (podID != null && podCreatorID != null) {
@@ -409,8 +407,12 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                   }
                 }
               },
+              label: "Block",
+              backgroundColor: CupertinoColors.destructiveRed,
+              foregroundColor: CupertinoColors.white,
+              icon: CupertinoIcons.person_crop_circle_badge_xmark,
             )
-          ],
+          ]),
         );
 
       // If we're viewing pod blocked users, then we must show the option to unblock them. I'll put that button on
@@ -425,21 +427,17 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
               padding: EdgeInsets.all(8),
               child: PersonOrPodListRow(
                 personOrPodID: person.userID,
-                personOrPodName: person.name, personBirthday: person.birthday,
+                personOrPodName: person.name,
+                personBirthday: person.birthday,
                 personOrPodThumbnailURL: person.thumbnailURL,
                 personOrPodBio: person.bio,
                 timeIMetThePerson: person.timeIMetThePerson,
               ),
             ),
           ),
-          actionPane: SlidableDrawerActionPane(),
-          secondaryActions: [
-            // block them from the pod if they aren't the pod creator
-            IconSlideAction(
-              caption: "Unblock",
-              color: CupertinoColors.activeGreen,
-              icon: CupertinoIcons.lock_open,
-              onTap: () {
+          endActionPane: ActionPane(motion: ScrollMotion(), children: [
+            SlidableAction(
+              onPressed: (context) {
                 final podID = podData?.podID;
                 if (podID != null) {
                   // unblock the user
@@ -483,8 +481,12 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                   showCupertinoDialog(context: context, builder: (context) => unblockAlert);
                 }
               },
+              label: "Unblock",
+              backgroundColor: CupertinoColors.activeGreen,
+              foregroundColor: CupertinoColors.white,
+              icon: CupertinoIcons.lock_open,
             )
-          ],
+          ]),
         );
       }
     }
@@ -632,7 +634,8 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                     birthday: personData.birthday,
                     joinedAt: timeSinceEpochInSeconds,
                     name: personData.name,
-                    thumbnailURL: personData.thumbnailURL, fcmTokens: personData.fcmTokens);
+                    thumbnailURL: personData.thumbnailURL,
+                    fcmTokens: personData.fcmTokens);
                 PodsDatabasePaths(podID: podData.podID, userID: personData.userID).joinPod(
                     personData: infoDict,
                     onSuccess: () {
@@ -720,9 +723,10 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
     // Determine when I'm searching for a person or pod
     _searchTextController.addListener(() {
       final text = _searchTextController.text;
-      if (mounted) setState(() {
-        this.isSearching = text.trim().isNotEmpty;
-      });
+      if (mounted)
+        setState(() {
+          this.isSearching = text.trim().isNotEmpty;
+        });
     });
 
     // If the viewMode is podMembers, populate the list with the passed-in value (sorted alphabetically)
@@ -752,9 +756,10 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
       // also continuously listen in case I join or leave a pod
       ShowMyPodsBackendFunctions.shared.sortedListOfPods.addListener(() {
         final myPods = ShowMyPodsBackendFunctions.shared.sortedListOfPods.value;
-        if (mounted) setState(() {
-          this._listOfPods = myPods;
-        });
+        if (mounted)
+          setState(() {
+            this._listOfPods = myPods;
+          });
       });
     }
 
@@ -767,9 +772,10 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         // also continuously listen in case I like someone while the view is open
         SentLikesBackendFunctions.shared.sortedListOfPeople.addListener(() {
           final sentLikes = SentLikesBackendFunctions.shared.sortedListOfPeople.value;
-          if (mounted) setState(() {
-            this._listOfPeople = sentLikes;
-          });
+          if (mounted)
+            setState(() {
+              this._listOfPeople = sentLikes;
+            });
         });
       } else {
         final receivedLikes = ReceivedLikesBackendFunctions.shared.sortedListOfPeople.value;
@@ -778,9 +784,10 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         // also continuously listen in case someone likes me while the view is open
         ReceivedLikesBackendFunctions.shared.sortedListOfPeople.addListener(() {
           final receivedLikes = ReceivedLikesBackendFunctions.shared.sortedListOfPeople.value;
-          if (mounted) setState(() {
-            this._listOfPeople = receivedLikes;
-          });
+          if (mounted)
+            setState(() {
+              this._listOfPeople = receivedLikes;
+            });
         });
       }
     }
@@ -794,9 +801,10 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         // also continuously listen in case I friend someone while the view is open
         SentFriendsBackendFunctions.shared.sortedListOfPeople.addListener(() {
           final sentFriends = SentFriendsBackendFunctions.shared.sortedListOfPeople.value;
-          if (mounted) setState(() {
-            this._listOfPeople = sentFriends;
-          });
+          if (mounted)
+            setState(() {
+              this._listOfPeople = sentFriends;
+            });
         });
       } else {
         final receivedFriends = ReceivedFriendsBackendFunctions.shared.sortedListOfPeople.value;
@@ -805,9 +813,10 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         // also continuously listen in case someone friends me while the view is open
         ReceivedFriendsBackendFunctions.shared.sortedListOfPeople.addListener(() {
           final receivedFriends = ReceivedFriendsBackendFunctions.shared.sortedListOfPeople.value;
-          if (mounted) setState(() {
-            this._listOfPeople = receivedFriends;
-          });
+          if (mounted)
+            setState(() {
+              this._listOfPeople = receivedFriends;
+            });
         });
       }
     }
@@ -822,9 +831,9 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         SentBlocksBackendFunctions.shared.sortedListOfPeople.addListener(() {
           final sentBlocks = SentBlocksBackendFunctions.shared.sortedListOfPeople.value;
           if (mounted)
-          setState(() {
-            this._listOfPeople = sentBlocks;
-          });
+            setState(() {
+              this._listOfPeople = sentBlocks;
+            });
         });
       } else {
         final receivedBlocks = ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.value;
@@ -833,9 +842,10 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         // also continuously listen in case someone blocks me while the view is open
         ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.addListener(() {
           final receivedBlocks = ReceivedBlocksBackendFunctions.shared.sortedListOfPeople.value;
-          if (mounted) setState(() {
-            this._listOfPeople = receivedBlocks;
-          });
+          if (mounted)
+            setState(() {
+              this._listOfPeople = receivedBlocks;
+            });
         });
       }
     }
@@ -848,9 +858,10 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
       // also continuously listen in case I meet someone while the view is open
       PeopleIMetBackendFunctions.shared.sortedListOfPeople.addListener(() {
         final peopleIMet = PeopleIMetBackendFunctions.shared.sortedListOfPeople.value;
-        if (mounted) setState(() {
-          this._listOfPeople = peopleIMet;
-        });
+        if (mounted)
+          setState(() {
+            this._listOfPeople = peopleIMet;
+          });
       });
     }
   }
@@ -965,7 +976,8 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
         bio: bio ?? "",
         podScore: podScore ?? 0,
         thumbnailURL: thumbnailURL,
-        fullPhotoURL: fullPhotoURL, fcmTokens: fcmTokens);
+        fullPhotoURL: fullPhotoURL,
+        fcmTokens: fcmTokens);
     return personData;
   }
 
@@ -1143,7 +1155,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                             });
                           });
                         },
-                        child: _personListRow(person: person),
+                        child: _personListRow(person: person, context: context),
                       ),
 
                   // show a list of pods

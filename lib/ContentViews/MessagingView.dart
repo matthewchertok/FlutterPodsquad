@@ -429,7 +429,8 @@ class _MessagingViewState extends State<MessagingView> {
                   chatPartnerOrPodID: difference.chatPartnerId,
                 ));
         displayedChatLog.removeWhere((element) => element == difference);
-        Slidable.of(context)?.dismiss(); // dismiss Slidable objects; otherwise I'll run into the issue of opening
+        Slidable.of(context)?.dismiss(ResizeRequest(Duration(milliseconds: 250),
+            () {})); // dismiss Slidable objects; otherwise I'll run into the issue of opening
         // another message's slidable after the current message is deleted.
       }
     });
@@ -444,7 +445,7 @@ class _MessagingViewState extends State<MessagingView> {
               "sure you want to delete this message? It will be removed for ${chatPartnerOrPodName.firstName()} as well!"
           : "Are you "
               "sure you want to delete this message? It will be removed for all members of $chatPartnerOrPodName as "
-          "well!"),
+              "well!"),
       actions: [
         // cancel button
         CupertinoButton(
@@ -1323,8 +1324,11 @@ class _MessagingViewState extends State<MessagingView> {
                   // Chat log
                   Localizations(
                     locale: Locale('en', 'US'),
-                    delegates: [DefaultWidgetsLocalizations.delegate, DefaultMaterialLocalizations.delegate,
-                      DefaultCupertinoLocalizations.delegate],
+                    delegates: [
+                      DefaultWidgetsLocalizations.delegate,
+                      DefaultMaterialLocalizations.delegate,
+                      DefaultCupertinoLocalizations.delegate
+                    ],
 
                     // reverse the pull down/pull up since the list is reversed
                     child: SmartRefresher(
@@ -1396,8 +1400,7 @@ class _MessagingViewState extends State<MessagingView> {
                                   key: ValueKey<int>(index),
                                   sizeFactor: animation,
                                   child: Slidable(
-                                    actionPane: SlidableDrawerActionPane(),
-                                    actionExtentRatio: 0.17,
+                                    key: const ValueKey(0),
                                     child: MessagingRow(
                                       messageId: message.id,
                                       messageText: message.text,
@@ -1412,33 +1415,34 @@ class _MessagingViewState extends State<MessagingView> {
                                     ),
 
                                     // Actions appear on the left. Use them for received messages
-                                    actions: [
+                                    startActionPane: ActionPane(motion: const ScrollMotion(), children: [
+                                      // delete message
                                       if (message.senderId != myFirebaseUserId)
-                                        // delete the message
-                                        IconSlideAction(
-                                          caption: "Delete",
-                                          color: CupertinoColors.destructiveRed,
+                                        SlidableAction(
+                                          onPressed: (context) {
+                                            this._deleteMessage(message: message);
+                                          },
+                                          backgroundColor: CupertinoColors.destructiveRed,
+                                          foregroundColor: CupertinoColors.white,
                                           icon: CupertinoIcons.trash,
-                                          onTap: () {
-                                            _deleteMessage(message: message);
-                                          },
+                                          label: "Delete",
                                         ),
 
-                                      // copy the message
+                                      // copy message
                                       if (message.senderId != myFirebaseUserId)
-                                        IconSlideAction(
-                                          icon: CupertinoIcons.doc_on_clipboard,
-                                          color: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
-                                          foregroundColor: isDarkMode ? CupertinoColors.white : CupertinoColors.black,
-                                          onTap: () {
+                                        SlidableAction(
+                                          onPressed: (context) {
                                             Clipboard.setData(ClipboardData(text: message.text));
-                                            showSingleButtonAlert(context: context, title: "Message Copied!",
-                                                dismissButtonLabel: "OK");
+                                            showSingleButtonAlert(
+                                                context: context, title: "Message Copied!", dismissButtonLabel: "OK");
                                           },
-                                          caption: "Copy",
+                                          icon: CupertinoIcons.doc_on_clipboard,
+                                          backgroundColor: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
+                                          foregroundColor: isDarkMode ? CupertinoColors.white : CupertinoColors.black,
+                                          label: "Copy",
                                         ),
 
-                                      // the message time stamp
+                                      // message time stamp
                                       if (message.senderId != myFirebaseUserId)
                                         Padding(
                                           padding: EdgeInsets.all(10),
@@ -1446,12 +1450,12 @@ class _MessagingViewState extends State<MessagingView> {
                                             TimeAndDateFunctions.timeStampText(timeStamp),
                                             style: TextStyle(fontSize: 10, color: CupertinoColors.inactiveGray),
                                           ),
-                                        ),
-                                    ],
+                                        )
+                                    ]),
 
                                     // Secondary actions appear on the right. Use them for sent messages.
-                                    secondaryActions: [
-                                      // the message time stamp
+                                    endActionPane: ActionPane(motion: ScrollMotion(), children: [
+                                      // message time stamp
                                       if (message.senderId == myFirebaseUserId)
                                         Padding(
                                           padding: EdgeInsets.all(10),
@@ -1463,29 +1467,30 @@ class _MessagingViewState extends State<MessagingView> {
 
                                       // copy the message
                                       if (message.senderId == myFirebaseUserId)
-                                        IconSlideAction(
-                                          icon: CupertinoIcons.doc_on_clipboard,
-                                          color: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
-                                          foregroundColor: isDarkMode ? CupertinoColors.white : CupertinoColors.black,
-                                          onTap: () {
+                                        SlidableAction(
+                                          onPressed: (context) {
                                             Clipboard.setData(ClipboardData(text: message.text));
-                                            showSingleButtonAlert(context: context, title: "Message Copied!",
-                                                dismissButtonLabel: "OK");
+                                            showSingleButtonAlert(
+                                                context: context, title: "Message Copied!", dismissButtonLabel: "OK");
                                           },
-                                          caption: "Copy",
+                                          backgroundColor: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
+                                          foregroundColor: isDarkMode ? CupertinoColors.white : CupertinoColors.black,
+                                          icon: CupertinoIcons.doc_on_clipboard,
+                                          label: "Copy",
                                         ),
 
+                                      // delete the message
                                       if (message.senderId == myFirebaseUserId)
-                                        // delete the message
-                                        IconSlideAction(
-                                          icon: CupertinoIcons.trash,
-                                          onTap: () {
-                                            _deleteMessage(message: message);
+                                        SlidableAction(
+                                          onPressed: (context) {
+                                            this._deleteMessage(message: message);
                                           },
-                                          caption: "Delete",
-                                          color: CupertinoColors.destructiveRed,
-                                        ),
-                                    ],
+                                          icon: CupertinoIcons.trash,
+                                          backgroundColor: CupertinoColors.destructiveRed,
+                                          foregroundColor: CupertinoColors.white,
+                                          label: "Delete",
+                                        )
+                                    ]),
                                   ),
                                 );
                               })

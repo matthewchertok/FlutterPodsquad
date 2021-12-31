@@ -72,6 +72,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
   final String? personName;
   final String? personId;
   final ProfileData? personData;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   /// Only relevant if the view mode is podMembers. Shows the members of a pod.
   final List<ProfileData>? podMembers;
@@ -187,7 +188,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
               ),
             ),
           ),
-          startActionPane: ActionPane(motion: const ScrollMotion(), children: [
+          startActionPane: ActionPane(motion: const ScrollMotion(), extentRatio: 0.25, children: [
             SlidableAction(
               onPressed: (context) {
                 final unMeetPersonAlert = CupertinoAlertDialog(
@@ -198,7 +199,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                     CupertinoButton(
                         child: Text("No"),
                         onPressed: () {
-                          dismissAlert(context: context);
+                          dismissAlert(context: _scaffoldKey.currentContext!);
                         }),
                     CupertinoButton(
                         child: Text(
@@ -206,7 +207,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                           style: TextStyle(color: CupertinoColors.destructiveRed),
                         ),
                         onPressed: () {
-                          dismissAlert(context: context);
+                          dismissAlert(context: _scaffoldKey.currentContext!);
                           // find the one document that contains data for our meeting, and delete it.
                           // To find the document, we must use the fact that person1 is the lower ID alphabetically, and
                           // person 2 is the higher ID alphabetically.
@@ -260,7 +261,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
               ),
             ),
           ),
-          startActionPane: ActionPane(motion: const ScrollMotion(), children: [
+          startActionPane: ActionPane(motion: const ScrollMotion(),extentRatio: 0.25, children: [
             SlidableAction(
               onPressed: (context) {
                 final podID = podData?.podID;
@@ -275,7 +276,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                         CupertinoButton(
                             child: Text("No"),
                             onPressed: () {
-                              dismissAlert(context: context);
+                              dismissAlert(context: _scaffoldKey.currentContext!);
                             }),
                         CupertinoButton(
                             child: Text(
@@ -283,7 +284,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                               style: TextStyle(color: CupertinoColors.destructiveRed),
                             ),
                             onPressed: () {
-                              dismissAlert(context: context);
+                              dismissAlert(context: _scaffoldKey.currentContext!);
                               PodsDatabasePaths(podID: podID, userID: person.userID).leavePod(
                                   podName: podData?.name ?? "Pod",
                                   personName: person.name,
@@ -299,7 +300,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                                                 _listOfPeople.removeWhere((element) => element.userID == person.userID);
                                               });
 
-                                              dismissAlert(context: context);
+                                              dismissAlert(context: _scaffoldKey.currentContext!);
                                             })
                                       ],
                                     );
@@ -323,7 +324,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                         CupertinoButton(
                             child: Text("OK"),
                             onPressed: () {
-                              dismissAlert(context: context);
+                              dismissAlert(context: _scaffoldKey.currentContext!);
                             })
                       ],
                     );
@@ -337,7 +338,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
               icon: CupertinoIcons.person_badge_minus,
             )
           ]),
-          endActionPane: ActionPane(motion: ScrollMotion(), children: [
+          endActionPane: ActionPane(motion: ScrollMotion(), extentRatio: 0.25, children: [
             SlidableAction(
               onPressed: (context) {
                 final podID = podData?.podID;
@@ -353,7 +354,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                         CupertinoButton(
                             child: Text("No"),
                             onPressed: () {
-                              dismissAlert(context: context);
+                              dismissAlert(context: _scaffoldKey.currentContext!);
                             }),
                         CupertinoButton(
                             child: Text(
@@ -361,7 +362,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                               style: TextStyle(color: CupertinoColors.destructiveRed),
                             ),
                             onPressed: () {
-                              dismissAlert(context: context);
+                              dismissAlert(context: _scaffoldKey.currentContext!);
                               PodsDatabasePaths(podID: podID, userID: person.userID).blockFromPod(
                                   podName: podData?.name ?? "Pod",
                                   personName: person.name,
@@ -376,7 +377,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                                               setState(() {
                                                 _listOfPeople.removeWhere((element) => element.userID == person.userID);
                                               });
-                                              dismissAlert(context: context);
+                                              dismissAlert(context: _scaffoldKey.currentContext!);
                                             })
                                       ],
                                     );
@@ -399,7 +400,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                         CupertinoButton(
                             child: Text("OK"),
                             onPressed: () {
-                              dismissAlert(context: context);
+                              dismissAlert(context: _scaffoldKey.currentContext!);
                             })
                       ],
                     );
@@ -435,7 +436,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
               ),
             ),
           ),
-          endActionPane: ActionPane(motion: ScrollMotion(), children: [
+          endActionPane: ActionPane(motion: ScrollMotion(), extentRatio: 0.25, children: [
             SlidableAction(
               onPressed: (context) {
                 final podID = podData?.podID;
@@ -449,12 +450,12 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                       CupertinoButton(
                           child: Text("No"),
                           onPressed: () {
-                            dismissAlert(context: context);
+                            dismissAlert(context: _scaffoldKey.currentContext!);
                           }),
                       CupertinoButton(
                           child: Text("Yes"),
                           onPressed: () {
-                            dismissAlert(context: context);
+                            dismissAlert(context: _scaffoldKey.currentContext!);
                             PodsDatabasePaths(podID: podID, userID: person.userID).unBlockFromPod(
                                 personName: person.name,
                                 onSuccess: () {
@@ -469,7 +470,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                                               _listOfPeople.removeWhere((element) => element.userID == person.userID);
                                             });
 
-                                            dismissAlert(context: context);
+                                            dismissAlert(context: _scaffoldKey.currentContext!);
                                           })
                                     ],
                                   );
@@ -581,7 +582,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
               child: Text("OK"),
               onPressed: () {
                 this._selectedIndex = null; // clear the selected index to remove the list highlight
-                dismissAlert(context: context);
+                dismissAlert(context: _scaffoldKey.currentContext!);
               })
         ],
       );
@@ -599,7 +600,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
               child: Text("OK"),
               onPressed: () {
                 this._selectedIndex = null; // clear the selected index to remove the list highlight
-                dismissAlert(context: context);
+                dismissAlert(context: _scaffoldKey.currentContext!);
               })
         ],
       );
@@ -617,7 +618,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
             child: Text("No"),
             onPressed: () {
               this._selectedIndex = null; // clear the selected index to remove the list highlight
-              dismissAlert(context: context);
+              dismissAlert(context: _scaffoldKey.currentContext!);
             },
           ),
 
@@ -626,7 +627,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
               child: Text("Yes"),
               onPressed: () {
                 this._selectedIndex = null; // clear the selected index to remove the list highlight
-                dismissAlert(context: context);
+                dismissAlert(context: _scaffoldKey.currentContext!);
                 final timeSinceEpochInSeconds = DateTime.now().millisecondsSinceEpoch * 0.001;
                 final infoDict = PodMemberInfoDict(
                     userID: personData.userID,
@@ -657,7 +658,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                               onPressed: () {
                                 // no need to clear the selected index here; it was already cleared when the Yes button
                                 // was tapped.
-                                dismissAlert(context: context);
+                                dismissAlert(context: _scaffoldKey.currentContext!);
                               })
                         ],
                       );
@@ -902,7 +903,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
           CupertinoButton(
               child: Text("OK"),
               onPressed: () {
-                dismissAlert(context: context);
+                dismissAlert(context: _scaffoldKey.currentContext!);
               })
         ],
       );
@@ -1078,7 +1079,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
+    return CupertinoPageScaffold(key: _scaffoldKey,
       child: SafeArea(
         child: CustomScrollView(
           controller: _customScrollViewController,

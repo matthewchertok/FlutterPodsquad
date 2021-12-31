@@ -493,7 +493,7 @@ class _MessagingTabState extends State<MessagingTab> {
                               ),
                             ),
                           ),
-                          startActionPane: ActionPane(motion: const ScrollMotion(), children: [
+                          startActionPane: ActionPane(motion: const ScrollMotion(), extentRatio: 0.25, children: [
                             if (!showingHiddenChats)
                               SlidableAction(
                                 onPressed: (context) {
@@ -517,7 +517,7 @@ class _MessagingTabState extends State<MessagingTab> {
                           ]),
 
                           // The Hide button is on the left, and the Delete button is on the right
-                          endActionPane: ActionPane(motion: ScrollMotion(), children: [
+                          endActionPane: ActionPane(motion: ScrollMotion(), extentRatio: 0.25, children: [
                             SlidableAction(
                               onPressed: (context) {
                                 this._deleteConversation(message: message);

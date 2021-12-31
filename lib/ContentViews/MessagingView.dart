@@ -76,6 +76,7 @@ class _MessagingViewState extends State<MessagingView> {
   final _imagePicker = ImagePicker();
   final _refreshController = RefreshController();
   final _keyboardVisibilityController = KeyboardVisibilityController();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   /// Determine whether the keyboard is visible so I know if I need to hide it when scrolling
   bool _keyboardVisible = false;
@@ -1249,6 +1250,7 @@ class _MessagingViewState extends State<MessagingView> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
+      key: _scaffoldKey,
       navigationBar: CupertinoNavigationBar(
         padding: EdgeInsetsDirectional.all(5),
         middle: Text("Message $chatPartnerOrPodName"),
@@ -1415,7 +1417,8 @@ class _MessagingViewState extends State<MessagingView> {
                                     ),
 
                                     // Actions appear on the left. Use them for received messages
-                                    startActionPane: ActionPane(motion: const ScrollMotion(), children: [
+                                    startActionPane: ActionPane(motion: const ScrollMotion(), extentRatio: 0.6,
+                                        children: [
                                       // delete message
                                       if (message.senderId != myFirebaseUserId)
                                         SlidableAction(
@@ -1424,7 +1427,7 @@ class _MessagingViewState extends State<MessagingView> {
                                           },
                                           backgroundColor: CupertinoColors.destructiveRed,
                                           foregroundColor: CupertinoColors.white,
-                                          icon: CupertinoIcons.trash,
+                                          icon: CupertinoIcons.trash, label: "Delete",
                                         ),
 
                                       // copy message
@@ -1433,32 +1436,31 @@ class _MessagingViewState extends State<MessagingView> {
                                           onPressed: (context) {
                                             Clipboard.setData(ClipboardData(text: message.text));
                                             showSingleButtonAlert(
-                                                context: context, title: "Message Copied!", dismissButtonLabel: "OK");
+                                                context: _scaffoldKey.currentContext!, title: "Message Copied!",
+                                                dismissButtonLabel: "OK");
                                           },
-                                          icon: CupertinoIcons.doc_on_clipboard,
+                                          icon: CupertinoIcons.doc_on_clipboard, label: "Copy",
                                           backgroundColor: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
                                           foregroundColor: isDarkMode ? CupertinoColors.white : CupertinoColors.black,
                                         ),
 
                                       // message time stamp
                                       if (message.senderId != myFirebaseUserId)
-                                        Container(constraints: BoxConstraints(maxWidth: 40),
-                                          child: Text(
-                                            TimeAndDateFunctions.timeStampText(timeStamp),
-                                            style: TextStyle(fontSize: 10, color: CupertinoColors.inactiveGray),
-                                          ),
+                                        Text(
+                                          TimeAndDateFunctions.timeStampText(timeStamp),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 10, color: CupertinoColors.inactiveGray),
                                         )
                                     ]),
 
                                     // Secondary actions appear on the right. Use them for sent messages.
-                                    endActionPane: ActionPane(motion: ScrollMotion(), children: [
+                                    endActionPane: ActionPane(motion: ScrollMotion(), extentRatio: 0.6, children: [
                                       // message time stamp
                                       if (message.senderId == myFirebaseUserId)
-                                        Container(constraints: BoxConstraints(maxWidth: 40),
-                                          child: Text(
-                                            TimeAndDateFunctions.timeStampText(timeStamp),
-                                            style: TextStyle(fontSize: 10, color: CupertinoColors.inactiveGray),
-                                          ),
+                                        Text(
+                                          TimeAndDateFunctions.timeStampText(timeStamp),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 10, color: CupertinoColors.inactiveGray),
                                         ),
 
                                       // copy the message
@@ -1467,11 +1469,13 @@ class _MessagingViewState extends State<MessagingView> {
                                           onPressed: (context) {
                                             Clipboard.setData(ClipboardData(text: message.text));
                                             showSingleButtonAlert(
-                                                context: context, title: "Message Copied!", dismissButtonLabel: "OK");
+                                                context: _scaffoldKey.currentContext!, title: "Message Copied!",
+                                                dismissButtonLabel:
+                                            "OK");
                                           },
                                           backgroundColor: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
                                           foregroundColor: isDarkMode ? CupertinoColors.white : CupertinoColors.black,
-                                          icon: CupertinoIcons.doc_on_clipboard,
+                                          icon: CupertinoIcons.doc_on_clipboard, label: "Copy",
                                         ),
 
                                       // delete the message
@@ -1480,7 +1484,7 @@ class _MessagingViewState extends State<MessagingView> {
                                           onPressed: (context) {
                                             this._deleteMessage(message: message);
                                           },
-                                          icon: CupertinoIcons.trash,
+                                          icon: CupertinoIcons.trash, label: "Delete",
                                           backgroundColor: CupertinoColors.destructiveRed,
                                           foregroundColor: CupertinoColors.white,
                                         )

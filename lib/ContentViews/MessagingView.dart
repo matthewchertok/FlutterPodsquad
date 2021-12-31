@@ -1446,10 +1446,13 @@ class _MessagingViewState extends State<MessagingView> {
 
                                       // message time stamp
                                       if (message.senderId != myFirebaseUserId)
-                                        Text(
-                                          TimeAndDateFunctions.timeStampText(timeStamp),
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 10, color: CupertinoColors.inactiveGray),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            TimeAndDateFunctions.timeStampText(timeStamp),
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(fontSize: 10, color: CupertinoColors.inactiveGray),
+                                          ),
                                         )
                                     ]),
 
@@ -1457,10 +1460,13 @@ class _MessagingViewState extends State<MessagingView> {
                                     endActionPane: ActionPane(motion: ScrollMotion(), extentRatio: 0.7, children: [
                                       // message time stamp
                                       if (message.senderId == myFirebaseUserId)
-                                        Text(
-                                          TimeAndDateFunctions.timeStampText(timeStamp),
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 10, color: CupertinoColors.inactiveGray),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            TimeAndDateFunctions.timeStampText(timeStamp),
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(fontSize: 10, color: CupertinoColors.inactiveGray),
+                                          ),
                                         ),
 
                                       // copy the message

@@ -1419,8 +1419,6 @@ class _MessagingViewState extends State<MessagingView> {
                                     // Actions appear on the left. Use them for received messages
                                     startActionPane: message.senderId != myFirebaseUserId ? ActionPane(motion: const
                                       ScrollMotion(),
-                                    extentRatio:
-                                0.7,
                                         children: [
                                       // delete message
                                       if (message.senderId != myFirebaseUserId)
@@ -1430,7 +1428,7 @@ class _MessagingViewState extends State<MessagingView> {
                                           },
                                           backgroundColor: CupertinoColors.destructiveRed,
                                           foregroundColor: CupertinoColors.white,
-                                          icon: CupertinoIcons.trash, label: "Delete",
+                                          icon: CupertinoIcons.trash,
                                         ),
 
                                       // copy message
@@ -1442,7 +1440,7 @@ class _MessagingViewState extends State<MessagingView> {
                                                 context: _scaffoldKey.currentContext!, title: "Message Copied!",
                                                 dismissButtonLabel: "OK");
                                           },
-                                          icon: CupertinoIcons.doc_on_clipboard, label: "Copy",
+                                          icon: CupertinoIcons.doc_on_clipboard,
                                           backgroundColor: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
                                           foregroundColor: isDarkMode ? CupertinoColors.white : CupertinoColors.black,
                                         ),
@@ -1462,7 +1460,6 @@ class _MessagingViewState extends State<MessagingView> {
                                     // Secondary actions appear on the right. Use them for sent messages.
                                     endActionPane: message.senderId == myFirebaseUserId ? ActionPane(motion:
                                       ScrollMotion(),
-                                        extentRatio: 0.7,
                                         children: [
                                       // message time stamp
                                       if (message.senderId == myFirebaseUserId)
@@ -1487,7 +1484,7 @@ class _MessagingViewState extends State<MessagingView> {
                                           },
                                           backgroundColor: isDarkMode ? CupertinoColors.black : CupertinoColors.white,
                                           foregroundColor: isDarkMode ? CupertinoColors.white : CupertinoColors.black,
-                                          icon: CupertinoIcons.doc_on_clipboard, label: "Copy",
+                                          icon: CupertinoIcons.doc_on_clipboard,
                                         ),
 
                                       // delete the message
@@ -1496,7 +1493,7 @@ class _MessagingViewState extends State<MessagingView> {
                                           onPressed: (context) {
                                             this._deleteMessage(message: message);
                                           },
-                                          icon: CupertinoIcons.trash, label: "Delete",
+                                          icon: CupertinoIcons.trash,
                                           backgroundColor: CupertinoColors.destructiveRed,
                                           foregroundColor: CupertinoColors.white,
                                         )

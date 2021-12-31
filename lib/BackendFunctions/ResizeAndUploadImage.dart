@@ -158,6 +158,7 @@ class ResizeAndUploadImage {
 
     // Save the photo as a png and overwrite the original image
     image.writeAsBytesSync(encodePng(resizedPhoto));
+    print("THIS IS THE IMAGE PATH: ${image.path}");
 
     // Create an output path for the compressed full photo
     final lastIndexFullPhoto = image.path.lastIndexOf(RegExp(r'.jp'));

@@ -1418,7 +1418,7 @@ class _MessagingViewState extends State<MessagingView> {
 
                                     // Actions appear on the left. Use them for received messages
                                     startActionPane: message.senderId != myFirebaseUserId ? ActionPane(motion: const
-                                      ScrollMotion(),
+                                      ScrollMotion(), extentRatio: 0.5,
                                         children: [
                                       // delete message
                                       if (message.senderId != myFirebaseUserId)
@@ -1459,7 +1459,7 @@ class _MessagingViewState extends State<MessagingView> {
 
                                     // Secondary actions appear on the right. Use them for sent messages.
                                     endActionPane: message.senderId == myFirebaseUserId ? ActionPane(motion:
-                                      ScrollMotion(),
+                                      ScrollMotion(),extentRatio: 0.5,
                                         children: [
                                       // message time stamp
                                       if (message.senderId == myFirebaseUserId)

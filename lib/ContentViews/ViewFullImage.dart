@@ -1,7 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:podsquad/CommonlyUsedClasses/UsefulValues.dart';
 import 'package:podsquad/DatabasePaths/ProfileDatabasePaths.dart';
@@ -85,7 +83,7 @@ class _ViewFullImageState extends State<ViewFullImage> {
                     textCapitalization: TextCapitalization.sentences,
                     maxLines: null,
                     controller: _captionTextController,
-                    placeholder: "Caption this image...",
+                    placeholder: "Caption this image...", minLines: 1,
                   ),
 
                   // Delete caption, clear text, reload text, and save caption buttons

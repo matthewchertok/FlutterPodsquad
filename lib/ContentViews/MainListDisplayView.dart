@@ -261,7 +261,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
               ),
             ),
           ),
-          startActionPane: ActionPane(motion: const ScrollMotion(),extentRatio: 0.25, children: [
+          startActionPane: ActionPane(motion: const ScrollMotion(), extentRatio: 0.25, children: [
             SlidableAction(
               onPressed: (context) {
                 final podID = podData?.podID;
@@ -688,6 +688,66 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
     return members.contains(personID);
   }
 
+  /// Make the "Nobody To Display" text depending on the view mode
+  String _nobodyToDisplayText() {
+    switch (viewMode) {
+      case MainListDisplayViewModes.peopleIMet:
+        return "You haven't met anyone in the past 3 weeks";
+      case MainListDisplayViewModes.myPods:
+        return "You aren't in any pods";
+      case MainListDisplayViewModes.addPersonToPod:
+        return "You aren't in any pods";
+      case MainListDisplayViewModes.blocked:
+        if (showingSentDataNotReceivedData)
+          return "You haven't blocked anyone";
+        else
+          return "Nobody has blocked you";
+      case MainListDisplayViewModes.friends:
+        if (showingSentDataNotReceivedData)
+          return "You haven't friended anyone";
+        else
+          return "Nobody has friended you";
+      case MainListDisplayViewModes.likes:
+        if (showingSentDataNotReceivedData)
+          return "You haven't liked anyone";
+        else
+          return "Nobody has liked you";
+      case MainListDisplayViewModes.myPods:
+        return "You aren't in any pods";
+      case MainListDisplayViewModes.podBlockedUsers:
+        return "Nobody is blocked from ${podData?.name ?? "this pod"}";
+      case MainListDisplayViewModes.podMembers:
+        return "${podData?.name ?? "This pod"} has no members"; // should never happen, but I'm including this case just
+      // in case
+      case MainListDisplayViewModes.podMemberships:
+        return personData?.userID == myFirebaseUserId
+            ? "You aren't in any pods"
+            : "${personName?.firstName() ?? "This user"} "
+                "isn't in any pods";
+      case MainListDisplayViewModes.reported:
+        if (showingSentDataNotReceivedData)
+          return "You haven't reported anyone";
+        else
+          return "Nobody has reported you";
+      case MainListDisplayViewModes.searchUsers:
+        return "";
+      case MainListDisplayViewModes.searchPods:
+        return "";
+      case MainListDisplayViewModes.customList:
+        return "No results found";
+      default:
+        return "No results found";
+    }
+  }
+
+  /// Make the "No Results Found" text depending on the view mode
+  String _noResultsFoundText() {
+    if (viewMode == MainListDisplayViewModes.searchPods || viewMode == MainListDisplayViewModes.searchUsers)
+      return ""; // don't show no results since searching only happens when the user presses Enter
+    else
+      return "No results found";
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1079,7 +1139,8 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(key: _scaffoldKey,
+    return CupertinoPageScaffold(
+      key: _scaffoldKey,
       child: SafeArea(
         child: CustomScrollView(
           controller: _customScrollViewController,
@@ -1209,7 +1270,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                     Padding(
                         padding: EdgeInsets.all(20),
                         child: Text(
-                          isSearching ? "No results found" : "Nobody to display",
+                          isSearching ? _noResultsFoundText() : _nobodyToDisplayText(),
                           style: TextStyle(color: CupertinoColors.inactiveGray),
                         )),
 
@@ -1217,7 +1278,7 @@ class _MainListDisplayViewState extends State<MainListDisplayView> {
                     Padding(
                         padding: EdgeInsets.all(20),
                         child: Text(
-                          isSearching ? "No results found" : "No pods to display",
+                          isSearching ? _noResultsFoundText() : _nobodyToDisplayText(),
                           style: TextStyle(color: CupertinoColors.inactiveGray),
                         )),
                 ],

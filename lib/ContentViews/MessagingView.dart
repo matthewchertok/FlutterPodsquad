@@ -1417,7 +1417,10 @@ class _MessagingViewState extends State<MessagingView> {
                                     ),
 
                                     // Actions appear on the left. Use them for received messages
-                                    startActionPane: ActionPane(motion: const ScrollMotion(), extentRatio: 0.7,
+                                    startActionPane: message.senderId != myFirebaseUserId ? ActionPane(motion: const
+                                      ScrollMotion(),
+                                    extentRatio:
+                                0.7,
                                         children: [
                                       // delete message
                                       if (message.senderId != myFirebaseUserId)
@@ -1454,10 +1457,13 @@ class _MessagingViewState extends State<MessagingView> {
                                             style: TextStyle(fontSize: 10, color: CupertinoColors.inactiveGray),
                                           ),
                                         )
-                                    ]),
+                                    ]) : null,
 
                                     // Secondary actions appear on the right. Use them for sent messages.
-                                    endActionPane: ActionPane(motion: ScrollMotion(), extentRatio: 0.7, children: [
+                                    endActionPane: message.senderId == myFirebaseUserId ? ActionPane(motion:
+                                      ScrollMotion(),
+                                        extentRatio: 0.7,
+                                        children: [
                                       // message time stamp
                                       if (message.senderId == myFirebaseUserId)
                                         Padding(
@@ -1494,7 +1500,7 @@ class _MessagingViewState extends State<MessagingView> {
                                           backgroundColor: CupertinoColors.destructiveRed,
                                           foregroundColor: CupertinoColors.white,
                                         )
-                                    ]),
+                                    ]): null,
                                   ),
                                 );
                               })

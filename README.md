@@ -1,6 +1,6 @@
 # podsquad
 
-A social networking app that uses Bluetooth to connect nearby users
+A social networking app that uses Bluetooth to connect nearby users.
 
 Google Play: https://play.google.com/store/apps/details?id=com.coldex.podsquad
 (iOS version available upon request)
